@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.5 Zero-Sum Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+  
+  <h2 id="zero-sum-games">7.5 Zero-Sum Games</h2>
+  <p>We can represent various conflict situations in life by <em>matrix games</em>. For example, the school-yard <a href="https://en.wikipedia.org/wiki/Rock–paper–scissors"><em>rock-paper-scissors</em></a> game is specified by the <em>payoff matrix</em> illustrated here.</p>
+  <p><span class="math display">\[G = \begin{Bmatrix} \begin{array}{c c} &amp; \text{Column} \\ \text{Row} &amp;
+  \boxed{\begin{array}{r r r r} &amp; r &amp; p &amp; s \\ r &amp; 0 &amp; -1 &amp; 1 \\ p &amp; 1 &amp; 0 &amp; -1 \\ s &amp; -1 &amp; 1 &amp; 0 \end{array}} \end{array} \end{Bmatrix}\]</span></p>
+  <p>There are two players, called Row and Column, and they each pick a move from <span class="math inline">\(\{r, p, s\}\)</span>. They then look up the matrix entry corresponding to their moves, and Column pays Row this amount. It is Row's gain and Column's loss.</p>
+  <p>Now suppose the two of them play this game repeatedly. If Row always makes the same move, Column will quickly catch on and will always play the countermove, winning every time.</p>
+  <p>Therefore Row should mix things up: we can model this by allowing Row to have a <em>mixed strategy</em>, in which on each turn she plays <span class="math inline">\(r\)</span> with probability <span class="math inline">\(x_1\)</span>, <span class="math inline">\(p\)</span> with probability <span class="math inline">\(x_2\)</span>, and <span class="math inline">\(s\)</span> with probability <span class="math inline">\(x_3\)</span>. This strategy is specified by the vector <span class="math inline">\(x = (x_1, x_2, x_3)\)</span>, positive numbers that add up to <span class="math inline">\(1\)</span>. Similarly, Column's mixed strategy is some <span class="math inline">\(y = (y_1, y_2, y_3)\)</span>.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+  <p>On any given round of the game, there is an <span class="math inline">\(x_i y_j\)</span> chance that Row and Column will play the <span class="math inline">\(i\)</span>th and <span class="math inline">\(j\)</span>th moves, respectively. Therefore the expected (average) payoff is <span class="math display">\[\sum_{i, j} G_{ij} \cdot \mathbb{P}(\text{Row plays $i$, Column plays $j$}) = \sum_{i, j} G_{ij} x_i y_j.\]</span></p>
+  <p>Row wants to maximize this, while Column wants to minimize it. What payoffs can they hope to achieve in rock-paper-scissors? Well, suppose for instance that Row plays the “completely random” strategy <span class="math inline">\(\textbf{x} = (1 / 3, 1 / 3, 1 / 3)\)</span>. If Column plays <span class="math inline">\(r\)</span>, then the average payoff (reading the first column of the game matrix) will be <span class="math display">\[\frac{1}{3} \cdot 0 + \frac{1}{3} \cdot 1 + \frac{1}{3} \cdot -1 = 0.\]</span></p>
+  <p>This is also true if Column plays <span class="math inline">\(p\)</span>, or <span class="math inline">\(s\)</span>. And since the payoff of any mixed strategy <span class="math inline">\((y_1, y_2, y_3)\)</span> is just a weighted average of the individual payoffs for playing <span class="math inline">\(r\)</span>, <span class="math inline">\(p\)</span>, and <span class="math inline">\(s\)</span>, it must also be zero. This can be seen directly from the preceding formula, <span class="math display">\[\sum_{i, j} G_{ij} x_i y_j = \sum_{i, j} G_{i, j} \cdot \frac{1}{3} y_j = \sum_{j} y_j (\sum_{i} \frac{1}{3} G_{ij}) = \sum_{j} y_j \cdot 0 = 0,\]</span></p>
+  <p>where the second-to-last equality is the observation that every column of <span class="math inline">\(G\)</span> adds up to zero. Thus by playing the &quot;completely random&quot; strategy, Row forces an expected payoff of zero, <em>no matter what Column does</em>.</p>
+  <p>This means that Column cannot hope for a negative (expected) payoff (remember that he wants the payoff to be as small as possible). But symmetrically, if Column plays the completely random strategy, he also forces an expected payoff of zero, and thus Row cannot hope for a positive (expected) payoff.</p>
+  <p>In short, the best each player can do is to play completely randomly, with an expected payoff of zero. We have mathematically confirmed what you knew all along about rock-paper-scissors!</p>
+  <p>Let's think about this in a slightly different way, by considering two scenarios:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>First Row announces her strategy, and then Column picks his.</p></li>
+  <li><p>First Column announces his strategy, and then Row chooses hers.</p></li>
+  </ol>
+  <p>We've seen that the average payoff is the same (zero) in either case if both parties play optimally. But this might well be due to the high level of symmetry in rock-paper-scissors.</p>
+  <p>In general games, we'd expect the first option to favor Column, since he knows Row's strategy and can fully exploit it while choosing his own. Likewise, we'd expect the second option to favor Row.</p>
+  <p>Amazingly, this is not the case: if both play optimally, then it doesn't hurt a player to announce his or her strategy in advance! What's more, this remarkable property is a con- sequence of—and in fact equivalent to—linear programming duality.</p>
+  <p>Let's investigate this with a non-symmetric game. Imagine a presidential election scenario in which there are two candidates for office, and the moves they make correspond to campaign issues on which they can focus (the initials stand for economy, society, morality, and tax cut).</p>
+  <p>The payoff entries are millions of votes lost by Column.</p>
+  <p><span class="math display">\[G = \begin{Bmatrix} \begin{array}{c c} &amp; \text{Column} \\ \text{Row} &amp;
+  \boxed{\begin{array}{r r r} &amp; m &amp; t \\ e &amp; 3 &amp; -1 \\ s &amp; -2 &amp; 1  \end{array}} \end{array} \end{Bmatrix}\]</span></p>
+  <p>Suppose Row announces that she will play the mixed strategy <span class="math inline">\(\textbf{x} = (1 / 2, 1 / 2)\)</span>. What should Column do? Move <span class="math inline">\(m\)</span> will incur an expected loss of <span class="math inline">\(1 / 2\)</span>, while t will incur an expected loss of <span class="math inline">\(0\)</span>. The best response of Column is therefore the pure strategy <span class="math inline">\(\textbf{y} = (0, 1)\)</span>.</p>
+  <p>More generally, once Row's strategy <span class="math inline">\(\textbf{x} = (x_1, x_2)\)</span> is fixed, there is always a pure strategy that is optimal for Column: either move <span class="math inline">\(m\)</span>, with payoff <span class="math inline">\(3x_1 - 2x_2\)</span>; or <span class="math inline">\(t\)</span>, with payoff <span class="math inline">\(-x_1 + x_2\)</span>, whichever is smaller. After all, any mixed strategy <span class="math inline">\(\textbf{y}\)</span> is a weighted average of these two pure strategies and thus cannot beat the better of the two.</p>
+  <p>Therefore, if Row is forced to announce <span class="math inline">\(\textbf{x}\)</span> before Column plays, she knows that his best response will achieve an expected payoff of <span class="math inline">\(\min\{3x_1 - 2x_2, -x_1 + x_2\}\)</span>. She should choose <span class="math inline">\(\textbf{x}\)</span> defensively to maximize her payoff against this best response: <span class="math display">\[\text{Pick $(x_1, x_2)$ that maximizes} \underbrace{\min \{3x_1 - 2x_2, -x_1 + x_2\}}_{\text{payoff from Column&#39;s best response to }\textbf{x}}\]</span></p>
+  <p>This choice of <span class="math inline">\(x_i\)</span>'s gives Row the best possible guarantee about her expected payoff. And we will now see that it can be found by an <span class="math inline">\(\text{LP}\)</span>! The main trick is to notice that for fixed <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> the following are equivalent: <span class="math display">\[\begin{matrix} z = \min \{3x_1 - 2x_2, -x_1 + x_2\} &amp; \Longleftrightarrow &amp; \begin{matrix} \max z \\ z \leq 3x_1 - 2x_2 \\ z \leq -x_1 + x_2 \end{matrix} \end{matrix}\]</span></p>
+  <p>And Row needs to choose <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> to maximize this <span class="math inline">\(z\)</span>.</p>
+  <p><span class="math display">\[
+  \begin{matrix} \max z \\
+  \begin{array}{r c r c c c r}
+  -3x_1 &amp; + &amp; 2y_2 &amp; + &amp;       z &amp; \leq &amp; 0 \\
+    x_1 &amp; - &amp;  y_2 &amp; + &amp;       z &amp; \leq &amp; 0 \\
+    x_1 &amp; + &amp;  y_2 &amp;   &amp;         &amp;    = &amp; 1 \\
+        &amp;   &amp;      &amp;   &amp; x_1,x_2 &amp; \geq &amp; 0 \\
+  \end{array}
+  \end{matrix}\]</span></p>
+  <p>Symmetrically, if Column has to announce his strategy first, his best bet is to choose the mixed strategy <span class="math inline">\(\textbf{y}\)</span> that minimizes his loss under Row's best response, in other words, <span class="math display">\[\text{Pick $(y_1, y_2)$ that minimizes} \underbrace{\max\ 3y_1 - y_2, -2y_1 + y_2}_{\text{outcome of Row&#39;s best response to }\textbf{y}}\]</span></p>
+  <p>In <span class="math inline">\(\textbf{LP}\)</span> form, this is</p>
+  <p><span class="math display">\[
+  \begin{matrix} \min w \\
+  \begin{array}{r c r c c c r}
+  -3y_1 &amp; + &amp; 2x_2 &amp; + &amp;       w &amp; \geq &amp; 0 \\
+   2y_1 &amp; - &amp;  x_2 &amp; + &amp;       w &amp; \geq &amp; 0 \\
+    y_1 &amp; + &amp;  y_2 &amp;   &amp;         &amp;    = &amp; 1 \\
+        &amp;   &amp;      &amp;   &amp; y_1,y_2 &amp; \geq &amp; 0 \\
+  \end{array}
+  \end{matrix}\]</span></p>
+  <p>The crucial observation now is that <em>these two <span class="math inline">\(\text{LPs}\)</span> are dual to each other</em> (see Figure 7.11)! Hence, they have the same optimum, call it <span class="math inline">\(V\)</span>.</p>
+  <p>Let us summarize. By solving an <span class="math inline">\(\text{LP}\)</span>, Row (the maximizer) can determine a strategy for herself that guarantees an expected outcome of at least <span class="math inline">\(V\)</span> no matter what Column does. And by solving the dual <span class="math inline">\(\text{LP}\)</span>, Column (the minimizer) can guarantee an expected outcome of at most <span class="math inline">\(V\)</span>, no matter what Row does.</p>
+  <p>It follows that this is the uniquely defined optimal play: a priori it wasn't even certain that such a play existed. <span class="math inline">\(V\)</span> is known as the value of the game. In our example, it is <span class="math inline">\(1 / 7\)</span> and is realized when Row plays her optimum mixed strategy <span class="math inline">\((3 / 7, 4 / 7)\)</span> and Column plays his optimum mixed strategy <span class="math inline">\((2 / 7, 5 / 7)\)</span>.</p>
+  <p>This example is easily generalized to arbitrary games and shows the existence of mixed strategies that are optimal for both players and achieve the same value—a fundamental result of game theory called the <strong>min-max theorem</strong>. It can be written in equation form as follows: <span class="math display">\[\max_{\textbf{x}} \min_{\textbf{y}} \sum_{i, j} G_{ij} x_i y_j = \min_{\textbf{y}} \max_{\textbf{x}} \sum_{i, j} G_{ij} x_i y_j.\]</span></p>
+  <p>This is surprising, because the left-hand side, in which Row has to announce her strategy first, should presumably be better for Column than the right-hand side, in which he has to go first. Duality equalizes the two, as it did with maximum flows and minimum cuts.</p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>Also of interest are scenarios in which players alter their strategies from round to round, but these can get very complicated and are a vast subject unto themselves.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>1.4 Cryptography</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="cryptography">1.4 Cryptography</h2>
+  <p>Our next topic, the <a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)">Rivest-Shamir-Adelman (RSA) cryptosystem</a>, uses all the ideas we have introduced in this chapter! It derives very strong guarantees of security by ingeniously exploiting the wide gulf between the polynomial-time computability of certain number-theoretic tasks (modular exponentiation, greatest common divisor, primality testing) and the intractability of others (factoring).</p>
+  <p>The typical setting for cryptography can be described via a cast of three characters: Alice and Bob, who wish to communicate in private, and Eve, an eavesdropper who will go to great lengths to find out what they are saying.</p>
+  <p>For concreteness, let's say Alice wants to send a specific message <span class="math inline">\(x\)</span>, written in binary (why not), to her friend Bob. She encodes it as <span class="math inline">\(e(x)\)</span>, sends it over, and then Bob applies his decryption function <span class="math inline">\(d(\cdot)\)</span> to decode it: <span class="math inline">\(d(e(x)) = x\)</span>. Here <span class="math inline">\(e(\cdot)\)</span> and <span class="math inline">\(d(\cdot)\)</span> are appropriate transformations of the messages.</p>
+  <div class="figure">
+  <img src="RSA-cryptosystem-example.png" />
+
+  </div>
+  <p>Alice and Bob are worried that the eavesdropper, Eve, will intercept <span class="math inline">\(e(x)\)</span>: for instance, she might be a sniffer on the network. But ideally the encryption function <span class="math inline">\(e(\cdot)\)</span> is so chosen that without knowing <span class="math inline">\(d(\cdot)\)</span>, Eve cannot do anything with the information she has picked up. In other words, knowing <span class="math inline">\(e(x)\)</span> tells her little or nothing about what <span class="math inline">\(x\)</span> might be.</p>
+  <p>For centuries, cryptography was based on what we now call <strong>private-key protocols</strong>. In such a scheme, Alice and Bob meet beforehand and together choose a secret codebook, with which they encrypt all future correspondence between them. Eve's only hope, then, is to collect some encoded messages and use them to at least partially figure out the codebook.</p>
+  <p><em>Public-key</em> schemes such as RSA are significantly more subtle and tricky: they allow Alice to send Bob a message without ever having met him before. This almost sounds impossible, because in this scenario there is a symmetry between Bob and Eve: why should Bob have any advantage over Eve in terms of being able to understand Alice's message?</p>
+  <p>The central idea behind the RSA cryptosystem is that using the dramatic contrast between factoring and primality, Bob is able to implement a <em>digital lock</em>, to which only he has the key. Now by making this digital lock public, he gives Alice a way to send him a secure message, which only he can open. Moreover, this is exactly the scenario that comes up in Internet commerce, for example, when you wish to send your credit card number to some company over the Internet.</p>
+  <p>In the RSA protocol, Bob need only perform the simplest of calculations, such as multi- plication, to implement his digital lock. Similarly Alice and Bob need only perform simple calculations to lock and unlock the message respectively—operations that any pocket computing device could handle.</p>
+  <p>By contrast, to unlock the message without the key, Eve must perform operations like factoring large numbers, which requires more computational power than would be afforded by the world's most powerful computers combined. This compelling guarantee of security explains why the RSA cryptosystem is such a revolutionary development in cryptography.</p>
+  <blockquote>
+  <p><strong>An Application of Number Theory?</strong> The renowned mathematician G. H. Hardy once declared of his work: &quot;I have never done anything useful.&quot; Hardy was an expert in the theory of numbers, which has long been regarded as one of the purest areas of mathematics, untarnished by material motivation and consequence. Yet the work of thousands of number theorists over the centuries, Hardy's included, is now crucial to the operation of Web browsers and cell phones and to the security of financial transactions worldwide.</p>
+  </blockquote>
+  <p> </p>
+  <h3 id="private-key-schemes-one-time-pad-and-aes">1.4.1 Private-key Schemes: One-Time Pad and AES</h3>
+  <p>If Alice wants to transmit an important private message to Bob, it would be wise of her to scramble it with an encryption function, <span class="math display">\[e : \langle \text{messages} \rangle \rightarrow \langle \text{encoded messages} \rangle.\]</span></p>
+  <p>Of course, this function must be invertible—for decoding to be possible—and is therefore a bijection. Its inverse is the decryption function <span class="math inline">\(d(\cdot)\)</span>.</p>
+  <p>In the <a href="https://en.wikipedia.org/wiki/One-time_pad">one-time pad</a>, Alice and Bob meet beforehand and secretly choose a binary string <span class="math inline">\(r\)</span> of the same length—say, <span class="math inline">\(n\)</span> bits—as the important message <span class="math inline">\(x\)</span> that Alice will later send. Alice's encryption function is then a <em>bitwise exclusive-or</em>, <span class="math inline">\(e_r(x) = x \oplus r\)</span>: each position in the encoded message is the exclusive-or of the corresponding positions in <span class="math inline">\(x\)</span> and <span class="math inline">\(r\)</span>. For instance, if <span class="math inline">\(r = 01110010\)</span>, then the message <span class="math inline">\(11110000\)</span> is scrambled thus: <span class="math display">\[e_r(11110000) = 11110000 \oplus 01110010 = 10000010.\]</span></p>
+  <p>This function <span class="math inline">\(e_r\)</span> is a bijection from <span class="math inline">\(n\)</span>-bit strings to <span class="math inline">\(n\)</span>-bit strings, as evidenced by the fact that it is its own inverse! <span class="math display">\[e_r(e_r(x)) = (x \oplus r) \oplus r = x \oplus (r \oplus r) = x \oplus \bar{0} = x,\]</span></p>
+  <p>where <span class="math inline">\(\bar{0}\)</span> is the string of all zeros. Thus Bob can decode Alice's transmission by applying the same encryption function a second time: <span class="math inline">\(d_r(y) = y \oplus r\)</span>.</p>
+  <p>How should Alice and Bob choose <span class="math inline">\(r\)</span> for this scheme to be secure? Simple: they should pick <span class="math inline">\(r\)</span> <em>at random</em>, flipping a coin for each bit, so that the resulting string is equally likely to be any element of <span class="math inline">\(\{0, 1\}^n\)</span>. This will ensure that if Eve intercepts the encoded message <span class="math inline">\(y = e_r(x)\)</span>, she gets no information about <span class="math inline">\(x\)</span>. Suppose, for example, that Eve finds out <span class="math inline">\(y = 10\)</span>; what can she deduce? She doesn't know <span class="math inline">\(r\)</span>, and the possible values it can take all correspond to different original messages <span class="math inline">\(x\)</span>: <img src="x-projection-to-y.png" /></p>
+  <p>So given what Eve knows, all possibilities for <span class="math inline">\(x\)</span> are equally likely!</p>
+  <p>The downside of the one-time pad is that it has to be discarded after use, hence the name. A second message encoded with the same pad would not be secure, because if Eve knew <span class="math inline">\(x \oplus r\)</span> and <span class="math inline">\(z \oplus r\)</span> for two messages <span class="math inline">\(x\)</span> and <span class="math inline">\(z\)</span>, then she could take the exclusive-or to get <span class="math inline">\(x \oplus z\)</span>, which might be important information—for example,</p>
+  <ol style="list-style-type: decimal">
+  <li><p>it reveals whether the two messages begin or end the same, and</p></li>
+  <li><p>if one message contains a long sequence of zeros (as could easily be the case if the message is an image), then the corresponding part of the other message will be exposed.</p></li>
+  </ol>
+  <p>Therefore the random string that Alice and Bob share has to be the combined length of all the messages they will need to exchange.</p>
+  <p>The one-time pad is a toy cryptographic scheme whose behavior and theoretical properties are completely clear. At the other end of the spectrum lies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">advanced encryption standard (AES)</a>, a very widely used cryptographic protocol that was approved by the U.S. National Institute of Standards and Technologies in 2001. AES is once again private-key: Alice and Bob have to agree on a shared random string <span class="math inline">\(r\)</span>.</p>
+  <p>But this time the string is of a small fixed size, <span class="math inline">\(128\)</span> to be precise (variants with <span class="math inline">\(192\)</span> or <span class="math inline">\(256\)</span> bits also exist), and specifies a bijection <span class="math inline">\(e_r\)</span> from <span class="math inline">\(128\)</span>-bit strings to <span class="math inline">\(128\)</span>-bit strings. The crucial difference is that this function can be used repeatedly, so for instance a long message can be encoded by splitting it into segments of <span class="math inline">\(128\)</span> bits and applying <span class="math inline">\(e_r\)</span> to each segment.</p>
+  <p>The security of AES has not been rigorously established, but certainly at present the general public does not know how to break the code—to recover <span class="math inline">\(x\)</span> from <span class="math inline">\(e_r(x)\)</span>—except using techniques that are not very much better than the brute-force approach of trying all possibilities for the shared string <span class="math inline">\(r\)</span>.</p>
+  <p> </p>
+  <h3 id="rsa">1.4.2 RSA</h3>
+  <p>Unlike the previous two protocols, the RSA scheme is an example of <a href="https://en.wikipedia.org/wiki/Public-key_cryptography">public-key cryptography</a>: anybody can send a message to anybody else using publicly available information, rather like addresses or phone numbers. Each person has a public key known to the whole world and a secret key known only to him- or herself. When Alice wants to send message <span class="math inline">\(x\)</span> to Bob, she encodes it using his public key. He decrypts it using his secret key, to retrieve <span class="math inline">\(x\)</span>. Eve is welcome to see as many encrypted messages for Bob as she likes, but she will not be able to decode them, under certain simple assumptions.</p>
+  <p>The RSA scheme is based heavily upon number theory. Think of messages from Alice to Bob as numbers modulo <span class="math inline">\(N\)</span>; messages larger than <span class="math inline">\(N\)</span> can be broken into smaller pieces. The encryption function will then be a bijection on <span class="math inline">\(\{0, 1, \ldots, N - 1\}\)</span>, and the decryption function will be its inverse. What values of <span class="math inline">\(N\)</span> are appropriate, and what bijection should be used?</p>
+  <p><strong>Property</strong> <em>Pick any two primes <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> and let <span class="math inline">\(N = pq\)</span>. For any <span class="math inline">\(e\)</span> relatively prime to <span class="math inline">\((p - 1)(q - 1)\)</span>:</em></p>
+  <ol style="list-style-type: decimal">
+  <li><p>The mapping <span class="math inline">\(x \mapsto x_e \bmod{N}\)</span> is a bijection on {0, 1, , N - 1}$.</p></li>
+  <li><p>Moreover, the inverse mapping is easily realized: let <span class="math inline">\(d\)</span> be the inverse of <span class="math inline">\(e\)</span> modulo <span class="math inline">\((p - 1)(q - 1)\)</span>. Then for all <span class="math inline">\(x \in \{0, \ldots, N - 1\}\)</span>, <span class="math display">\[(x^e)^d \equiv x \bmod{N}.\]</span></p></li>
+  </ol>
+  <p>The first property tells us that the mapping <span class="math inline">\(x \mapsto x_e \bmod{N}\)</span> is a reasonable way to encode messages <span class="math inline">\(x\)</span>; no information is lost. So, if Bob publishes <span class="math inline">\((N, e)\)</span> as his <em>public key</em>, everyone else can use it to send him encrypted messages. The second property then tells us how decryption can be achieved. Bob should retain the value d as his <em>secret key</em>, with which he can decode all messages that come to him by simply raising them to the <span class="math inline">\(d\)</span>th power modulo <span class="math inline">\(N\)</span>.</p>
+  <p><em>Example.</em> Let <span class="math inline">\(N = 55 = 5 \cdot 11\)</span>. Choose encryption exponent <span class="math inline">\(e = 3\)</span>, which satisfies the condition <span class="math inline">\(\text{gcd}(e, (p - 1)(q - 1)) = \text{gcd}(3, 40) = 1\)</span>. The decryption exponent is then <span class="math inline">\(d = 3 - 1 \bmod{40} = 27\)</span>. Now for any message <span class="math inline">\(x \bmod{55}\)</span>, the encryption of <span class="math inline">\(x\)</span> is <span class="math inline">\(y = x^3 \bmod{55}\)</span>, and the decryption of <span class="math inline">\(y\)</span> is <span class="math inline">\(x = y^{27} \bmod{55}\)</span>. So, for example, if <span class="math inline">\(x = 13\)</span>, then <span class="math inline">\(y = 133 = 52 \bmod{55}\)</span> and <span class="math inline">\(13 = 52^27 \bmod{55}\)</span>.</p>
+  <p>Let's prove the assertion above and then examine the security of the scheme.</p>
+  <p><em>Proof.</em> If the mapping <span class="math inline">\(x \mapsto x_e \bmod{N}\)</span> is invertible, it must be a bijection; hence statement <span class="math inline">\(2\)</span> implies statement <span class="math inline">\(1\)</span>. To prove statement <span class="math inline">\(2\)</span>, we start by observing that <span class="math inline">\(e\)</span> is invertible modulo <span class="math inline">\((p - 1)(q - 1)\)</span> because it is relatively prime to this number. To see that <span class="math inline">\((x^e)^d \equiv x \bmod{N}\)</span>, we examine the exponent: since $ed 1 , we can write <span class="math inline">\(ed\)</span> in the form <span class="math inline">\(1 + k(p - 1)(q - 1)\)</span> for some <span class="math inline">\(k\)</span>. Now we need to show that the difference <span class="math display">\[x^{ed} - x = x^{1 + k(p - 1)(q - 1)} - x\]</span> is always <span class="math inline">\(0\)</span> modulo <span class="math inline">\(N\)</span>.</p>
+  <p>The second form of the expression is convenient because it can be simplified using <a href="https://en.wikipedia.org/wiki/Fermat&#39;s_little_theorem">Fermat's little theorem</a>. It is divisible by <span class="math inline">\(p\)</span> (since <span class="math inline">\(x^{p - 1} \equiv 1 \bmod{p}\)</span>) and likewise by <span class="math inline">\(q\)</span>. Since <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> are primes, this expression must also be divisible by their product <span class="math inline">\(N\)</span>. Hence <span class="math inline">\(x^{ed} - x = x^{1 + k(p-1)(q-1)} - x \equiv 0 \pmod{N}\)</span>, exactly as we need. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>The RSA protocol is summarized in Figure 1.9. It is certainly convenient: the computations it requires of Alice and Bob are elementary. But how secure is it against Eve?</p>
+  <p> </p>
+  <p><strong>Figure 1.9</strong> RSA.</p>
+  <p><span class="math inline">\(\boxed{\text{Bob chooses his public and secret keys.}}\)</span></p>
+  <ul>
+  <li><p>He starts by picking two large (<span class="math inline">\(n\)</span>-bit) random primes <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>.</p></li>
+  <li><p>His public key is <span class="math inline">\((N, e)\)</span> where <span class="math inline">\(N = pq\)</span> and <span class="math inline">\(e\)</span> is a <span class="math inline">\(2n\)</span>-bit number relatively prime to <span class="math inline">\((p - 1)(q - 1)\)</span>. A common choice is <span class="math inline">\(e = 3\)</span> because it permits fast encoding.</p></li>
+  <li><p>His secret key is <span class="math inline">\(d\)</span>, the inverse of <span class="math inline">\(e\)</span> modulo <span class="math inline">\((p - 1)(q - 1)\)</span>, computed using the extended Euclid algorithm.</p></li>
+  </ul>
+  <p><span class="math inline">\(\boxed{\text{Alice wishes to send message x to Bob.}}\)</span></p>
+  <ul>
+  <li><p>She looks up his public key <span class="math inline">\((N, e)\)</span> and sends him <span class="math inline">\(y = (x^e mod N)\)</span>, computed using an efficient modular exponentiation algorithm.</p></li>
+  <li><p>He decodes the message by computing <span class="math inline">\(y^d \bmod{N}\)</span>.</p></li>
+  </ul>
+  <p> </p>
+  <p>The security of RSA hinges upon a simple assumption:</p>
+  <ul>
+  <li>Given <span class="math inline">\(N, e,\)</span> and <span class="math inline">\(y = x^e \bmod{N}\)</span>, it is computationally intractable to determine <span class="math inline">\(x\)</span>.</li>
+  </ul>
+  <p>This assumption is quite plausible. How might Eve try to guess <span class="math inline">\(x\)</span>? She could experiment with all possible values of <span class="math inline">\(x\)</span>, each time checking whether <span class="math inline">\(x^e \equiv y \bmod{N}\)</span>, but this would take exponential time. Or she could try to factor <span class="math inline">\(N\)</span> to retrieve <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, and then figure out <span class="math inline">\(d\)</span> by inverting <span class="math inline">\(e\)</span> modulo <span class="math inline">\((p - 1)(q - 1)\)</span>, but we believe factoring to be hard. Intractability is normally a source of dismay; the insight of RSA lies in using it to advantage.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

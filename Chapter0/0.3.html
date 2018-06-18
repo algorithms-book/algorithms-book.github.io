@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>0.3 Big-O</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="big-mathcalo-notation">0.3 Big-<span class="math inline">\(\mathcal{O}\)</span> Notation</h2>
+  <p>We've just seen how sloppiness in the analysis of running times can lead to an unacceptable level of inaccuracy in the result. But the opposite danger is also present: it is possible to be <em>too</em> precise. An insightful analysis is based on the right simplifications.</p>
+  <p>Expressing running time in terms of <em>basic computer steps</em> is already a simplification. After all, the time taken by one such step depends crucially on the particular processor and even on details such as caching strategy (as a result of which the running time can differ subtly from one execution to the next). Accounting for these architecture-specific minutiae is a nightmarishly complex task and yields a result that does not generalize from one computer to the next.</p>
+  <p>It therefore makes more sense to seek an uncluttered, machine-independent characterization of an algorithm's efficiency. To this end, we will always express running time by counting the number of basic computer steps, as a function of the size of the input.</p>
+  <p>And this simplification leads to another. Instead of reporting that an algorithm takes, say, <span class="math inline">\(5n^3 + 4n + 3\)</span> steps on an input of size <span class="math inline">\(n\)</span>, it is much simpler to leave out lower-order terms such as <span class="math inline">\(4n\)</span> and <span class="math inline">\(3\)</span> (which become insignificant as <span class="math inline">\(n\)</span> grows), and even the detail of the coefficient <span class="math inline">\(5\)</span> in the leading term (computers will be five times faster in a few years anyway), and just say that the algorithm takes time <span class="math inline">\(O(n^3)\)</span> (pronounced "big oh of <span class="math inline">\(n^3\)</span>").</p>
+  <p>It is time to define this notation precisely. In what follows, think of <span class="math inline">\(f(n)\)</span> and <span class="math inline">\(g(n)\)</span> as the running times of two algorithms on inputs of size <span class="math inline">\(n\)</span>.</p>
+  <p>Let <span class="math inline">\(f(n)\)</span> and <span class="math inline">\(g(n)\)</span> be functions from positive integers to positive reals. We say <span class="math inline">\(f = O(g)\)</span> (which means that "<span class="math inline">\(f\)</span> grows no faster than <span class="math inline">\(g\)</span>") if there is a constant <span class="math inline">\(c &gt; 0\)</span> such that <span class="math inline">\(f(n) \leq c \cdot g(n)\)</span>.</p>
+  <p>Saying <span class="math inline">\(f = O(g)\)</span> is a very loose analog of "<span class="math inline">\(f \leq g\)</span>". It differs from the usual notion of <span class="math inline">\(\leq\)</span> because of the constant <span class="math inline">\(c\)</span>, so that for instance <span class="math inline">\(10n = O(n)\)</span>. This constant also allows us to disregard what happens for small values of <span class="math inline">\(n\)</span>. For example, suppose we are choosing between two algorithms for a particular computational task.</p>
+  <p>One takes <span class="math inline">\(f_1{(n)} = n^2\)</span> steps, while the other takes <span class="math inline">\(f_2{(n)} = 2n + 20\)</span> steps (Figure 0.2). Which is better? Well, this depends on the value of <span class="math inline">\(n\)</span>. For <span class="math inline">\(n \leq 5\)</span>, <span class="math inline">\(f_1\)</span> is smaller; thereafter, <span class="math inline">\(f_2\)</span> is the clear winner. In this case, <span class="math inline">\(f_2\)</span> scales much better as <span class="math inline">\(n\)</span> grows, and therefore it is superior.</p>
+  <p> </p>
+  <div class="figure">
+  <img src="fig-0.2-running-time.png" alt="Figure 0.2 Which running time is better?" />
+  <p class="caption"><strong>Figure 0.2</strong> Which running time is better?</p>
+  </div>
+  <p> </p>
+  <p>This superiority is captured by the big-<span class="math inline">\(\mathcal{O}\)</span> notation: <span class="math inline">\(f_2 = O(f_1)\)</span>, because</p>
+  <p><span class="math display">\[
+  \frac{f_2{(n)}}{f_1{(n)}} = \frac{2n + 20}{n^2} \leq 22
+  \]</span></p>
+  <p>for all <span class="math inline">\(n\)</span>; on the other hand, <span class="math inline">\(f_1 \neq O(f_2)\)</span>, since the ratio <span class="math inline">\(f_1{(n)} / f_2{(n)} = n^2 / (2n + 20)\)</span> can get arbitrarily large, and so no constant <span class="math inline">\(c\)</span> will make the definition work.</p>
+  <p>Now another algorithm comes along, one that uses <span class="math inline">\(f_3{(n)} = n + 1\)</span> steps. Is this better than <span class="math inline">\(f_2\)</span>? Certainly, but only by a constant factor. The discrepancy between <span class="math inline">\(f_2\)</span> and <span class="math inline">\(f_3\)</span> is tiny compared to the huge gap between <span class="math inline">\(f_1\)</span> and <span class="math inline">\(f_2\)</span>. In order to stay focused on the big picture, we treat functions as equivalent if they differ only by multiplicative constants.</p>
+  <p>Returning to the definition of big-<span class="math inline">\(\mathcal{O}\)</span>, we see that <span class="math inline">\(f_2 = O(f_3)\)</span>:</p>
+  <p><span class="math display">\[
+  \frac{f_2{(n)}}{f_3{(n)}} = \frac{2n + 20}{n + 1} \leq 20,
+  \]</span></p>
+  <p>and of course <span class="math inline">\(f_3 = O(f_2)\)</span>, this time with <span class="math inline">\(c = 1\)</span>.</p>
+  <p>Just as <span class="math inline">\(O(\cdot)\)</span> is an analog of <span class="math inline">\(\leq\)</span>, we can also define analogs of <span class="math inline">\(\geq\)</span> and <span class="math inline">\(=\)</span> as follows:</p>
+  <p><span class="math display">\[
+  f = \Omega(g) \ \text{means}\ g = O(f)
+  \]</span></p>
+  <p><span class="math display">\[
+  f = \Theta(g) \ \text{means}\ f = O(g) \ \text{and}\ f = \Omega(g).
+  \]</span></p>
+  <p>In the preceding example, <span class="math inline">\(f_2 = \Theta(f_3)\)</span> and <span class="math inline">\(f_1 = \Omega(f_3)\)</span>.</p>
+  <p>Big-<span class="math inline">\(\mathcal{O}\)</span> notation lets us focus on the big picture. When faced with a complicated function like <span class="math inline">\(3n^2 + 4n + 5\)</span>, we just replace it with <span class="math inline">\(O(f(n))\)</span>, where <span class="math inline">\(f(n)\)</span> is as simple as possible. In this particular example we'd use <span class="math inline">\(O(n^2)\)</span>, because the quadratic portion of the sum dominates the rest. Here are some commonsense rules that help simplify functions by omitting dominated terms:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Multiplicative constants can be omitted: <span class="math inline">\(14n^2\)</span> becomes <span class="math inline">\(n^2\)</span>.</p></li>
+  <li><p><span class="math inline">\(n^a\)</span> dominates <span class="math inline">\(n^b\)</span> if <span class="math inline">\(a &gt; b\)</span>: for instance, <span class="math inline">\(n^2\)</span> dominates <span class="math inline">\(n\)</span>.</p></li>
+  <li><p>Any exponential dominates any polynomial: <span class="math inline">\(3^n\)</span> dominates <span class="math inline">\(n^5\)</span> (it even dominates <span class="math inline">\(2^n\)</span>).</p></li>
+  <li><p>Likewise, any polynomial dominates any logarithm: <span class="math inline">\(n\)</span> dominates <span class="math inline">\((\log{n})^3\)</span> . This also means, for example, that <span class="math inline">\(n^2\)</span> dominates <span class="math inline">\(n\log{n}\)</span>.</p></li>
+  </ol>
+  <p>Don't misunderstand this cavalier attitude toward constants. Programmers and algorithm developers are <em>very</em> interested in constants and would gladly stay up nights in order to make an algorithm run faster by a factor of <span class="math inline">\(2\)</span>. But understanding algorithms at the level of this book would be impossible without the simplicity afforded by big-<span class="math inline">\(\mathcal{O}\)</span> notation.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

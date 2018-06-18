@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>6.5 Chain Matrix Multiplication</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="chain-matrix-multiplication">6.5 Chain Matrix Multiplication</h2>
+  <p>Suppose that we want to multiply four matrices, <span class="math inline">\(A \times B \times C \times D\)</span>, of dimensions <span class="math inline">\(50 \times 20, 20 \times 1, 1 \times 10\)</span>, and <span class="math inline">\(10 \times 100\)</span>, respectively (Figure 6.6).</p>
+  <div class="figure">
+  <img src="fig-6.6-chain-matrix-multiplication.png" alt="Figure 6.6 A \times B \times C \times D = (A \times (B \times C)) \times D." />
+  <p class="caption"><strong>Figure 6.6</strong> <span class="math inline">\(A \times B \times C \times D = (A \times (B \times C)) \times D\)</span>.</p>
+  </div>
+  <p> </p>
+  <p>This will involve iteratively multiplying two matrices at a time. Matrix multiplication is not commutative (in general, <span class="math inline">\(A \times B \neq B \times A\)</span>), but it is associative, which means for instance that <span class="math inline">\(A \times (B \times C) = (A \times B) \times C\)</span>. Thus we can compute our product of four matrices in many different ways, depending on how we parenthesize it. Are some of these better than others?</p>
+  <p>Multiplying an <span class="math inline">\(m \times n\)</span> matrix by an <span class="math inline">\(n \times p\)</span> matrix takes <span class="math inline">\(mnp\)</span> multiplications, to a good enough approximation. Using this formula, let's compare several different ways of evaluating <span class="math inline">\(A \times B \times C \times D\)</span>:</p>
+  <p><span class="math display">\[\begin{array}{c | c | c}
+  \text{parenthesization} &amp; \text{cost computation} &amp; \text{cost} \\
+  A \times ((B \times C) \times D) &amp; 20 \cdot 1 \cdot 10 + 20 \cdot 10 \cdot 100 + 50 \cdot 20 \cdot 100 &amp; 120,200 \\
+  (A \times (B \times C)) \times D &amp; 20 \cdot 1 \cdot 10 + 50 \cdot 20 \cdot 10 + 50 \cdot 10 \cdot 100 &amp; 60,200 \\
+  (A \times B) \times (C \times D) &amp; 50 \cdot 20 \cdot 1 + 1 \cdot 10 \cdot 100 + 50 \cdot 1 \cdot 100 &amp; 7,000 \\
+  \end{array}\]</span></p>
+  <p>As you can see, the order of multiplications makes a big difference in the final running time! Moreover, the natural greedy approach, to always perform the cheapest matrix multiplication available, leads to the second parenthesization shown here and is therefore a failure.</p>
+  <p>How do we determine the optimal order, if we want to compute <span class="math inline">\(A_1 \times A_2 \times \cdots \times A_n\)</span>, where the <span class="math inline">\(A_i\)</span>'s are matrices with dimensions <span class="math inline">\(m_0 \times m_1, m_1 \times m_2, \ldots, m_{n-1} \times m_n\)</span>, respectively?</p>
+  <p>The first thing to notice is that a particular parenthesization can be represented very naturally by a binary tree in which the individual matrices correspond to the leaves, the root is the final product, and interior nodes are intermediate products (Figure 6.7).</p>
+  <div class="figure">
+  <img src="fig-6.7-binary-subtrees.png" alt="Figure 6.7 (a) ((A \times B) \times C) \times D; (b) A \times ((B \times C) \times D); (c) (A (B C)) D$." />
+  <p class="caption"><strong>Figure 6.7</strong> (a) <span class="math inline">\(((A \times B) \times C) \times D\)</span>; (b) <span class="math inline">\(A \times ((B \times C) \times D)\)</span>; (c) (A (B C)) D$.</p>
+  </div>
+  <p> </p>
+  <p>The possible orders in which to do the multiplication correspond to the various full binary trees with <span class="math inline">\(n\)</span> leaves, whose number is exponential in <span class="math inline">\(n\)</span> (Exercise 2.13). We certainly cannot try each tree, and with brute force thus ruled out, we turn to dynamic programming. The binary trees of Figure 6.7 are suggestive: for a tree to be optimal, its subtrees must also be optimal.</p>
+  <p>What are the subproblems corresponding to the subtrees? They are products of the form <span class="math inline">\(A_i \times A_{i+1} \times \cdots \times A_j\)</span>. Let's see if this works: for <span class="math inline">\(1 \leq i \leq j \leq n\)</span>, define <span class="math display">\[C(i, j) = \text{minimum cost of multiplying $A_i \times A_{i+1} \times \cdots \times A_j$}.\]</span></p>
+  <p>The size of this subproblem is the number of matrix multiplications, <span class="math inline">\(|j - i|\)</span>. The smallest subproblem is when <span class="math inline">\(i = j\)</span>, in which case there's nothing to multiply, so <span class="math inline">\(C(i, i) = 0\)</span>. For <span class="math inline">\(j &gt; i\)</span>, consider the optimal subtree for <span class="math inline">\(C(i, j)\)</span>. The first branch in this subtree, the one at the top, will split the product in two pieces, of the form <span class="math inline">\(A_i \times \cdots \times A_k\)</span> and <span class="math inline">\(A_{k+1} \times \cdots \times A_j\)</span>, for some <span class="math inline">\(k\)</span> between <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>.</p>
+  <p>The cost of the subtree is then the cost of these two partial products, plus the cost of combining them: <span class="math inline">\(C(i, k) + C(k + 1, j) + m_{i-1} \cdot m_k \cdot m_j\)</span>. And we just need to find the splitting point k for which this is smallest: <span class="math display">\[C(i, j) = \min_{i \leq k &lt; j} \{C(i, k) + C(k + 1, j) + m_{i-1} \cdot m_k \cdot m_j\}.\]</span></p>
+  <p>We are ready to code! In the following, the variable <span class="math inline">\(s\)</span> denotes subproblem size.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> cost():
+    <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span> to n:
+      C(i, i) <span class="op">=</span> <span class="dv">0</span>
+    <span class="cf">for</span> s <span class="op">=</span> <span class="dv">1</span> to n <span class="op">-</span> <span class="dv">1</span>:
+      <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span> to n <span class="op">-</span> s:
+        j <span class="op">=</span> i <span class="op">+</span> s
+        C(i, j) <span class="op">=</span> <span class="bu">min</span>(C(i, k) <span class="op">+</span> C(k <span class="op">+</span> <span class="dv">1</span>, j) <span class="op">+</span> m_{i<span class="op">-</span><span class="dv">1</span>} · m_k · m_j : i ≤ k <span class="op">&lt;</span> j)
+    <span class="cf">return</span> C(<span class="dv">1</span>, n)</code></pre></div>
+  <p>The subproblems constitute a two-dimensional table, each of whose entries takes <span class="math inline">\(O(n)\)</span> time to compute. The overall running time is thus <span class="math inline">\(O(n^3)\)</span>.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

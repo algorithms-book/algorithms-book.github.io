@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>1.2 Modular Arithmetic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="modular-arithmetic">1.2 Modular Arithmetic</h2>
+  <p>With repeated addition or multiplication, numbers can get cumbersomely large. So it is fortunate that we reset the hour to zero whenever it reaches 24, and the month to January after every stretch of 12 months. Similarly, for the built-in arithmetic operations of computer processors, numbers are restricted to some size, 32 bits say, which is considered generous enough for most purposes.</p>
+  <p>For the applications we are working toward -- primality testing and cryptography -- it is necessary to deal with numbers that are significantly larger than 32 bits, but whose range is nonetheless limited.</p>
+  <p><strong>Modular arithmetic</strong> is a system for dealing with restricted ranges of integers. We define <span class="math inline">\(x \pmod{N}\)</span> to be the remainder when <span class="math inline">\(x\)</span> is divided by <span class="math inline">\(N\)</span>; that is, if <span class="math inline">\(x = qN + r\)</span> with <span class="math inline">\(0 \leq r &lt; N\)</span>, then <span class="math inline">\(x \pmod{N}\)</span> is equal to <span class="math inline">\(r\)</span>. This gives an enhanced notion of <strong>equivalence</strong> between numbers: <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are <em>congruent</em> <span class="math inline">\(\pmod{N}\)</span> if they differ by a multiple of <span class="math inline">\(N\)</span>, or in symbols,</p>
+  <p><span class="math display">\[
+  x \equiv y \pmod{N} \ \Longleftrightarrow\ N \ \text{divides}\ (x - y).
+  \]</span></p>
+  <p>For instance <span class="math inline">\(256 \equiv 13 \pmod{60}\)</span> because <span class="math inline">\(253 - 13 = 240\)</span> is a multiple of <span class="math inline">\(60\)</span>; more familiarly, <span class="math inline">\(253\)</span> minutes is <span class="math inline">\(4\)</span> hours and <span class="math inline">\(13\)</span> minutes. These numbers can also be negative, as in <span class="math inline">\(59 \equiv -1 \pmod{60}\)</span>: when it is <span class="math inline">\(59\)</span> minutes past the hour, it is also <span class="math inline">\(1\)</span> minute short of the next hour.</p>
+  <p>One way to think of modular arithmetic is that it limited numbers to a predefined range <span class="math inline">\(\{ 0, 1, \cdots, N - 1 \}\)</span> and wraps around whenever you try to leave this range -- like the hand of a clock (Figure 1.3).</p>
+  <div class="figure">
+  <img src="fig-1.3-addition-modulo-8.png" alt="Figure 1.3 Addition modulo 8." />
+  <p class="caption"><strong>Figure 1.3</strong> Addition modulo 8.</p>
+  </div>
+  <p>Another interpretation is that modular arithmetic deals with all the integers, but divides them into <span class="math inline">\(N\)</span> <strong>equivalence classes</strong>, each of the form <span class="math inline">\(\{ i + k N : k \in \mathbb{Z} \}\)</span> for some <span class="math inline">\(i\)</span> between <span class="math inline">\(0\)</span> and <span class="math inline">\(N - 1\)</span>. For example, there are three equivalence classes modulo <span class="math inline">\(3\)</span>:</p>
+  <p><span class="math display">\[
+  \begin{matrix}
+  \cdots &amp; -9 &amp; -6 &amp; -3 &amp; 0 &amp; 3 &amp; 6 &amp; 9  &amp; \cdots \\
+  \cdots &amp; -8 &amp; -5 &amp; -2 &amp; 1 &amp; 4 &amp; 7 &amp; 10 &amp; \cdots \\
+  \cdots &amp; -7 &amp; -4 &amp; -1 &amp; 2 &amp; 5 &amp; 8 &amp; 11 &amp; \cdots \\
+  \end{matrix}
+  \]</span></p>
+  <p>Any member of an equivalence class is substitutable for each other; when viewed modulo <span class="math inline">\(3\)</span>, the numbers <span class="math inline">\(5\)</span> and <span class="math inline">\(11\)</span> are no different. Under such substitutions, addition and multiplication remain well-defined:</p>
+  <p><strong>Substitution rule</strong> If <span class="math inline">\(x \equiv x&#39; \pmod{N}\)</span> and <span class="math inline">\(y \equiv y&#39; \pmod{N}\)</span>, then: <span class="math display">\[x + y \equiv x&#39; + y&#39; \pmod{N}\]</span> and <span class="math display">\[xy \equiv x&#39;y&#39; \pmod{N}.\]</span></p>
+  <p>For instance, suppose you watch an entire season of your favorite television show in one sitting, starting at midnight. There are <span class="math inline">\(25\)</span> episodes, each last <span class="math inline">\(3\)</span> hours. At which time of the day are you done? Answer: the hour of completion is <span class="math inline">\((25 \times 3) \pmod{24}\)</span>, which since <span class="math inline">\(24 \equiv 1 \pmod{24}\)</span> is <span class="math inline">\(1 \times 3 \equiv 3 \pmod{24}\)</span>, or three o'clock in the morning.</p>
+  <p>It is not hard to check that in modular arithmetic, the usual associative, commutative, and distributive properties of addition and multiplication continue to apply, for instance:</p>
+  <p><span class="math display">\[
+  \begin{matrix}
+  x + (y + z) \equiv (x + y) + z \pmod{N} &amp; \text{Associativity} \\
+  xy \equiv yx \pmod{N}                   &amp; \text{Commutativity} \\
+  x(y + z) \equiv xy + yz \pmod{N}        &amp; \text{Distributivity}\\
+  \end{matrix}
+  \]</span></p>
+  <p>Taken together with the substitution rule, this implies that while performing a sequence of arithmetic operations, it is legal to reduce intermediate results to their remainders modulo <span class="math inline">\(N\)</span> at any stage. Such simplifications can be a dramatic help in big calculations.</p>
+  <p>Witness, for instance:</p>
+  <p><span class="math display">\[
+  2^{345} \equiv (2^5)^{69} \equiv 32^{69} \equiv 1^{69} \equiv 1 \pmod{31}.
+  \]</span></p>
+  <h3 id="modular-addition-and-multiplication">1.2.1 Modular Addition and Multiplication</h3>
+  <p>To <em>add</em> two numbers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> modulo <span class="math inline">\(N\)</span>, we start with regular addition. Since <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are each in the range <span class="math inline">\(0\)</span> to <span class="math inline">\(N - 1\)</span>, their sum is between <span class="math inline">\(0\)</span> and <span class="math inline">\(2(N - 1)\)</span>. If the sum exceeds <span class="math inline">\(N - 1\)</span>, we merely subtract off <span class="math inline">\(N\)</span> to bring it back into the required range. The overall computation therefore consists of an addition, and possibly a subtraction, of numbers that never exceed <span class="math inline">\(2N\)</span>. Its running time is linear in the sizes of these numbers, in other words <span class="math inline">\(O(n)\)</span>, where <span class="math inline">\(n = \log N\)</span> is hte size of <span class="math inline">\(N\)</span>. As a reminder, our convention is to use the letter <span class="math inline">\(n\)</span> to denote input size.</p>
+  <p>To <em>multiply</em> two numbers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> modulo <span class="math inline">\(N\)</span>, we again start with regular multiplication and then reduce the answer modulo <span class="math inline">\(N\)</span>. The product can be as large as <span class="math inline">\((N - 1)^2\)</span>, but this is still at most <span class="math inline">\(2n\)</span> bits long since <span class="math inline">\(\log (N - 1)^2 = 2\log (N - 1) \leq 2n\)</span>. To reduce the answer modulo <span class="math inline">\(N\)</span>, we compute the remainder upon dividing it by <span class="math inline">\(N\)</span>, using our quadratic-time division algorithm. Multiplication thus remains a quadratic operation.</p>
+  <blockquote>
+  <p><strong>Two's Complement</strong></p>
+  <p>Modular arithmetic is nicely illustrated in <em>two’s complement</em>, the most common format for storing signed integers. It uses <span class="math inline">\(n\)</span> bits to represent numbers in the range <span class="math inline">\([-2^{n-1}, 2^{n-1} - 1]\)</span> and is usually described as follows:</p>
+  <ul>
+  <li><p>Positive integers, in the range <span class="math inline">\(0\)</span> to <span class="math inline">\(2^{n-1} - 1\)</span>, are stored in regular binary and have a leading bit of <span class="math inline">\(0\)</span>.</p></li>
+  <li><p>Negative integers <span class="math inline">\(-x\)</span>, with <span class="math inline">\(1 \leq x \leq 2^{n-1}\)</span>, are stored by first constructing <span class="math inline">\(x\)</span> in binary, then flipping all the bits, and finally adding <span class="math inline">\(1\)</span>. The leading bit in this case is <span class="math inline">\(1\)</span>.</p></li>
+  </ul>
+  <p>(And the usual description of addition and multiplication in this format is even more arcane!)</p>
+  <p>Here’s a much simpler way to think about it: any number in the range <span class="math inline">\(-2^{n-1}\)</span> to <span class="math inline">\(2^{n-1} - 1\)</span> is stored modulo <span class="math inline">\(2^n\)</span>. Negative numbers <span class="math inline">\(-x\)</span> therefore end up as <span class="math inline">\(2^{n} - x\)</span>. Arithmetic operations like addition and subtraction can be performed directly in this format, ignoring any overflow bits that arise.</p>
+  </blockquote>
+  <p><em>Division</em> is not quite so easy. In ordinary arithmetic, there is just one tricky case -- division by zero. It turns out that in modular arithmetic there are potentially other such cases as well, which we will characterize toward the end of this section. Whenever division is legal, however, it can be managed in cubic time <span class="math inline">\(O(n^3)\)</span>.</p>
+  <p>To complete the suite of modular arithmetic primitives we need for cryptography, we next turn to modular exponentiation, and then to the greatest common divisor, which is the key to division. For both tasks, the most obvious procedures take exponentially long, but with some ingenuity, polynomial-time solutions can be found. A careful choice of algorithms makes all the difference.</p>
+  <h3 id="modular-exponentiation">1.2.2 Modular Exponentiation</h3>
+  <p>In the cryptosystem we are working toward, it is necessary to compute <span class="math inline">\(x^y \pmod{N}\)</span> for values of <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(N\)</span> that are several hundred bits long. Can this be done quickly?</p>
+  <p>The result is some number modulo <span class="math inline">\(N\)</span> and is therefore itself a few hundred bits long. However, the raw value of <span class="math inline">\(xy\)</span> could be much, much longer than this. Even when <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are just <span class="math inline">\(20\)</span>-bit numbers, <span class="math inline">\(x^y\)</span> is at least $(2<sup>{19})</sup>{(2^{19})} = 2^{(19)(524288)}, about <span class="math inline">\(10\)</span> million bits long! Imagine what happens if <span class="math inline">\(y\)</span> is a <span class="math inline">\(500\)</span>-bit number!</p>
+  <p>To make sure the numbers we are dealing with never grow too large, we need to perform all intermediate computations modulo <span class="math inline">\(N\)</span>. So here’s an idea: calculate <span class="math inline">\(x^y \pmod{N}\)</span> by repeatedly multiplying by <span class="math inline">\(x \pmod{N}\)</span>. The resulting sequence of intermediate products,</p>
+  <p><span class="math display">\[
+  x \pmod{N} \longrightarrow x^2 \pmod{N} \longrightarrow x^3 \pmod{N} \longrightarrow \ \cdots\ \longrightarrow x^y \pmod{N},
+  \]</span></p>
+  <p>consists of numbers that are smaller than <span class="math inline">\(N\)</span>, and so the individual multiplications do not take too long. But there's a problem: if <span class="math inline">\(y\)</span> is <span class="math inline">\(500\)</span> bits long, we need to perform <span class="math inline">\(y - 1 \approx 2^{500}\)</span> multiplications! This algorithm is clearly exponential in the size of <span class="math inline">\(y\)</span>.</p>
+  <p>Luckily, we can do better: starting with <span class="math inline">\(x\)</span> and <strong>squaring repeatedly</strong> modulo <span class="math inline">\(N\)</span>, we get</p>
+  <p><span class="math display">\[
+  x \pmod{N} \longrightarrow x^2 \pmod{N} \longrightarrow x^4 \pmod{N} \longrightarrow x^8 \pmod{N} \longrightarrow \ \cdots\ \longrightarrow x^{2 \log{y}} \pmod{N}.
+  \]</span></p>
+  <p>Each takes just <span class="math inline">\(O(\log^2 N)\)</span> time to compute, and in this case there are only <span class="math inline">\(\log{y}\)</span> multiplications. To determine <span class="math inline">\(x^y \pmod{N}\)</span>, we simply multiply together an appropriate subset of these powers, those corresponding to <span class="math inline">\(1\)</span>'s in the binary representation of <span class="math inline">\(y\)</span>.</p>
+  <p>For instance,</p>
+  <p><span class="math display">\[
+  x^{25} = x^{11001_2} = x^{10000_2} \cdot x^{1000_2} \cdot x^{1_2} = x^{16} \cdot x^8 \cdot x^{1}.
+  \]</span></p>
+  <p>A polynomial-time algorithm is finally within reach!</p>
+  <p>We can package this idea in a particularly simply form: the recursive algorithm of Figure 1.4, which works by executing the self-evident rule</p>
+  <p><span class="math display">\[
+  x^y = \begin{cases} (x^{y / 2})^2 &amp; \text{if $y$ is even} \\ x \cdot (x^{y / 2})^2 &amp; \text{if $y$ is odd} \end{cases}
+  \]</span></p>
+  <p><strong>Figure 1.4</strong> Modular exponentiation</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> modexp(x, y, N):
+      <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">    Input: two n-bit integers x and N, an integer exponent y</span>
+  <span class="co">    Output: x^y mod N</span>
+  <span class="co">    &quot;&quot;&quot;</span>
+
+      <span class="cf">if</span> y <span class="op">==</span> <span class="dv">0</span>:
+          <span class="cf">return</span> <span class="dv">1</span>
+
+      z <span class="op">=</span> modexp(x, y <span class="op">/</span> <span class="dv">2</span>, N)
+      <span class="cf">if</span> y <span class="kw">is</span> even:
+          <span class="cf">return</span> z<span class="op">^</span><span class="dv">2</span> mod N
+      <span class="cf">else</span>:
+          <span class="cf">return</span> x <span class="op">*</span> z<span class="op">^</span><span class="dv">2</span> mod N</code></pre></div>
+  <p>In doing so, it closely parallels our recursive multiplication algorithm (Figure 1.1). For instance, that algorithm would compute the product <span class="math inline">\(x \cdot 25\)</span> to the analogous decomposition to one we saw <span class="math inline">\(x \cdot 25 = x \cdot 16 + x \cdot 8 + x \cdot 1\)</span>. And whereas for multiplication for the terms <span class="math inline">\(x \cdot 2^{i}\)</span> come from repeated doubling, for exponentation the corresponding terms <span class="math inline">\(x^{2^i}\)</span> are generated by repeated squaring.</p>
+  <p>Let <span class="math inline">\(n\)</span> be the size in bits of <span class="math inline">\(x, y\)</span>, and <span class="math inline">\(N\)</span> (whichever is the largest of the three). As with multiplication, the algorithm will halt after at most <span class="math inline">\(n\)</span> recursive calls, and during each call it multiplies <span class="math inline">\(n\)</span>-bit numbers (doing computation modulo <span class="math inline">\(N\)</span> saves us here), for a total running time of <span class="math inline">\(O(n^3)\)</span>.</p>
+  <h3 id="euclids-algorithm-for-greatest-common-divisor">1.2.3 Euclid's Algorithm for Greatest Common Divisor</h3>
+  <p>Our next algorithm was discovered well over 2000 years ago by the mathematician Euclid, in ancient Greece. Given two integers <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, it finds the largest integer that divides both of them, known as their <strong>greatest common divisor (gcd)</strong>.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Euclid(a, b):
+      <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">    Input: two integers a and b with a &gt;= b &gt;= 0</span>
+  <span class="co">    Output: gcd(a, b)</span>
+  <span class="co">    &quot;&quot;&quot;</span>
+      <span class="cf">if</span> b <span class="op">==</span> <span class="dv">0</span>:
+          <span class="cf">return</span> a
+      <span class="cf">else</span>:
+          <span class="cf">return</span> Euclid(b, a mod b)</code></pre></div>
+  <p>The most obvious approach is to first factor <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, then multiply their common factors. For instance, <span class="math inline">\(1035 = 3^2 \cdot 5 \cdot 23\)</span> and <span class="math inline">\(759 = 3 \cdot 11 \cdot 23\)</span>, so their <span class="math inline">\(\text{gcd}\)</span> is <span class="math inline">\(3 \cdot 23 = 69\)</span>. However, we have no efficient algorithm for factoring. Is there some other way to compute the greatest common divisors?</p>
+  <p>Euclid's algorithm uses the following simple formula.</p>
+  <p><strong>Euclid's rule</strong> If <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are positive integers with <span class="math inline">\(x \geq y\)</span>, then <span class="math inline">\(\text{gcd}(x, y) = \text{gcd}(y, x \pmod{y})\)</span>.</p>
+  <p><em>Proof.</em> It is enough to show the slightly simpler rule <span class="math inline">\(\text{gcd}(x, y) = \text{gcd}(y, x - y)\)</span> from which the one stated can be derivated by repeatedly subtracting <span class="math inline">\(y\)</span> from <span class="math inline">\(x\)</span>. Here it goes. Any integer that divides both <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> must also divide <span class="math inline">\(x - y\)</span>, so <span class="math inline">\(\text{gcd}(x, y) \leq \text{gcd}(y, x - y)\)</span>. Likewise, any integer that divides <span class="math inline">\(x - y\)</span> and <span class="math inline">\(y\)</span> must also divide both <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> (since <span class="math inline">\(x - y + y = x\)</span>), so <span class="math inline">\(\text{gcd}(x, y) \geq \text{gcd}(y, x - y)\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>Euclid’s rule allows us to write down an elegant recursive algorithm (Figure 1.5), and its correctness follows immediately from the rule. In order to figure out its running time, we need to understand how quickly the arguments <span class="math inline">\((a, b)\)</span> decrease with each successive recursive call. In a single round, arguments <span class="math inline">\((a, b)\)</span> become <span class="math inline">\((b, a \pmod{b})\)</span>: their order is swapped, and the larger of them, <span class="math inline">\(a\)</span>, gets reduced to <span class="math inline">\(a \pmod{b}\)</span>. This is a substantial reduction.</p>
+  <p><strong>Lemma</strong> If <span class="math inline">\(a \geq b\)</span>, then <span class="math inline">\(a \pmod{b} &lt; \frac{a}{2}\)</span>.</p>
+  <p><em>Proof.</em> Witness that either <span class="math inline">\(b \leq \frac{a}{2}\)</span> or <span class="math inline">\(b &gt; \frac{a}{2}\)</span>. These two case are shown in the following figure. If <span class="math inline">\(b leq \frac{a}{2}\)</span>, then we have <span class="math inline">\(a \pmod{b} &lt; b \leq \frac{a}{2}\)</span>. And if <span class="math inline">\(b &gt; \frac{a}{2}\)</span>, then <span class="math inline">\(a \pmod{b} = a - b &lt; \frac{a}{2}\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+  <div class="figure">
+  <img src="euclids-rule.png" />
+
+  </div>
+  <p>This means that after any two consecutive rounds, both arguments, <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, are at the very least halved in value -- the length of each decreases by at least one bit. If they are initially <span class="math inline">\(n\)</span>-bit integers, then the base case will be reached within <span class="math inline">\(2n\)</span> recursive calls. And since each call involves a quadratic-time division, the total time is <span class="math inline">\(O(n^3)\)</span>.</p>
+  <h3 id="an-extension-of-euclids-algorithm">1.2.4 An Extension of Euclid's Algorithm</h3>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> extended_Euclid(a, b):
+      <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">    Input: two integers a and b with a &gt;= b &gt;= 0</span>
+  <span class="co">    Output: integers x, y, d, such that d = gcd(a, b) and ax + by = d</span>
+  <span class="co">    &quot;&quot;&quot;</span>
+      <span class="cf">if</span> b <span class="op">==</span> <span class="dv">0</span>:
+          <span class="cf">return</span> (<span class="dv">1</span>, <span class="dv">0</span>, a)
+      <span class="cf">else</span>:
+          (x, y, d) <span class="op">=</span> extended_Euclid(b, a mod b)
+          <span class="cf">return</span> (y, x <span class="op">-</span> (a <span class="op">/</span> b)y, d)</code></pre></div>
+  <p>A small extension to Euclid’s algorithm is the key to dividing in the modular world. To motivate it, suppose someone claims that <span class="math inline">\(d\)</span> is the greatest common divisor of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>: how can we check this? It is not enough to verify that <span class="math inline">\(d\)</span> divides both <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, because this only shows <span class="math inline">\(d\)</span> to be a common factor, not necessarily the largest one. Here’s a test that can be used if <span class="math inline">\(d\)</span> is of a particular form.</p>
+  <p><strong>Lemma</strong> If <span class="math inline">\(d\)</span> divides both <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, and <span class="math inline">\(d = ax + by\)</span> for some integers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, then necessarily <span class="math inline">\(d = \text{gcd}(a, b)\)</span>.</p>
+  <p><em>Proof.</em> By the first two conditions, <span class="math inline">\(d\)</span> is a common divisor of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> and so it cannot exceed the greatest common divisor; that is, <span class="math inline">\(d \leq \text{gcd}(a, b)\)</span>. On the other hand, since <span class="math inline">\(\text{gcd}(a, b)\)</span> is a common divisor of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, it must also divide <span class="math inline">\(ax + by = d\)</span>, which implies <span class="math inline">\(\text{gcd}(a, b) \leq d\)</span>. Putting these together, <span class="math inline">\(d = \text{gcd}(a, b)\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+  <p><strong>Lemma</strong> For any positive integers <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, the extended Euclid algorithm returns integers <span class="math inline">\(x, y,\)</span> and <span class="math inline">\(d\)</span> such that <span class="math inline">\(\text{gcd}(a, b) = d = ax + by\)</span>.</p>
+  <p><em>Proof.</em> The first thing to confirm is that if you ignore the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, the extended algorithm is exactly the same as the original. So, at least we compute <span class="math inline">\(d = \text{gcd}(a, b)\)</span>. For the rest, the recursive nature of the algorithm suggests a proof by induction. The recursion ends when <span class="math inline">\(b = 0\)</span>, so it is convenient to do induction on the value of <span class="math inline">\(b\)</span>. The base case <span class="math inline">\(b = 0\)</span> is easy enough to check directly.</p>
+  <p>Now pick any larger value of <span class="math inline">\(b\)</span>. The algorithm finds <span class="math inline">\(\text{gcd}(a, b)\)</span> by calling <span class="math inline">\(\text{gcd}(b, a \pmod{b})\)</span>. Since <span class="math inline">\(a \pmod{b} &lt; b\)</span>, we can apply the inductive hypothesis to this recursive call and conclude that the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> it returns are correct:</p>
+  <p><span class="math display">\[
+  \text{gcd}(b, a \pmod{b}) = bx + (a \pmod{b})y.
+  \]</span></p>
+  <p>Writing <span class="math inline">\(a \pmod{b}\)</span> as <span class="math inline">\(a - (a / b)b\)</span>, we find</p>
+  <p><span class="math display">\[
+  d = \text{gcd}(a, b) = \text{gcd}(b, a \pmod{b}) = bx + (a \pmod{b})y = bx + (a - (a / b)b)y = ay + b(x - (a / b)y).
+  \]</span></p>
+  <p>Therefore <span class="math inline">\(d = ax + by\)</span> with <span class="math inline">\(x = y\)</span> and <span class="math inline">\(y = x - (a / b)y\)</span>, thus validating the algorithm's behavior on input <span class="math inline">\((a, b)\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>For example, to compute <span class="math inline">\(\text{gcd}(25, 11)\)</span>, Euclid's algorithm would proceed as follows:</p>
+  <p><span class="math display">\[
+  \begin{aligned}
+  \underline{25} &amp;= 2 \cdot \underline{11} + 3 \\
+  \underline{11} &amp;= 3 \cdot \underline{ 3} + 2 \\
+  \underline{ 3} &amp;= 1 \cdot \underline{ 2} + 1 \\
+  \underline{ 2} &amp;= 2 \cdot \underline{ 1} + 0 \\
+  \end{aligned}
+  \]</span></p>
+  <p>(at each stage, the <span class="math inline">\(\text{gcd}\)</span> computation has been reduced to the underlined numbers).</p>
+  <p>Thus, <span class="math inline">\(\text{gcd}(25, 11) = \text{gcd}(11, 3) = \text{gcd}(3, 2) = \text{gcd}(1, 0)\)</span>.</p>
+  <p>To find <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> such that <span class="math inline">\(25x + 11y = 1\)</span>, we start by expressing <span class="math inline">\(1\)</span> in terms of the last pair <span class="math inline">\((1, 0)\)</span>. Then we work backwards and express it in terms of <span class="math inline">\((2, 1), (3, 2), (11, 3)\)</span>, and finally <span class="math inline">\((25, 11)\)</span>. The first step is:</p>
+  <p><span class="math display">\[
+  1 = \underline{1} - \underline{0}.
+  \]</span></p>
+  <p>To rewrite this in terms of <span class="math inline">\((2, 1)\)</span>, we use the substitution <span class="math inline">\(0 = 2 - 2 \cdot 1\)</span> from the last line of the gcd calculation to get:</p>
+  <p><span class="math display">\[
+  1 = \underline{1} - (\underline{2} - 2 \cdot \underline{1}) = -1 \cdot \underline{2} + 3 \cdot \underline{1}.
+  \]</span></p>
+  <p>The second-last line of the gcd calculation tells us that <span class="math inline">\(1 = 3 - 1 \cdot 2\)</span>. Substituting:</p>
+  <p><span class="math display">\[
+  1 = -1 \cdot \underline{2} + 3(\underline{3} - 1 \cdot \underline{2}) = 3 \cdot \underline{3} - 4 \cdot \underline{2}.
+  \]</span></p>
+  <p>Continuing in this same way with substitutions <span class="math inline">\(2 = 11 - 3 \cdot 3\)</span> and <span class="math inline">\(3 = 25 - 2 \cdot 11\)</span> gives:</p>
+  <p><span class="math display">\[
+  1 = 3 \cdot \underline{3} - 4(\underline{11} - 3 \cdot \underline{3}) = -4 \cdot \underline{11} + 15 \cdot \underline{3} = -4 \cdot \underline{11} + 15(\underline{25} - 2 \cdot \underline{11}) = 15 \cdot \underline{25} - 34 \cdot \underline{11}.
+  \]</span></p>
+  <p>We're done: <span class="math inline">\(15 \cdot 25 - 32 \cdot 1 = 1\)</span>, so <span class="math inline">\(x = 15\)</span> and <span class="math inline">\(y = -34\)</span>.</p>
+  <h3 id="modular-division">1.2.5 Modular Division</h3>
+  <p>In real arithmetic, every number <span class="math inline">\(a \neq 0\)</span> has an inverse <span class="math inline">\(\frac{1}{a}\)</span>, and dividing by <span class="math inline">\(a\)</span> is the same as multiplying by this inverse. In modular arithmetic, we can make a similar definition.</p>
+  <ul>
+  <li>We say <span class="math inline">\(x\)</span> is the <strong>multiplicative inverse</strong> of <span class="math inline">\(a\)</span> modulo <span class="math inline">\(N\)</span> if <span class="math inline">\(ax \equiv 1 \pmod{N}\)</span>$.</li>
+  </ul>
+  <p>There can be at most one such <span class="math inline">\(x\)</span> modulo <span class="math inline">\(N\)</span>, and we shall denote it by <span class="math inline">\(a^{-1}\)</span>. However, <em>this inverse does not always exist!</em> For instance, <span class="math inline">\(2\)</span> is not invertible modulo <span class="math inline">\(6\)</span>: that is, <span class="math inline">\(2x \not\equiv 1 \pmod{6}\)</span> for every possible choice of <span class="math inline">\(x\)</span>. In this case, <span class="math inline">\(a\)</span> and <span class="math inline">\(N\)</span> are both even and thus then <span class="math inline">\(a \pmod{N}\)</span> is always even, since <span class="math inline">\(a \pmod{N} = a - kN\)</span> for some <span class="math inline">\(k\)</span>.</p>
+  <p>More generally, we can be certain that <span class="math inline">\(\text{gcd}(a, N)\)</span> divides <span class="math inline">\(ax \pmod{N}\)</span>, because this latter quantity can be written in the form <span class="math inline">\(ax + kN\)</span>. So if <span class="math inline">\(\text{gcd}(a, N) &gt; 1\)</span> then <span class="math inline">\(ax \not\equiv 1 \pmod{N}\)</span>, no matter what <span class="math inline">\(x\)</span> might be, and therefore <span class="math inline">\(a\)</span> cannot have a multiplicative inverse modulo <span class="math inline">\(N\)</span>.</p>
+  <p>In fact, this is the only circumstance in which <span class="math inline">\(a\)</span> is not invertible. When <span class="math inline">\(\text{gcd}(a, N) = 1\)</span> (we say <span class="math inline">\(a\)</span> and <span class="math inline">\(N\)</span> are relatively prime, or co-prime), the extended Euclid algorithm gives us integers <span class="math inline">\(x\)</span> and y such that <span class="math inline">\(ax + Ny = 1\)</span>, which means that <span class="math inline">\(ax \equiv 1 \pmod{N}\)</span>. Thus <span class="math inline">\(x\)</span> is <span class="math inline">\(a\)</span>’s sought inverse.</p>
+  <p>For example, suppose we wish to compute <span class="math inline">\(11^{-1} \pmod{25}\)</span>. Using the extended Euclid algorithm, we find that <span class="math inline">\(15 \cdot 25 - 34 \cdot 11 = 1\)</span>. Reducing both sides modulo <span class="math inline">\(25\)</span>, we have <span class="math inline">\(-34 \cdot 11 \equiv 1 \pmod{25}\)</span>. So <span class="math inline">\(-34 \equiv 16 \pmod{25}\)</span> is the inverse of <span class="math inline">\(11 \pmod{25}\)</span>.</p>
+  <p><strong>Modular Division Theorem</strong> For any <span class="math inline">\(a \pmod{N}\)</span>, <span class="math inline">\(a\)</span> has a multiplicative inverse modulo <span class="math inline">\(N\)</span> if and only if it is relatively prime to <span class="math inline">\(N\)</span>. When this inverse exists, it can be found in time <span class="math inline">\(O(n^3)\)</span> (where as usual <span class="math inline">\(n\)</span> denotes the number of bits of <span class="math inline">\(N\)</span>) by running the extended Euclid algorithm.</p>
+  <p>This resolves the issue of modular division: when working modulo <span class="math inline">\(N\)</span>, we can divide by numbers relatively prime to <span class="math inline">\(N\)</span> -- and only by these. And to actually carry out the division, we multiply by the inverse.</p>
+  <blockquote>
+  <p><strong>Is your social security number a prime?</strong></p>
+  <p>The numbers <span class="math inline">\(7, 17, 19, 71,\)</span> and <span class="math inline">\(79\)</span> are primes, but how about <span class="math inline">\(717-19-7179\)</span>? Telling whether a reasonably large number is a prime seems tedious because there are far too many candidate factors to try. However, there are some clever tricks to speed up the process. For instance, you can omit even-valued candidates after you have eliminated the number <span class="math inline">\(2\)</span>. You can actually omit all candidates except those that are themselves primes.</p>
+  <p>In fact, a little further thought will convince you that you can proclaim <span class="math inline">\(N\)</span> a prime as soon as you have rejected all candidates <em>up to</em> <span class="math inline">\(\sqrt{N}\)</span>, for if <span class="math inline">\(N\)</span> can indeed be factored as <span class="math inline">\(N = K \cdot L\)</span>, then it is impossible for both factors to exceed <span class="math inline">\(\sqrt{N}\)</span>.</p>
+  <p>We seem to be making progress! Perhaps by omitting more and more candidate factors, a truly efficient primality test can be discovered.</p>
+  <p>Unfortunately, there is no fast primality test down this road. The reason is that we have been trying to tell if a number is a prime <em>by factoring it</em>. And factoring is a hard problem!</p>
+  <p>Modern cryptography, as well as the balance of this chapter, is about the following important idea: <strong><em>factoring is hard and primality is easy</em></strong>. We cannot factor large numbers, but we can easily test huge numbers for primality! (Presumably, if a number is composite, such a test will detect this <em>without finding a factor</em>.)</p>
+  </blockquote>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

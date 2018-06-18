@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.6 Simplex Algorithm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="the-simplex-algorithm">7.6 The Simplex Algorithm</h2>
+  <p>The extraordinary power and expressiveness of linear programs would be little consolation if we did not have a way to solve them efficiently. This is the role of the simplex algorithm.</p>
+  <p>At a high level, the simplex algorithm takes a set of linear inequalities and a linear objective function and finds the optimal feasible point by the following strategy:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">let v be <span class="bu">any</span> vertex of the feasible region
+  <span class="cf">while</span> there <span class="kw">is</span> a neighbor v<span class="op">*</span> of v <span class="cf">with</span> better objective value:
+    <span class="bu">set</span> v <span class="op">=</span> v<span class="op">*</span></code></pre></div>
+  <p>In our <span class="math inline">\(2\text{D}\)</span> and <span class="math inline">\(3\text{D}\)</span> examples (Figure 7.1 and Figure 7.2), this was simple to visualize and made intuitive sense. But what if there are <span class="math inline">\(n\)</span> variables, <span class="math inline">\(x_1, \cdots, x_n\)</span>?</p>
+  <p>Any setting of the <span class="math inline">\(x_i\)</span>'s can be represented by an <span class="math inline">\(n\)</span>-tuple of real numbers and plotted in <span class="math inline">\(n\)</span>-dimensional space. A linear equation involving the <span class="math inline">\(x_i\)</span>'s defines a <em>hyperplane</em> in this same space <span class="math inline">\(\mathbb{R}^n\)</span>, and the corresponding linear inequality defines a <em>half-space</em>, all points that are either precisely on the hyperplane or lie on one particular side of it.</p>
+  <p>Finally, the feasible region of the linear program is specified by a set of inequalities and is therefore the intersection of the corresponding half-spaces, a convex polyhedron.</p>
+  <p>But what do the concepts of <em>vertex</em> and <em>neighbor</em> mean in this general context?</p>
+  <p> </p>
+  <h3 id="vertices-and-neighbors-in-n-dimensional-space">7.6.1 Vertices and Neighbors in <span class="math inline">\(n\)</span>-dimensional Space</h3>
+  <p>Figure 7.12 recalls an earlier example. Looking at it closely, we see that <em>each vertex is the unique point at which some subset of hyperplanes meet</em>.</p>
+  <p><strong>Figure 7.12</strong> A polyhedron defined by seven inequalities.</p>
+  <table style="width:100%;">
+  <colgroup>
+  <col width="51%" />
+  <col width="13%" />
+  </colgroup>
+  <thead>
+  <tr class="header">
+  <th><img src="fig-7.12-polyhedron-example.png" /></th>
+  <th><span class="math display">\[\begin{matrix} \max\ x_1 + 6x_2 + 13x_3 \\ \begin{array}{c r c r c r c l} (1) &amp;     &amp;   &amp;     &amp;   &amp;  x_1 &amp; \leq &amp; 200 \\ (2) &amp;     &amp;   &amp;     &amp;   &amp;  x_2 &amp; \leq &amp; 300 \\ (3) &amp; x_1 &amp; + &amp; x_2 &amp; + &amp;  x_3 &amp; \leq &amp; 400 \\ (4) &amp;     &amp;   &amp; x_2 &amp; + &amp; 3x_3 &amp; \geq &amp; 600 \\ (5) &amp;     &amp;   &amp;     &amp;   &amp;  x_1 &amp; \geq &amp;   0 \\ (6) &amp;     &amp;   &amp;     &amp;   &amp;  x_2 &amp; \geq &amp;   0 \\ (7) &amp;     &amp;   &amp;     &amp;   &amp;  x_3 &amp; \geq &amp;   0 \\ \end{array} \end{matrix}\]</span></th>
+  </tr>
+  </thead>
+  <tbody>
+  </tbody>
+  </table>
+  <p>Vertex <span class="math inline">\(A\)</span>, for instance, is the sole point at which constraints <span class="math inline">\((2), (3),\)</span> and <span class="math inline">\((7)\)</span> are satisfied with equality. On the other hand, the hyperplanes corresponding to inequalities <span class="math inline">\((4)\)</span> and <span class="math inline">\((6)\)</span> do not define a vertex, because their intersection is not just a single point but an entire line.</p>
+  <p>Let's make this definition precise.</p>
+  <ul>
+  <li>Pick a subset of the inequalities. If there is a unique point that satisfies them with equality, and this point happens to be feasible, then it is a <em>vertex</em>.</li>
+  </ul>
+  <p>How many equations are needed to uniquely identify a point? When there are <span class="math inline">\(n\)</span> variables, we need at least <span class="math inline">\(n\)</span> linear equations if we want a unique solution. On the other hand, having more than <span class="math inline">\(n\)</span> equations is redundant: at least one of them can be rewritten as a linear combination of the others and can therefore be disregarded.</p>
+  <p>In short,</p>
+  <ul>
+  <li>Each vertex is specified by a set of <span class="math inline">\(n\)</span> inequalities.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></li>
+  </ul>
+  <p>A notion of <em>neighbor</em> now follows naturally.</p>
+  <ul>
+  <li>Two vertices are <em>neighbors</em> if they have <span class="math inline">\(n - 1\)</span> defining inequalities in common.</li>
+  </ul>
+  <p>In Figure 7.12, for instance, vertices <span class="math inline">\(A\)</span> and <span class="math inline">\(C\)</span> share the two defining inequalities <span class="math inline">\(\{(3), (7)\}\)</span> and are thus neighbors.</p>
+  <p> </p>
+  <h3 id="the-algorithm">7.6.2 The Algorithm</h3>
+  <p>On each iteration, simplex has two tasks:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Check whether the current vertex is optimal (and if so, halt).</p></li>
+  <li><p>Determine where to move next.</p></li>
+  </ol>
+  <p>As we will see, both tasks are easy if the vertex happens to be at the origin. And if the vertex is elsewhere, we will transform the coordinate system to move it to the origin!</p>
+  <p>First let's see why the origin is so convenient. Suppose we have some generic <span class="math inline">\(\text{LP}\)</span> <span class="math display">\[\begin{gathered} \max\ \textbf{c}^{\top}\textbf{x} \\ \textbf{Ax} \leq \textbf{b} \\ \textbf{x} \geq 0 \end{gathered}\]</span></p>
+  <p>where <span class="math inline">\(\textbf{x}\)</span> is the vector of variables, <span class="math inline">\(\textbf{x} = (x_1, \cdots, x_n)\)</span>. Suppose the origin is feasible. Then it is certainly a vertex, since it is the unique point at which the <span class="math inline">\(n\)</span> inequalities <span class="math inline">\(\{x_1 \geq 0, \cdots, x_n \geq 0\}\)</span> are tight.</p>
+  <p>Now let's solve our two tasks. Task 1: * The origin is optimal if and only if all <span class="math inline">\(c_i \leq 0\)</span>.</p>
+  <p>If all <span class="math inline">\(c_i \leq 0\)</span>, then considering the constraints <span class="math inline">\(\textbf{x} \geq 0\)</span>, we can't hope for a better objective value. Conversely, if some <span class="math inline">\(c_i &gt; 0\)</span>, then the origin is not optimal, since we can increase the objective function by raising <span class="math inline">\(x_i\)</span>.</p>
+  <p>Thus, for task 2, we can move by increasing some <span class="math inline">\(x_i\)</span> for which <span class="math inline">\(c_i &gt; 0\)</span>. How much can we increase it? <em>Until we hit some other constraint.</em> That is, we release the tight constraint <span class="math inline">\(x_i \geq 0\)</span> and increase <span class="math inline">\(x_i\)</span> until some other inequality, previously loose, now becomes tight. At that point, we again have exactly <span class="math inline">\(n\)</span> tight inequalities, so we are at a new vertex.</p>
+  <p>For instance, suppose we're dealing with the following linear program. <span class="math display">\[\begin{matrix} \max\ 2x_1 + 5x_2 \\
+  \begin{array}{c r c r c r}
+  (1) &amp; 2x_1 &amp; - &amp;  x_2 &amp; \leq &amp; 4 \\
+  (2) &amp;  x_1 &amp; + &amp; 2x_2 &amp; \leq &amp; 9 \\
+  (3) &amp; -x_1 &amp; + &amp;  x_2 &amp; \leq &amp; 3 \\
+  (4) &amp;      &amp;   &amp;  x_1 &amp; \geq &amp; 0 \\
+  (5) &amp;      &amp;   &amp;  x_2 &amp; \geq &amp; 0 \\
+  \end{array} \end{matrix}\]</span></p>
+  <p>Simplex can be started at the origin, which is specified by constraints <span class="math inline">\((4)\)</span> and <span class="math inline">\((5)\)</span>. To move, we release the tight constraint <span class="math inline">\(x_2 \geq 0\)</span>. As <span class="math inline">\(x_2\)</span> is gradually increased, the first constraint it runs into is <span class="math inline">\(-x_1 + x_2 \leq 3\)</span>, and thus it has to stop at <span class="math inline">\(x_2 = 3\)</span>, at which point this new inequality is tight. The new vertex is thus given by <span class="math inline">\((3)\)</span> and <span class="math inline">\((4)\)</span>.</p>
+  <p>So we know what to do if we are at the origin. But what if our current vertex <span class="math inline">\(\textbf{u}\)</span> is elsewhere? The trick is to transform <span class="math inline">\(u\)</span> into the origin, by shifting the coordinate system from the usual <span class="math inline">\((x_1, \cdots, x_n)\)</span> to the &quot;local view&quot; from <span class="math inline">\(\textbf{u}\)</span>. These local coordinates consist of (appropriately scaled) distances <span class="math inline">\(y_1, \cdots, y_n\)</span> to the <span class="math inline">\(n\)</span> hyperplanes (inequalities) that define and enclose <span class="math inline">\(\textbf{u}\)</span>:</p>
+  <div class="figure">
+  <img src="vertex-shift.png" />
+
+  </div>
+  <p> </p>
+  <p>Specifically, if one of these enclosing inequalities is <span class="math inline">\(\textbf{a}_i \cdot \textbf{x} \leq b_i\)</span>, then the distance from a point <span class="math inline">\(\textbf{x}\)</span> to that particular &quot;wall&quot; is <span class="math display">\[y_i = b_i - \textbf{a}_i \cdot \textbf{x}.\]</span></p>
+  <p>The <span class="math inline">\(n\)</span> equations of this type, one per wall, define the <span class="math inline">\(y_i\)</span>'s as linear functions of the <span class="math inline">\(x_i\)</span>'s, and this relationship can be inverted to express the <span class="math inline">\(x_i\)</span>'s as a linear function of the <span class="math inline">\(y_i\)</span>'s. Thus we can rewrite the entire <span class="math inline">\(\text{LP}\)</span> in terms of the <span class="math inline">\(y\)</span>'s. This doesn't fundamentally change it (for instance, the optimal value stays the same), but expresses it in a different coordinate frame. The revised &quot;local&quot; <span class="math inline">\(\text{LP}\)</span> has the following three properties:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>It includes the inequalities <span class="math inline">\(\textbf{y} \geq 0\)</span>, which are simply the transformed versions of the inequalities defining <span class="math inline">\(\textbf{u}\)</span>.</p></li>
+  <li><p><span class="math inline">\(\textbf{u}\)</span> itself is the origin in <span class="math inline">\(\textbf{y}\)</span>-space.</p></li>
+  <li><p>The cost function becomes <span class="math inline">\(\max\ c_\textbf{u} + \tilde{\textbf{c}}^{\top} \textbf{y}\)</span>, where <span class="math inline">\(c_\textbf{u}\)</span> is the value of the objective function at <span class="math inline">\(\textbf{u}\)</span> and <span class="math inline">\(\tilde{\textbf{c}}\)</span> is a transformed cost vector.</p></li>
+  </ol>
+  <p>In short, we are back to the situation we know how to handle! Figure 7.13 shows this algorithm in action, continuing with our earlier example.</p>
+  <p>The simplex algorithm is now fully defined. It moves from vertex to neighboring vertex, stopping when the objective function is locally optimal, that is, when the coordinates of the local cost vector are all zero or negative.</p>
+  <p>As we've just seen, a vertex with this property must also be globally optimal. On the other hand, if the current vertex is not locally optimal, then its local coordinate system includes some dimension along which the objective function can be improved, so we move along this direction—along this edge of the polyhedron—until we reach a neighboring vertex.</p>
+  <p>By the non-degeneracy assumption (see footnote 1 in Section 7.6.1), this edge has nonzero length, and so we strictly improve the objective value. Thus the process must eventually halt.</p>
+  <div class="figure">
+  <img src="fig-7.13-simplex.png" alt="Figure 7.13 Simplex in action." />
+  <p class="caption"><strong>Figure 7.13</strong> Simplex in action.</p>
+  </div>
+  <p> </p>
+  <h3 id="loose-ends">7.6.3 Loose Ends</h3>
+  <p>There are several important issues in the simplex algorithm that we haven't yet mentioned.</p>
+  <p><strong>The starting vertex.</strong> How do we find a vertex at which to start simplex? In our <span class="math inline">\(2\text{D}\)</span> and <span class="math inline">\(3\text{D}\)</span> examples we always started at the origin, which worked because the linear programs happened to have inequalities with positive right-hand sides. In a general <span class="math inline">\(\text{LP}\)</span> we won't always be so fortunate. However, it turns out that finding a starting vertex <em>can be reduced to an</em> <span class="math inline">\(\text{LP}\)</span> and solved by simplex!</p>
+  <p>To see how this is done, start with any linear program in standard form (recall Section 7.1.4), since we know <span class="math inline">\(\text{LPs}\)</span> can always be rewritten this way. <span class="math display">\[\begin{matrix} \min\ \textbf{c}^{\top} \textbf{x} &amp; \text{such that} &amp; \textbf{Ax} = \textbf{b} &amp; \text{and} &amp; \textbf{x} \geq 0. \end{matrix}\]</span></p>
+  <p>We first make sure that the right-hand sides of the equations are all nonnegative: if <span class="math inline">\(b_i &lt; 0\)</span>, just multiply both sides of the <span class="math inline">\(i\)</span>th equation by <span class="math inline">\(-1\)</span>.</p>
+  <p>Then we create a new <span class="math inline">\(\text{LP}\)</span> as follows:</p>
+  <ul>
+  <li><p>create <span class="math inline">\(m\)</span> new <em>artificial variables</em> <span class="math inline">\(z_1, \cdots, z_m \geq 0\)</span>, where <span class="math inline">\(m\)</span> is the number of equations.</p></li>
+  <li><p>add <span class="math inline">\(z_i\)</span> to the left-hand side of the <span class="math inline">\(i\)</span>th equation.</p></li>
+  <li><p>Let the objective, to be <em>minimized</em>, be <span class="math inline">\(z_1 + z_2 + \cdots + z_m\)</span>.</p></li>
+  </ul>
+  <p>For this new <span class="math inline">\(\text{LP}\)</span>, it's easy to come up with a starting vertex, namely, the one with <span class="math inline">\(z_i = b_i\)</span> for all <span class="math inline">\(i\)</span> and all other variables zero. Therefore we can solve it by simplex, to obtain the optimum solution.</p>
+  <p>There are two cases. If the optimum value of <span class="math inline">\(z_1 + z_2 + \cdots + z_m\)</span> is zero, then all <span class="math inline">\(z_i\)</span>'s obtained by simplex are zero, and hence from the optimum vertex of the new LP we get a starting feasible vertex of the original LP, just by ignoring the zi's. We can at last start simplex!</p>
+  <p>But what if the optimum objective turns out to be positive? Let us think. We tried to minimize the sum of the <span class="math inline">\(z_i\)</span>'s, but simplex decided that it cannot be zero. But this means that the original linear program is infeasible: it <em>needs</em> some nonzero <span class="math inline">\(z_i\)</span>'s to become feasible. This is how simplex discovers and reports that an <span class="math inline">\(\text{LP}\)</span> is infeasible.</p>
+  <p> </p>
+  <p><strong>Degeneracy.</strong> In the polyhedron of Figure 7.12 vertex <span class="math inline">\(B\)</span> is degenerate. Geometrically, this means that it is the intersection of more than <span class="math inline">\(n = 3\)</span> faces of the polyhedron (in this case, <span class="math inline">\(2, 3, 4, 5\)</span>). Algebraically, it means that if we choose any one of four sets of three inequalities (<span class="math inline">\(\{2, 3, 4\}, \{2, 3, 5\}, \{2, 4, 5\},\)</span> and <span class="math inline">\(\{3, 4, 5\}\)</span>) and solve the corresponding system of three linear equations in three unknowns, we'll get the same solution in all four cases: <span class="math inline">\((0, 300, 100)\)</span>.</p>
+  <p>This is a serious problem: simplex may return a suboptimal degenerate vertex simply because all its neighbors are identical to it and thus have no better objective. And if we modify simplex so that it detects degeneracy and continues to hop from vertex to vertex despite lack of any improvement in the cost, it may end up looping forever.</p>
+  <p>One way to fix this is by a <em>perturbation</em>: change each <span class="math inline">\(b_i\)</span> by a tiny random amount to <span class="math inline">\(b_i \pm \epsilon_i\)</span>. This doesn't change the essence of the <span class="math inline">\(\text{LP}\)</span> since the <span class="math inline">\(\epsilon_i\)</span>'s are tiny, but it has the effect of differentiating between the solutions of the linear systems. To see why geometrically, imagine that the four planes <span class="math inline">\(2, 3, 4, 5\)</span> were jolted a little. Wouldn't vertex <span class="math inline">\(B\)</span> split into two vertices, very close to one another?</p>
+  <p> </p>
+  <p><strong>Unboundedness.</strong> In some cases an <span class="math inline">\(\text{LP}\)</span> is unbounded, in that its objective function can be made arbitrarily large (or small, if it's a minimization problem). If this is the case, simplex will discover it: in exploring the neighborhood of a vertex, it will notice that taking out an inequality and adding another leads to an underdetermined system of equations that has an infinity of solutions. And in fact (this is an easy test) the space of solutions contains a whole line across which the objective can become larger and larger, all the way to <span class="math inline">\(\infty\)</span>. In this case simplex halts and complains.</p>
+  <p> </p>
+  <h3 id="the-running-time-of-simplex">7.6.4 The Running Time of Simplex</h3>
+  <p>What is the running time of simplex, for a generic linear program <span class="math display">\[\begin{matrix} \min\ \textbf{c}^{\top} \textbf{x} &amp; \text{such that} &amp; \textbf{Ax} = \textbf{b} &amp; \text{and} &amp; \textbf{x} \geq 0. \end{matrix}\]</span></p>
+  <p>where there are <span class="math inline">\(n\)</span> variables and <span class="math inline">\(\textbf{A}\)</span> contains <span class="math inline">\(m\)</span> inequality constraints? Since it is an iterative algorithm that proceeds from vertex to vertex, let's start by computing the time taken for a single iteration.</p>
+  <p>Suppose the current vertex is <span class="math inline">\(\textbf{u}\)</span>. By definition, it is the unique point at which <span class="math inline">\(n\)</span> inequality constraints are satisfied with equality. Each of its neighbors shares <span class="math inline">\(n - 1\)</span> of these inequalities, so <span class="math inline">\(\textbf{u}\)</span> can have at most <span class="math inline">\(n \cdot m\)</span> neighbors: choose which inequality to drop and which new one to add.</p>
+  <p>A naive way to perform an iteration would be to check each potential neighbor to see whether it really is a vertex of the polyhedron and to determine its cost. Finding the cost is quick, just a dot product, but checking whether it is a true vertex involves solving a system of <span class="math inline">\(n\)</span> equations in <span class="math inline">\(n\)</span> unknowns (that is, satisfying the <span class="math inline">\(n\)</span> chosen inequalities exactly) and checking whether the result is feasible. By Gaussian elimination (see the following box) this takes <span class="math inline">\(O(n^3)\)</span> time, giving an unappetizing running time of <span class="math inline">\(O(m n^4)\)</span> per iteration.</p>
+  <p>Fortunately, there is a much better way, and this <span class="math inline">\(m n^4\)</span> factor can be improved to <span class="math inline">\(m n\)</span>, making simplex a practical algorithm. Recall our earlier discussion (Section 7.6.2) about the <em>local view</em> from vertex <span class="math inline">\(\textbf{u}\)</span>. It turns out that the per-iteration overhead of rewriting the LP in terms of the current local coordinates is just <span class="math inline">\(O((m + n)n)\)</span>; this exploits the fact that the local view changes only slightly between iterations, in just one of its defining inequalities.</p>
+  <p>Next, to select the best neighbor, we recall that the local view of the objective function is of the form &quot;<span class="math inline">\(\max\ c_\textbf{u} + \tilde{\textbf{c}}^{\top} \textbf{y}\)</span>&quot; where <span class="math inline">\(c_\textbf{u}\)</span> is the value of the objective function at <span class="math inline">\(\textbf{u}\)</span>. This immediately identifies a promising direction to move: we pick any <span class="math inline">\(\tilde{c}_i &gt; 0\)</span> (if there is none, then the current vertex is optimal and simplex halts). Since the rest of the <span class="math inline">\(\text{LP}\)</span> has now been rewritten in terms of the <span class="math inline">\(y\)</span>-coordinates, it is easy to determine how much <span class="math inline">\(y_i\)</span> can be increased before some other inequality is violated. (And if we can increase <span class="math inline">\(y_i\)</span> indefinitely, we know the <span class="math inline">\(\text{LP}\)</span> is unbounded.)</p>
+  <p>It follows that the running time per iteration of simplex is just <span class="math inline">\(O(m n)\)</span>. But how many iterations could there be? Naturally, there can't be more than <span class="math inline">\(\binom{m + n}{n}\)</span>, which is an upper bound on the number of vertices. But this upper bound is exponential in <span class="math inline">\(n\)</span>. And in fact, there are examples of LPs for which simplex does indeed take an exponential number of iterations. In other words, <em>simplex is an exponential-time algorithm</em>. However, such exponential examples do not occur in practice, and it is this fact that makes simplex so valuable and so widely used.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Gaussian Elimination</strong></p>
+  <p>Under our algebraic definition, merely writing down the coordinates of a vertex involves solving a system of linear equations. How is this done?</p>
+  <p>We are given a system of n linear equations in <span class="math inline">\(n\)</span> unknowns, say <span class="math inline">\(n = 4\)</span> and <span class="math display">\[\begin{array}{r c r c r c r c r}
+  x_1 &amp;   &amp;     &amp; - &amp; 2x_3 &amp;   &amp;     &amp; = &amp; 2 \\
+  &amp;   &amp; x_2 &amp; + &amp; x_3  &amp;   &amp;     &amp; = &amp; 3 \\
+  x_1 &amp; + &amp; x_2 &amp;   &amp;      &amp; - &amp; x_4 &amp; = &amp; 4 \\
+  &amp;   &amp; x_2 &amp; + &amp; 3x_3 &amp; + &amp; x_4 &amp; = &amp; 5 \\
+  \end{array}\]</span></p>
+  <p>This transformation is clever in the following sense: it <em>eliminates</em> the variable <span class="math inline">\(x_1\)</span> from the third equation, leaving just one equation with <span class="math inline">\(x_1\)</span>. In other words, ignoring the first equation, we have a system of <em>three</em> equations in <em>three</em> unknowns: we decreased <span class="math inline">\(n\)</span> by <span class="math inline">\(1!\)</span> We can solve this smaller system to get <span class="math inline">\(x_2, x_3, x_4,\)</span> and then plug these into the first equation to get <span class="math inline">\(x_1\)</span>.</p>
+  <p>This suggests an algorithm—once more due to Gauss.</p>
+  <div class="sourceCode"><pre class="blockQuote sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Gauss(E, X):
+  <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">Input: a system E = {e_1, ..., e_n} of equations in n unknowns X = {x_1, ..., x_n}:</span>
+  <span class="co">       e_1: a_11 x_1 + a_12 x_2 + ... + a_1n x_n = b_1; ...; e_n: a_n1 x_1 + a_n2 x_2 + a_nn x_n = b_n</span>
+  <span class="co">Output: a solution of the system if one exists.</span>
+  <span class="co">&quot;&quot;&quot;</span>
+  <span class="cf">if</span> <span class="bu">all</span> coefficients a_i1 are zero:
+    halt <span class="cf">with</span> message <span class="st">&quot;either infeasible are not linearly independent&quot;</span>
+  <span class="cf">if</span> n <span class="op">=</span> <span class="dv">1</span>: <span class="cf">return</span> b_1 <span class="op">/</span> a_11
+
+  choose the coefficients a_p1 of largest magnitude <span class="kw">and</span> swap e_1, e_p
+  <span class="cf">for</span> i <span class="op">=</span> <span class="dv">2</span> to n:
+    e_i <span class="op">=</span> e_i <span class="op">-</span> (a_i1 <span class="op">/</span> a_11) · e_1
+  x_1, ..., x_n <span class="op">=</span> Gauss(E <span class="op">-</span> {e_1}, X <span class="op">-</span> {x_1})
+  x_1 <span class="op">=</span> (b_1 <span class="op">-</span> sum_{j <span class="op">&gt;</span> <span class="dv">1</span>} a_1j x_j) <span class="op">/</span> a_11
+  <span class="cf">return</span> (x_1, ..., x_n)</code></pre></div>
+  <p>(When choosing the equation to swap into first place, we pick the one with largest <span class="math inline">\(|a_{p1}|\)</span> for reasons of <em>numerical accuracy</em>; after all, we will be dividing by <span class="math inline">\(a_{p1}\)</span>.)</p>
+  <p>Gaussian elimination uses <span class="math inline">\(O(n^2)\)</span> <em>arithmetic operations</em> to reduce the problem size from <span class="math inline">\(n\)</span> to <span class="math inline">\(n - 1\)</span>, and thus uses <span class="math inline">\(O(n^3)\)</span> operations overall. To show that this is also a good estimate of the total <em>running time</em>, we need to argue that the numbers involved remain polynomially bounded—for instance, that the solution <span class="math inline">\((x_1, \cdots, x_n)\)</span> does not require too much more precision to write down than the original coefficients <span class="math inline">\(a_{ij}\)</span> and <span class="math inline">\(b_i\)</span>. Do you see why this is true?</p>
+  </blockquote>
+  <p> </p>
+  <blockquote>
+  <p><strong>Linear Programming in Polynomial Time</strong></p>
+  <p>Simplex is not a polynomial time algorithm. Certain rare kinds of linear programs cause it to go from one corner of the feasible region to a better corner and then to a still better one, and so on for an exponential number of steps. For a long time, linear programming was considered a paradox, a problem that can be solved in practice, but not in theory!</p>
+  <p>Then, in 1979, a young Soviet mathematician called Leonid Khachiyan came up with the <a href="https://en.wikipedia.org/wiki/Ellipsoid_method">ellipsoid method</a>, one that is very different from simplex, extremely simple in its conception (but sophisticated in its proof) and yet one that solves any linear program in polynomial time. Instead of chasing the solution from one corner of the polyhedron to the next, Khachiyan's algorithm confines it to smaller and smaller ellipsoids (skewed high-dimensional balls).</p>
+  <p>When this algorithm was announced, it became a kind of &quot;mathematical Sputnik,&quot; a splashy achievement that had the U.S. establishment worried, in the height of the Cold War, about the possible scientific superiority of the Soviet Union. The ellipsoid algorithm turned out to be an important theoretical advance, but did not compete well with simplex in practice. The paradox of linear programming deepened: A problem with two algorithms, one that is efficient in theory, and one that is efficient in practice!</p>
+  <p>A few years later Narendra Karmarkar, a graduate student at UC Berkeley, came up with a completely different idea, which led to another provably polynomial algorithm for linear programming. Karmarkar's algorithm is known as the <a href="https://en.wikipedia.org/wiki/Interior_point_method">interior point method</a>, because it does just that: it dashes to the optimum corner not by hopping from corner to corner on the surface of the polyhedron like simplex does, but by cutting a clever path in the interior of the polyhedron. And it does perform well in practice.</p>
+  <p>But perhaps the greatest advance in linear programming algorithms was not Khachiyan's theoretical breakthrough or Karmarkar's novel approach, but an unexpected consequence of the latter: the fierce competition between the two approaches, simplex and interior point, resulted in the development of very fast code for linear programming.</p>
+  </blockquote>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>There is one tricky issue here. It is possible that the same vertex might be generated by different subsets of inequalities. In Figure 7.12, vertex <span class="math inline">\(B\)</span> is generated by <span class="math inline">\(\{(2), (3), (4)\}\)</span>, but also by <span class="math inline">\(\{(2), (4), (5)\}\)</span>. Such vertices are called <em>degenerate</em> and require special consideration. Let's assume for the time being that they don't exist, and we'll return to them later.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

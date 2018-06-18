@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.3 Bipartite Matching</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="bipartite-matching">7.3 Bipartite Matching</h2>
+  <p>Figure 7.7 shows a graph with four nodes on the left representing boys and four nodes on the right representing girls.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> There is an edge between a boy and girl if they like each other (for instance, Al likes all the girls). Is it possible to choose couples so that everyone has exactly one partner, and it is someone they like? In graph-theoretic jargon, is there a <em>perfect matching</em>?</p>
+  <div class="figure">
+  <img src="fig-7.7-bipartite-matching.png" alt="Figure 7.7 An edge between two people means they like each other. Is it possible to pair everyone up happily?" />
+  <p class="caption"><strong>Figure 7.7</strong> An edge between two people means they like each other. Is it possible to pair everyone up happily?</p>
+  </div>
+  
+  <p>This matchmaking game can be reduced to the maximum-flow problem, and thereby to linear programming! Create a new source node, <span class="math inline">\(s\)</span>, with outgoing edges to all the boys; a new sink node, <span class="math inline">\(t\)</span>, with incoming edges from all the girls; and direct all the edges in the original bipartite graph from boy to girl (Figure 7.8). Finally, give every edge a capacity of <span class="math inline">\(1\)</span>. Then there is a perfect matching if and only if this network has a flow whose size equals the number of couples. Can you find such a flow in the example?</p>
+  <div class="figure">
+  <img src="fig-7.8-matchmaking-network.png" alt="Figure 7.8 A matchmaking network. Each edge has a capacity of one." />
+  <p class="caption"><strong>Figure 7.8</strong> A matchmaking network. Each edge has a capacity of one.</p>
+  </div>
+  <p>Actually, the situation is slightly more complicated than just stated: what is easy to see is that the optimum <em>integer-valued</em> flow corresponds to the optimum matching. We would be at a bit of a loss interpreting a flow that ships 0.7 units along the edge Al-Carol, for instance! Fortunately, the maximum-flow problem has the following property: <em>if all edge capacities are integers, then the optimal flow found by our algorithm is integral</em>. We can see this directly from the algorithm, which in such cases would increment the flow by an integer amount on each iteration.</p>
+  <p>Hence integrality comes for free in the maximum-flow problem. Unfortunately, this is the exception rather than the rule: as we will see in Chapter 8, it is a very difficult problem to find the optimum solution (or for that matter, <em>any</em> solution) of a general linear program, if we also demand that the variables be integers.</p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>This kind of graph, in which the nodes can be partitioned into two groups such that all edges are <em>between</em> the groups, is called <em>bipartite</em>.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

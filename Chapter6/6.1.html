@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="shortest-paths-in-a-dag-revisited">6.1 Shortest Paths in a DAG, Revisited</h2>
+  <p>At the conclusion of our study of shortest paths (Chapter 4), we observed that the problem is especially easy in directed acyclic graphs (<span class="math inline">\(\text{DAGs}\)</span>). Let’s recapitulate this case, because it lies at the heart of dynamic programming.</p>
+  <p>The special distinguishing feature of a <span class="math inline">\(\text{DAG}\)</span> is that its nodes can be <em>linearized</em>; that is, they can be arranged on a line so that all edges go from left to right (Figure 6.1). To see why this helps with shortest paths, suppose we want to figure out distances from node <span class="math inline">\(S\)</span> to the other nodes. For concreteness, let’s focus on node <span class="math inline">\(D\)</span>. The only way to get to it is through its predecessors, <span class="math inline">\(B\)</span> or <span class="math inline">\(C\)</span>; so to find the shortest path to <span class="math inline">\(D\)</span>, we need only compare these two routes: <span class="math display">\[\texttt{dist}(D) = \min \{\texttt{dist}(B) + 1, \texttt{dist}(C) + 3\}.\]</span></p>
+  <p>A similar relation can be written for every node. If we compute these <span class="math inline">\(\texttt{dist}\)</span> values in the left-to-right order of Figure 6.1, we can always be sure that by the time we get to a node <span class="math inline">\(v\)</span>, we already have all the information we need to compute <span class="math inline">\(\texttt{dist}(v)\)</span>.</p>
+  <div class="figure">
+  <img src="fig-6.1-dag-linearization.png" alt="Figure 6.1 A \text{DAG} and its linearization (topological ordering)." />
+  <p class="caption"><strong>Figure 6.1</strong> A <span class="math inline">\(\text{DAG}\)</span> and its linearization (topological ordering).</p>
+  </div>
+  <p> </p>
+  <p>We are therefore able to compute all distances in a single pass:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> shortest_paths():
+    initialize <span class="bu">all</span> <span class="bu">all</span> dist(·) values to ∞
+    dist(s) <span class="op">=</span> <span class="dv">0</span>
+    <span class="cf">for</span> each v ∈ V <span class="op">/</span> {s}, <span class="kw">in</span> linearized order:
+      dist(v) <span class="op">=</span> min_{(u,v) ∈ E} {dist(u) <span class="op">+</span> l(u, v)}</code></pre></div>
+  <p>Notice that this algorithm is solving a collection of subproblems, <span class="math inline">\(\{\texttt{dist}(u) : u \in V \}\)</span>. We start with the smallest of them, <span class="math inline">\(\texttt{dist}(s)\)</span>, since we immediately know its answer to be <span class="math inline">\(0\)</span>. We then proceed with progressively &quot;larger&quot; subproblems—distances to vertices that are further and further along in the linearization—where we are thinking of a subproblem as large if we need to have solved a lot of other subproblems before we can get to it.</p>
+  <p>This is a very general technique. At each node, we compute some function of the values of the node’s predecessors. It so happens that our particular function is a minimum of sums, but we could just as well make it a <em>maximum</em>, in which case we would get <em>longest</em> paths in the <span class="math inline">\(\text{DAG}\)</span>. Or we could use a product instead of a sum inside the brackets, in which case we would end up computing the path with the smallest product of edge lengths.</p>
+  <p><strong>Dynamic programming</strong> is a very powerful algorithmic paradigm in which a problem is solved by identifying a collection of subproblems and tackling them one by one, smallest first, using the answers to small problems to help figure out larger ones, until the whole lot of them is solved.</p>
+  <p>In dynamic programming we are not given a <span class="math inline">\(\text{DAG}\)</span>; the <span class="math inline">\(\text{DAG}\)</span> is <em>implicit</em>. Its nodes are the subproblems we define, and its edges are the dependencies between the subproblems: if to solve subproblem <span class="math inline">\(B\)</span> we need the answer to subproblem <span class="math inline">\(A\)</span>, then there is a (conceptual) edge from <span class="math inline">\(A\)</span> to <span class="math inline">\(B\)</span>. In this case, <span class="math inline">\(A\)</span> is thought of as a smaller subproblem than <span class="math inline">\(B\)</span>—and it will always be smaller, in an obvious sense.</p>
+  <p>But it’s time we saw an example.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

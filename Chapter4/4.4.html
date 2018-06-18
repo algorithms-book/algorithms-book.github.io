@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>4.4 Dijkstra's Algorithm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="dijkstras-algorithm">4.4 Dijkstra's Algorithm</h2>
+  <h3 id="an-adaptation-of-breadth-first-search">4.4.1 An Adaptation of Breadth-First Search</h3>
+  <p>Breadth-first search finds shortest paths in any graph whose edges have unit length. Can we adapt it to a more general graph <span class="math inline">\(G = (V, E)\)</span> whose edge lengths <span class="math inline">\(l_e\)</span> are positive integers?</p>
+  <p><strong>A More Convenient Graph</strong></p>
+  <p>Here is a simple trick for converting <span class="math inline">\(G\)</span> into something BFS can handle: break <span class="math inline">\(G\)</span>'s long edges into unit-length pieces, by introducing &quot;dummy&quot; nodes. Figure 4.6 shows an example of this transformation.</p>
+  <p>To construct the new graph <span class="math inline">\(G&#39;\)</span>,</p>
+  <ul>
+  <li>For any edge <span class="math inline">\(e = (u, v)\)</span> of <span class="math inline">\(E\)</span>, replace it by <span class="math inline">\(l_e\)</span> edges of length <span class="math inline">\(1\)</span>, by adding <span class="math inline">\(l_e - 1\)</span> dummy nodes between <span class="math inline">\(u\)</span> and <span class="math inline">\(v\)</span>.</li>
+  </ul>
+  <p>Graph <span class="math inline">\(G&#39;\)</span> contains all the vertices <span class="math inline">\(V\)</span> that interest us, and the distances between them are exactly the same as in <span class="math inline">\(G\)</span>. Most importantly, the edges of <span class="math inline">\(G&#39;\)</span> all have unit length. Therefore, we can compute distances in <span class="math inline">\(G\)</span> by running BFS on <span class="math inline">\(G&#39;\)</span>.</p>
+  <p><strong>Alarm Clocks</strong></p>
+  <p>If efficiency were not an issue, we could stop here. But when <span class="math inline">\(G\)</span> has very long edges, the <span class="math inline">\(G&#39;\)</span> it engenders is thickly populated with dummy nodes, and the BFS spends most of its time diligently computing distances to these nodes that we don't care about at all.</p>
+  <p>To see this more concretely, consider the graphs <span class="math inline">\(G\)</span> and <span class="math inline">\(G&#39;\)</span> of Figure 4.7, and imagine that the BFS, started at node <span class="math inline">\(s\)</span> of <span class="math inline">\(G&#39;\)</span>, advances by one unit of distance per minute. For the first 99 minutes it tediously progresses along <span class="math inline">\(S - A\)</span> and <span class="math inline">\(S - B\)</span>, an endless desert of dummy nodes. Is there some way we can snooze through these boring phases and have an alarm wake us up whenever something <em>interesting</em> is happening—specifically, whenever one of the real nodes (from the original graph <span class="math inline">\(G\)</span>) is reached?</p>
+  <p>We do this by setting two alarms at the outset, one for node <span class="math inline">\(A\)</span>, set to go off at time <span class="math inline">\(T = 100\)</span>, and one for <span class="math inline">\(B\)</span>, at time <span class="math inline">\(T = 200\)</span>. These are estimated times of arrival, based upon the edges currently being traversed. We doze off and awake at <span class="math inline">\(T = 100\)</span> to find <span class="math inline">\(A\)</span> has been discovered. At this point, the estimated time of arrival for <span class="math inline">\(B\)</span> is adjusted to <span class="math inline">\(T = 150\)</span> and we change its alarm accordingly.</p>
+  <p>More generally, at any given moment the breadth-first search is advancing along certain edges of G, and there is an alarm for every endpoint node toward which it is moving, set to go off at the estimated time of arrival at that node. Some of these might be overestimates because BFS may later find shortcuts, as a result of future arrivals elsewhere. In the preceding example, a quicker route to <span class="math inline">\(B\)</span> was revealed upon arrival at <span class="math inline">\(A\)</span>.</p>
+  <p>However, <em>nothing interesting can possibly happen before an alarm goes off</em>. The sounding of the next alarm must therefore signal the arrival of the wavefront to a real node <span class="math inline">\(u \in V\)</span> by BFS. At that point, BFS might also start advancing along some new edges out of <span class="math inline">\(u\)</span>, and alarms need to be set for their endpoints.</p>
+  <p>The following &quot;alarm clock algorithm&quot; faithfully simulates the execution of BFS on <span class="math inline">\(G&#39;\)</span>.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Set an alarm clock for node <span class="math inline">\(s\)</span> at time <span class="math inline">\(0\)</span>.</p></li>
+  <li><p>Repeat until there are no more alarms:</p></li>
+  </ol>
+  <p>Say the next alarm goes off at time <span class="math inline">\(T\)</span>, for node <span class="math inline">\(u\)</span>. Then:</p>
+  <ul>
+  <li><p>The distance from <span class="math inline">\(s\)</span> to <span class="math inline">\(u\)</span> is <span class="math inline">\(T\)</span>.</p></li>
+  <li><p>For each neighbor <span class="math inline">\(v\)</span> of <span class="math inline">\(u\)</span> in <span class="math inline">\(G\)</span>:</p>
+  <ul>
+  <li><p>If there is no alarm yet for <span class="math inline">\(v\)</span>, set one for time <span class="math inline">\(T + l(u, v)\)</span>.</p></li>
+  <li><p>If <span class="math inline">\(v\)</span>'s alarm is set for later than <span class="math inline">\(T + l(u, v)\)</span>, then reset it to this earlier time.</p></li>
+  </ul></li>
+  </ul>
+  <h3 id="dijkstras-algorithm.">Dijkstra's Algorithm.</h3>
+  <p>The alarm clock algorithm computes distances in any graph with positive integral edge lengths. It is almost ready for use, except that we need to somehow implement the system of alarms.</p>
+  <p>The right data structure for this job is a <em>priority queue</em> (usually implemented via a <em>heap</em>), which maintains a set of elements (nodes) with associated numeric key values (alarm times) and supports the following operations:</p>
+  <ul>
+  <li><p><em>insert</em>: add a new element to the set.</p></li>
+  <li><p><em>decrease-key</em>: accommodate the decrease in key value of a particular element.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p></li>
+  <li><p><em>delete-min</em>: return the element with the smallest key, and remove it from the set.</p></li>
+  <li><p><em>make-queue</em>: build a priority queue out of the given elements, with the given key values. (In many implementations, this is significantly faster than inserting the elements one by one.)</p></li>
+  </ul>
+  <p>The first two let us set alarms, and the third tells us which alarm is next to go off. Putting this all together, we get Dijkstra's algorithm (Figure 4.8).</p>
+  <p><strong>Figure 4.8</strong> Dijkstra’s shortest-path algorithm.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Dijksta(G, l, s):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: Graph G = (V, E), directed or undirected;</span>
+  <span class="co">         positive edge lengths {l_e : e ∈ E};</span>
+  <span class="co">         vertex s ∈ V</span>
+  <span class="co">  Output: For all vertices u reachable from s, dist(u) is set to the distance from s to u.</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="cf">for</span> <span class="bu">all</span> u ∈ V :
+      dist(u) <span class="op">=</span> ∞
+      prev(u) <span class="op">=</span> nil
+
+    dist(s) <span class="op">=</span> <span class="dv">0</span>
+
+    <span class="co"># Make queue using dist-values as keys</span>
+    H <span class="op">=</span> makequeue(V)
+    <span class="cf">while</span> H <span class="kw">is</span> <span class="kw">not</span> empty:
+      u <span class="op">=</span> deletemin(H)
+      <span class="cf">for</span> <span class="bu">all</span> edges (u, v) ∈ E:
+        <span class="cf">if</span> dist(v) <span class="op">&gt;</span> dist(u) <span class="op">+</span> l(u, v):
+           dist(v) <span class="op">=</span> dist(u) <span class="op">+</span> l(u, v)
+           prev(v) <span class="op">=</span> u
+           decreasekey(H, v)
+
+    <span class="cf">return</span> dist</code></pre></div>
+  <p>In the code, <span class="math inline">\(\texttt{dist}(u)\)</span> refers to the current alarm clock setting for node <span class="math inline">\(u\)</span>. A value of <span class="math inline">\(\infty\)</span> means the alarm hasn't so far been set. There is also a special array, <span class="math inline">\(\texttt{prev}\)</span>, that holds one crucial piece of information for each node <span class="math inline">\(u\)</span>: the identity of the node immediately before it on the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(u\)</span>. By following these back-pointers, we can easily reconstruct shortest paths, and so this array is a compact summary of all the paths found.</p>
+  <p>A full example of the algorithm's operation, along with the final shortest-path tree, is shown in Figure 4.9.</p>
+  <p>In summary, we can think of Dijkstra's algorithm as just BFS, except it uses a priority queue instead of a regular queue, so as to prioritize nodes in a way that takes edge lengths into account.</p>
+  <p>This viewpoint gives a concrete appreciation of how and why the algorithm works, but there is a more direct, more abstract derivation that doesn't depend upon BFS at all. We now start from scratch with this complementary interpretation.</p>
+  <div class="figure">
+  <img src="fig-4.9-dijkstra-example.png" alt="Figure 4.9 A complete run of Dijkstra&#39;s algorithm, with node A as the starting point. Also shown are the associated \texttt{dist} values and the final shortest-path tree." />
+  <p class="caption"><strong>Figure 4.9</strong> A complete run of Dijkstra's algorithm, with node A as the starting point. Also shown are the associated <span class="math inline">\(\texttt{dist}\)</span> values and the final shortest-path tree.</p>
+  </div>
+  <p> </p>
+  <h3 id="an-alternative-derivation">4.4.2 An Alternative Derivation</h3>
+  <p>Here's a plan for computing shortest paths: expand outward from the starting point <span class="math inline">\(s\)</span>, steadily growing the region of the graph to which distances and shortest paths are known. This growth should be orderly, first incorporating the closest nodes and then moving on to those further away. More precisely, when the &quot;known region&quot; is some subset of vertices <span class="math inline">\(R\)</span> that includes <span class="math inline">\(s\)</span>, the next addition to it should be the node outside <span class="math inline">\(R\)</span> that is closest to <span class="math inline">\(s\)</span>. Let us call this node <span class="math inline">\(v\)</span>; the question is: how do we identify it?</p>
+  <p>To answer, consider <span class="math inline">\(u\)</span>, the node just before <span class="math inline">\(v\)</span> in the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(v\)</span>: <img src="s-to-u-to-v.png" /></p>
+  <p>Since <em>we are assuming that all edge lengths are positive</em>, <span class="math inline">\(u\)</span> must be closer to <span class="math inline">\(s\)</span> than <span class="math inline">\(v\)</span> is. This means that <span class="math inline">\(u\)</span> is in <span class="math inline">\(R\)</span>—otherwise it would contradict <span class="math inline">\(v\)</span>'s status as the closest node to <span class="math inline">\(s\)</span> outside <span class="math inline">\(R\)</span>. So, the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(v\)</span> is simply a <em>known shortest path extended by a single edge</em>.</p>
+  <div class="figure">
+  <img src="fig-4.10-single-edge-extension.png" alt="Figure 4.10 Single-edge extensions of known shortest paths." />
+  <p class="caption"><strong>Figure 4.10</strong> Single-edge extensions of known shortest paths.</p>
+  </div>
+  <p> </p>
+  <p>But there will typically be many single-edge extensions of the currently known shortest paths (Figure 4.10); which of these identifies <span class="math inline">\(v\)</span>? The answer is, <em>the shortest of these extended paths</em>. Because, if an even shorter single-edge-extended path existed, this would once more contradict <span class="math inline">\(v\)</span>'s status as the node outside <span class="math inline">\(R\)</span> closest to <span class="math inline">\(s\)</span>. So, it's easy to find <span class="math inline">\(v\)</span>: it is the node outside <span class="math inline">\(R\)</span> for which the smallest value of distance<span class="math inline">\((s, u) + l(u, v)\)</span> is attained, as <span class="math inline">\(u\)</span> ranges over <span class="math inline">\(R\)</span>. In other words, <em>try all single-edge extensions of the currently known shortest paths, find the shortest such extended path, and proclaim its endpoint to be the next node of <span class="math inline">\(R\)</span></em>.</p>
+  <p>We now have an algorithm for growing <span class="math inline">\(R\)</span> by looking at extensions of the current set of shortest paths. Some extra efficiency comes from noticing that on any given iteration, the only new extensions are those involving the node most recently added to region <span class="math inline">\(R\)</span>. All other extensions will have been assessed previously and do not need to be recomputed. In the following pseudocode, <span class="math inline">\(\texttt{dist}(v)\)</span> is the length of the currently shortest single-edge-extended path leading to <span class="math inline">\(v\)</span>; it is <span class="math inline">\(\infty\)</span> for nodes not adjacent to <span class="math inline">\(R\)</span>.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Dijkstra(G, s):
+    initialize dist(s) to <span class="dv">0</span>, other dist(·) values to ∞
+    <span class="co"># the &#39;known&#39; region</span>
+    R <span class="op">=</span> {}
+    <span class="cf">while</span> R <span class="op">!=</span> V:
+      pick the node v <span class="kw">not</span> ∈ R <span class="cf">with</span> smallest dist(·)
+      add v to R
+      <span class="cf">for</span> <span class="bu">all</span> edges (v, z) ∈ E:
+        <span class="cf">if</span> dist(z) <span class="op">&gt;</span> dist(v) <span class="op">+</span> l(v, z):
+           dist(z) <span class="op">=</span> dist(v) <span class="op">+</span> l(v, z)</code></pre></div>
+  <p>Incorporating priority queue operations gives us back Dijkstra's algorithm (Figure 4.8).</p>
+  <p>To justify this algorithm formally, we would use a proof by induction, as with breadth-first search. Here's an appropriate inductive hypothesis.</p>
+  <ul>
+  <li><p>At the end of each iteration of the while loop, the following conditions hold:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>there is a value <span class="math inline">\(d\)</span> such that all nodes in <span class="math inline">\(R\)</span> are at distance <span class="math inline">\(\leq d\)</span> from <span class="math inline">\(s\)</span> and all nodes outside <span class="math inline">\(R\)</span> are at distance <span class="math inline">\(\geq d\)</span> from <span class="math inline">\(s\)</span>, and</p></li>
+  <li><p>for every node <span class="math inline">\(u\)</span>, the value <span class="math inline">\(\texttt{dist}(u)\)</span> is the length of the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(u\)</span> whose intermediate nodes are constrained to be in <span class="math inline">\(R\)</span> (if no such path exists, the value is <span class="math inline">\(\infty\)</span>).</p></li>
+  </ol></li>
+  </ul>
+  <p>The base case is straightforward (with <span class="math inline">\(d = 0\)</span>), and the details of the inductive step can be filled in from the preceding discussion.</p>
+  <h3 id="running-time">4.4.3 Running Time</h3>
+  <p>At the level of abstraction of Figure 4.8, Dijkstra's algorithm is structurally identical to breadth-first search. However, it is slower because the priority queue primitives are computationally more demanding than the constant-time <span class="math inline">\(\texttt{eject}\)</span>'s and <span class="math inline">\(\texttt{inject}\)</span>'s of BFS. Since <span class="math inline">\(\texttt{makequeue}\)</span> takes at most as long as <span class="math inline">\(|V| \texttt{insert}\)</span> operations, we get a total of <span class="math inline">\(|V| \texttt{deletemin}\)</span> and <span class="math inline">\(|V| + |E| \text{insert / decrease-key}\)</span> operations. The time needed for these varies by implementation; for instance, a binary heap gives an overall running time of <span class="math inline">\(O((|V| + |E|) \log{|V|})\)</span>.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Which Heap is Best?</strong></p>
+  <p>The running time of Dijkstra's algorithm depends heavily on the priority queue implementation used. Here are the typical choices.</p>
+  </blockquote>
+  <table>
+  <colgroup>
+  <col width="8%" />
+  <col width="21%" />
+  <col width="20%" />
+  <col width="49%" />
+  </colgroup>
+  <thead>
+  <tr class="header">
+  <th>implementation</th>
+  <th><span class="math inline">\(\texttt{deletemin}\)</span></th>
+  <th><span class="math inline">\(\texttt{insert / decrease-key}\)</span></th>
+  <th><span class="math inline">\(\vert V \vert \times \texttt{deletemin} + (\vert V \vert + \vert E \vert) \times \texttt{insert}\)</span></th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr class="odd">
+  <td>array</td>
+  <td><span class="math inline">\(O(\vert V \vert)\)</span></td>
+  <td><span class="math inline">\(O(1)\)</span></td>
+  <td><span class="math inline">\(O(\vert V \vert^2)\)</span></td>
+  </tr>
+  <tr class="even">
+  <td>binary-heap</td>
+  <td><span class="math inline">\(O(\log{\vert V \vert})\)</span></td>
+  <td><span class="math inline">\(O(\log{\vert V \vert})\)</span></td>
+  <td><span class="math inline">\(O((\vert V \vert + \vert E \vert) \log{\vert V \vert})\)</span></td>
+  </tr>
+  <tr class="odd">
+  <td><span class="math inline">\(d\)</span>-ary heap</td>
+  <td><span class="math inline">\(O(\frac{d \log{\vert V \vert}}{\log{d}})\)</span></td>
+  <td><span class="math inline">\(O(\frac{\log{\vert V \vert}}{\log{d}})\)</span></td>
+  <td><span class="math inline">\(O((\vert V \vert \cdot d + \vert E \vert) \frac{\log{\vert V \vert}}{\log{d}})\)</span></td>
+  </tr>
+  <tr class="even">
+  <td>Fibonacci heap</td>
+  <td><span class="math inline">\(O(\log{\vert V \vert})\)</span></td>
+  <td><span class="math inline">\(O(1)\)</span> (amortized)</td>
+  <td><span class="math inline">\(O(\vert V \vert \log{\vert V \vert} + \vert E \vert )\)</span></td>
+  </tr>
+  </tbody>
+  </table>
+  <blockquote>
+  <p>So for instance, even a naive array implementation gives a respectable time complexity of <span class="math inline">\(O(|V|^2)\)</span>, whereas with a binary heap we get <span class="math inline">\(O((|V| + |E|) \log{|V|})\)</span>. Which is preferable?</p>
+  <p>This depends on whether the graph is <em>sparse</em> (has few edges) or dense (has lots of them). For all graphs, <span class="math inline">\(|E|\)</span> is less than <span class="math inline">\(|V|^2\)</span>. If it is <span class="math inline">\(\Omega(|V|^2)\)</span>, then clearly the array implementation is the faster. On the other hand, the binary heap becomes preferable as soon as <span class="math inline">\(|E|\)</span> dips below <span class="math inline">\(|V|^2 / \log{|V|}\)</span>.</p>
+  <p>The <span class="math inline">\(d\)</span>-ary heap is a generalization of the binary heap (which corresponds to <span class="math inline">\(d = 2\)</span>) and leads to a running time that is a function of <span class="math inline">\(d\)</span>. The optimal choice is <span class="math inline">\(d ≈ |E| / |V|\)</span>; in other words, to optimize we must set the degree of the heap to be equal to the average degree of the graph. This works well for both sparse and dense graphs. For very sparse graphs, in which <span class="math inline">\(|E| = O(|V|)\)</span>, the running time is <span class="math inline">\(O(|V| \log{|V|})\)</span>, as good as with a binary heap. For dense graphs, <span class="math inline">\(|E| = \Omega(|V|^2)\)</span> and the running time is <span class="math inline">\(O(|V|^2)\)</span>, as good as with a linked list. Finally, for graphs with intermediate density <span class="math inline">\(|E| = |V|^{1 + \delta}\)</span>, the running time is <span class="math inline">\(O(|E|)\)</span>, linear!</p>
+  <p>The last line in the table gives running times using a sophisticated data structure called a <em>Fibonacci heap</em>. Although its efficiency is impressive, this data structure requires considerably more work to implement than the others, and this tends to dampen its appeal in practice. We will say little about it except to mention a curious feature of its time bounds. Its insert operations take varying amounts of time but are guaranteed to <em>average</em> <span class="math inline">\(O(1)\)</span> over the course of the algorithm. In such situations (one of which we shall encounter in Chapter 5) we say that the <em>amortized</em> cost of heap <span class="math inline">\(\texttt{insert}\)</span>'s is <span class="math inline">\(O(1)\)</span>.</p>
+  </blockquote>
+  <p> </p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>The name <span class="math inline">\(\texttt{decrease-key}\)</span> is standard but is a little misleading: the priority queue typically does not itself change key values. What this procedure really does is to notify the queue that a certain key value has been decreased.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

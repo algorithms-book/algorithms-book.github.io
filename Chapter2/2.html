@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Chapter 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h3 id="chapter-2">Chapter 2</h3>
+  <h1 id="divide-and-conquer-algorithms">Divide-and-conquer algorithms</h1>
+  <p>The <strong>divide-and-conquer</strong> strategy solves a problem by:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Breaking it into <strong>subproblems</strong> that are themselves smaller instances of the same type of problem</p></li>
+  <li><p>Recursively solving these subproblems</p></li>
+  <li><p>Appropriately combining their answers</p></li>
+  </ol>
+  <p>The real work is done piecemeal, in three different places: in the partitioning of problems into subproblems; at the very tail end of the recursion, when the subproblems are so small that they are solved outright; and in the gluing together of partial answers. These are held together and coordinated by the algorithm’s core recursive structure.</p>
+  <p>As an introductory example, we’ll see how this technique yields a new algorithm for multiplying numbers, one that is much more efficient than the method we all learned in elementary school!</p>
+  <h2 id="contents">Contents</h2>
+  <ol style="list-style-type: decimal">
+  <li><a href="/algorithms/Chapter2/2.1">Multiplication</a></li>
+  <li><a href="/algorithms/Chapter2/2.2">Recurrence Relations</a></li>
+  <li><a href="/algorithms/Chapter2/2.3">Merge Sort</a></li>
+  <li><a href="/algorithms/Chapter2/2.4">Medians</a></li>
+  <li><a href="/algorithms/Chapter2/2.5">Matrix Multiplication</a></li>
+  <li><a href="/algorithms/Chapter2/2.6">Fast Fourier Transform</a></li>
+  <li><a href="/algorithms/Chapter2/2-ex.pdf">Exercises</a></li>
+  </ol>
+
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

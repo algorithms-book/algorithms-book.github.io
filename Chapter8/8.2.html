@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>8.2 NP-Complete Problems</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="textbfnp-complete-problems">8.2 <span class="math inline">\(\textbf{NP}\)</span>-Complete Problems</h2>
+  <h3 id="hard-problems-easy-problems">hard problems, easy problems</h3>
+  <p>In short, the world is full of search problems, some of which can be solved efficiently, while others seem to be very hard. This is depicted in the following table.</p>
+  <div class="figure">
+  <img src="hard-easy-problems.png" />
+
+  </div>
+  <p>This table is worth contemplating. On the right we have problems that can be solved efficiently. On the left, we have a bunch of hard nuts that have escaped efficient solution over many decades or centuries.</p>
+  <p>The various problems on the right can be solved by algorithms that are specialized and diverse: dynamic programming, network flow, graph search, greedy. These problems are easy for a variety of different reasons.</p>
+  <p>In stark contrast, the problems on the left <em>are all difficult for the same reason!</em> At their core, they are all the same problem, just in different disguises! They are all <em>equivalent</em>: as we shall see in Section 8.3, each of them can be reduced to any of the others—and back.</p>
+  <h3 id="textp-and-textnp"><span class="math inline">\(\text{P}\)</span> and <span class="math inline">\(\text{NP}\)</span></h3>
+  <p>It’s time to introduce some important concepts. We know what a search problem is: its defining characteristic is that any proposed solution can be quickly checked for correctness, in the sense that there is an efficient checking algorithm <span class="math inline">\(C\)</span> that takes as input the given instance <span class="math inline">\(I\)</span> (the data specifying the problem to be solved), as well as the proposed solution <span class="math inline">\(S\)</span>, and outputs true if and only if <span class="math inline">\(S\)</span> really is a solution to instance <span class="math inline">\(I\)</span>. Moreover the running time of <span class="math inline">\(C(I, S)\)</span> is bounded by a polynomial in <span class="math inline">\(|I|\)</span>, the length of the instance. We <em>denote the class of all search problems by</em> <span class="math inline">\(\textbf{NP}\)</span>.</p>
+  <p>We’ve seen many examples of <span class="math inline">\(\textbf{NP}\)</span> search problems that are solvable in polynomial time. In such cases, there is an algorithm that takes as input an instance <span class="math inline">\(I\)</span> and has a running time polynomial in <span class="math inline">\(|I|\)</span>. If <span class="math inline">\(I\)</span> has a solution, the algorithm returns such a solution; and if <span class="math inline">\(I\)</span> has no solution, the algorithm correctly reports so. The <em>class of all search problems that can be solved in polynomial time is denoted</em> <span class="math inline">\(\textbf{P}\)</span>. Hence, all the search problems on the right-hand side of the table are in <span class="math inline">\(\textbf{P}\)</span>.</p>
+  <blockquote>
+  <p><strong>Why <span class="math inline">\(\textbf{P}\)</span> and <span class="math inline">\(\textbf{NP}\)</span>?</strong></p>
+  <p>Okay, <span class="math inline">\(\textbf{P}\)</span> must stand for &quot;polynomial.&quot;&quot; But why use the initials <span class="math inline">\(\textbf{NP}\)</span> (the common chatroom abbreviation for &quot;no problem&quot;) to describe the class of search problems, some of which are terribly hard?</p>
+  <p><span class="math inline">\(\textbf{NP}\)</span> stands for &quot;nondeterministic polynomial time&quot;, a term going back to the roots of complexity theory. Intuitively, it means that a solution to any search problem can be found and verified in polynomial time by a special (and quite unrealistic) sort of algorithm, called a <em>nondeterministic algorithm</em>. Such an algorithm has the power of <em>guessing</em> correctly at every step.</p>
+  <p>Incidentally, the original definition of <span class="math inline">\(\textbf{NP}\)</span> (and its most common usage to this day) was not as a class of search problems, but as a class of <em>decision problems</em>: algorithmic questions that can be answered by yes or no. Example: &quot;Is there a truth assignment that satisfies this Boolean formula?&quot;&quot; But this too reflects a historical reality: At the time the theory of <span class="math inline">\(\textbf{NP}\)</span>-completeness was being developed, researchers in the theory of computation were interested in formal languages, a domain in which such decision problems are of central importance.</p>
+  </blockquote>
+  <p>Are there search problems that cannot be solved in polynomial time? In other words, is <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>? Most algorithms researchers think so.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> It is hard to believe that exponential search can always be avoided, that a simple trick will crack all these hard problems, famously unsolved for decades and centuries. And there is a good reason for mathematicians to believe that <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>—the task of finding a proof for a given mathematical assertion is a search problem and is therefore in <span class="math inline">\(\textbf{NP}\)</span> (after all, when a formal proof of a mathematical statement is written out in excruciating detail, it can be checked mechanically, line by line, by an efficient algorithm).</p>
+  <p>So if <span class="math inline">\(\textbf{P} = \textbf{NP}\)</span>, there would be an efficient method to prove any theorem, thus eliminating the need for mathematicians! All in all, there are a variety of reasons why it is widely believed that <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>. However, proving this has turned out to be extremely difficult, one of the deepest and most important unsolved puzzles of mathematics.</p>
+  <h3 id="reductions-again">Reductions, Again</h3>
+  <p>Even if we accept that <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>, what about the specific problems on the left side of the table? On the basis of what evidence do we believe that these particular problems have no efficient algorithm (besides, of course, the historical fact that many clever mathematicians and computer scientists have tried hard and failed to find any)? Such evidence is provided by <em>reductions</em>, which translate one search problem into another.</p>
+  <p>What they demonstrate is that the problems on the left side of the table are all, in some sense, <em>exactly the same problem</em>, except that they are stated in different languages. What’s more, we will also use reductions to show that these problems are the <em>hardest</em> search problems in <span class="math inline">\(\textbf{NP}\)</span>—if even one of them has a polynomial time algorithm, then <em>every</em> problem in <span class="math inline">\(\textbf{NP}\)</span> has a polynomial time algorithm. Thus if we believe that <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>, then all these search problems are hard.</p>
+  <p>We defined reductions in Chapter 7 and saw many examples of them. Let’s now specialize this definition to search problems.</p>
+  <p>A <em>reduction</em> from search problem <span class="math inline">\(A\)</span> to search problem <span class="math inline">\(B\)</span> is a polynomial-time algorithm <span class="math inline">\(f\)</span> that transforms any instance <span class="math inline">\(I\)</span> of <span class="math inline">\(A\)</span> into an instance <span class="math inline">\(f(I)\)</span> of <span class="math inline">\(B\)</span>, together with another polynomial-time algorithm <span class="math inline">\(h\)</span> that maps any solution <span class="math inline">\(S\)</span> of <span class="math inline">\(f(I)\)</span> back into a solution <span class="math inline">\(h(S)\)</span> of <span class="math inline">\(I\)</span>; see the following diagram. If <span class="math inline">\(f(I)\)</span> has no solution, then neither does <span class="math inline">\(I\)</span>. These two translation procedures <span class="math inline">\(f\)</span> and <span class="math inline">\(h\)</span> imply that any algorithm for <span class="math inline">\(B\)</span> can be converted into an algorithm for <span class="math inline">\(A\)</span> by bracketing it between <span class="math inline">\(f\)</span> and <span class="math inline">\(h\)</span>.</p>
+  <div class="figure">
+  <img src="reduction.png" />
+
+  </div>
+  <p>And now we can finally define the class of the hardest search problems.</p>
+  <ul>
+  <li><em>A search problem is <span class="math inline">\(\textbf{NP}\)</span>-complete if all other search problems reduce to it</em>.</li>
+  </ul>
+  <p>This is a very strong requirement indeed. For a problem to be <span class="math inline">\(\textbf{NP}\)</span>-complete, it must be useful in solving every search problem in the world! It is remarkable that such problems exist. But they do, and the first column of the table we saw earlier is filled with the most famous examples. In Section 8.3 we shall see how all these problems reduce to one another, and also why all other search problems reduce to them.</p>
+  <blockquote>
+  <p><strong>The Two Ways to Use Reductions</strong></p>
+  <p>So far in this book the purpose of a reduction from a problem <span class="math inline">\(A\)</span> to a problem <span class="math inline">\(B\)</span> has been straightforward and honorable: We know how to solve <span class="math inline">\(B\)</span> efficiently, and we want to use this knowledge to solve <span class="math inline">\(A\)</span>. In this chapter, however, reductions from <span class="math inline">\(A\)</span> to <span class="math inline">\(B\)</span> serve a somewhat perverse goal: we know <span class="math inline">\(A\)</span> is hard, and we use the reduction to prove that <span class="math inline">\(B\)</span> is hard as well!</p>
+  <p>If we denote a reduction from A to B by <span class="math display">\[A \longrightarrow B,\]</span> then we can say that <em>difficulty</em> flows in the direction of the arrow, while <em>efficient algorithms</em> move in the opposite direction. It is through this propagation of difficulty that we know <span class="math inline">\(\textbf{NP}\)</span>-complete problems are hard: all other search problems reduce to them, and thus each <span class="math inline">\(\textbf{NP}\)</span>-complete problem contains the complexity of all search problems. If even one <span class="math inline">\(\textbf{NP}\)</span>-complete problem is in <span class="math inline">\(\textbf{P}\)</span>, then <span class="math inline">\(\textbf{P} = \textbf{NP}\)</span>.</p>
+  <p>Reductions also have the convenient property that they <em>compose</em>. <span class="math display">\[\text{If}\ A \longrightarrow B \ \text{and}\ B \longrightarrow C,\ \text{then}\ A \longrightarrow C.\]</span> To see this, observe first of all that any reduction is completely specified by the pre- and post-processing functions <span class="math inline">\(f\)</span> and <span class="math inline">\(h\)</span> (see the reduction diagram). If (<span class="math inline">\(f_{AB}, h_{AB}\)</span>) and (<span class="math inline">\(f_{BC}, h_{BC}\)</span>) define the reductions from <span class="math inline">\(A\)</span> to <span class="math inline">\(B\)</span> and from <span class="math inline">\(B\)</span> to <span class="math inline">\(C\)</span>, respectively, then a reduction from <span class="math inline">\(A\)</span> to <span class="math inline">\(C\)</span> is given by compositions of these functions: <span class="math inline">\(f_{BC} \circ f_{AB}\)</span> maps an instance of <span class="math inline">\(A\)</span> to an instance of <span class="math inline">\(C\)</span>, and <span class="math inline">\(h_{AB} \circ h_{BC}\)</span> sends a solution of <span class="math inline">\(C\)</span> back to a solution of <span class="math inline">\(A\)</span>.</p>
+  <p>This means that once we know a problem <span class="math inline">\(A\)</span> is <span class="math inline">\(\textbf{NP}\)</span>-complete, we can use it to prove that a new search problem <span class="math inline">\(B\)</span> is also <span class="math inline">\(\textbf{NP}\)</span>-complete, simply by reducing <span class="math inline">\(A\)</span> to <span class="math inline">\(B\)</span>. Such a reduction establishes that all problems in <span class="math inline">\(\textbf{NP}\)</span> reduce to <span class="math inline">\(B\)</span>, via <span class="math inline">\(A\)</span>.</p>
+  </blockquote>
+  <div class="figure">
+  <img src="fig-8.6-p-not-np.png" alt="Figure 8.6 The space \textbf{NP} of all search problems, assuming \textbf{P} \neq \textbf{NP}." />
+  <p class="caption"><strong>Figure 8.6</strong> The space <span class="math inline">\(\textbf{NP}\)</span> of all search problems, assuming <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>.</p>
+  </div>
+  <h3 id="factoring">Factoring</h3>
+  <p>One last point: we started off this book by introducing another famously hard search problem: <span class="math inline">\(\text{FACTORING}\)</span>, the task of finding all prime factors of a given integer. But the difficulty of <span class="math inline">\(\text{FACTORING}\)</span> is of a different nature than that of the other hard search problems we have just seen. For example, nobody believes that <span class="math inline">\(\text{FACTORING}\)</span> is <span class="math inline">\(\textbf{NP}\)</span>-complete. One major difference is that, in the case of <span class="math inline">\(\text{FACTORING}\)</span>, the definition does not contain the now familiar clause &quot;or report that none exists.&quot; A number can <em>always</em> be factored into primes.</p>
+  <p>Another difference (possibly not completely unrelated) is this: as we shall see in Chapter 10, <span class="math inline">\(\text{FACTORING}\)</span> succumbs to the power of <em>quantum computation</em>—while <span class="math inline">\(\text{SAT}, \text{TSP}\)</span> and the other <span class="math inline">\(\textbf{NP}\)</span>-complete problems do not seem to.</p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>An interesting-and highly recommended-read on the debate of <span class="math inline">\(\textbf{P} ?= \textbf{NP}\)</span> is <a href="https://www.scottaaronson.com/papers/pnp.pdf">this paper by Scott Aaronson</a>.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

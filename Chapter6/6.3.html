@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>6.3 Edit Distance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="edit-distance">6.3 Edit Distance</h2>
+  <p>When a spell checker encounters a possible misspelling, it looks in its dictionary for other words that are close by. What is the appropriate notion of closeness in this case?</p>
+  <p>A natural measure of the distance between two strings is the extent to which they can be <em>aligned</em>, or matched up. Technically, an alignment is simply a way of writing the strings one above the other. For instance, here are two possible alignments of <span class="math inline">\(\texttt{SNOWY}\)</span> and <span class="math inline">\(\texttt{SUNNY}\)</span>:</p>
+  <p><span class="math display">\[\begin{array}{c c c c}
+  \begin{matrix}
+  \texttt{S} &amp; - &amp; \texttt{N} &amp; \texttt{O} &amp; \texttt{W} &amp; \texttt{Y} \\
+  \texttt{S} &amp; \texttt{U} &amp; \texttt{N} &amp; \texttt{N} &amp; - &amp; \texttt{Y} \\
+  \end{matrix} &amp;&amp;&amp;
+  \begin{matrix}
+  - &amp; \texttt{S} &amp; \texttt{N} &amp; \texttt{O} &amp; \texttt{W} &amp; - &amp; \texttt{Y} \\
+  \texttt{S} &amp; \texttt{U} &amp; \texttt{N} &amp; - &amp; - &amp; \texttt{N} &amp; \texttt{Y} \\
+  \end{matrix} \\
+  \text{Cost: 3} &amp;&amp;&amp; \text{Cost: 5}
+  \end{array}\]</span></p>
+  <p>The &quot;-&quot; indicates a &quot;gap&quot;; any number of these can be placed in either string. The cost of an alignment is the number of columns in which the letters differ. And the <em>edit distance</em> between two strings is the cost of their best possible alignment. Do you see that there is no better alignment of <span class="math inline">\(\texttt{SNOWY}\)</span> and <span class="math inline">\(\texttt{SUNNY}\)</span> than the one shown here with a cost of <span class="math inline">\(3\)</span>?</p>
+  <p>Edit distance is so named because it can also be thought of as the minimum number of <em>edits</em>—insertions, deletions, and substitutions of characters—needed to transform the first string into the second. For instance, the alignment shown on the left corresponds to three edits: insert <span class="math inline">\(\texttt{U}\)</span>, substitute <span class="math inline">\(\texttt{O} \rightarrow \texttt{N}\)</span>, and delete <span class="math inline">\(\texttt{W}\)</span>.</p>
+  <p>In general, there are so many possible alignments between two strings that it would be terribly inefficient to search through all of them for the best one. Instead we turn to dynamic programming.</p>
+  <p> </p>
+  <h3 id="a-dynamic-programming-solution">A Dynamic Programming Solution</h3>
+  <p>When solving a problem by dynamic programming, the most crucial question is, What are the <em>subproblems</em>? As long as they are chosen so as to have the property <span class="math inline">\(\cdot\)</span> from Chapter 6.2. it is an easy matter to write down the algorithm: iteratively solve one subproblem after the other, in order of increasing size.</p>
+  <p>Our goal is to find the edit distance between two strings <span class="math inline">\(x[1 \cdots m]\)</span> and <span class="math inline">\(y[1 \cdots n]\)</span>. What is a good subproblem? Well, it should go part of the way toward solving the whole problem; so how about looking at the edit distance between some <em>prefix</em> of the first string, <span class="math inline">\(x[1 \cdots i]\)</span>, and some <em>prefix</em> of the second, <span class="math inline">\(y[1 \cdots j]\)</span>? Call this subproblem <span class="math inline">\(E(i, j)\)</span> (see Figure 6.3). Our final objective, then, is to compute <span class="math inline">\(E(m, n)\)</span>.</p>
+  <p> </p>
+  <p><strong>Figure 6.3</strong> The subproblem <span class="math inline">\(E(7, 5)\)</span>.</p>
+  <p><span class="math display">\[\begin{array}{l}
+  \boxed{\text{E X P O N E N}} \text{T I A L} \\
+                                              \\
+  \boxed{\text{P O L Y N}}   \text{O M I A L} \\
+  \end{array}\]</span></p>
+  <p> </p>
+  <p>For this to work, we need to somehow express <span class="math inline">\(E(i, j)\)</span> in terms of smaller subproblems. Let's see—what do we know about the best alignment between <span class="math inline">\(x[1 \cdots i]\)</span> and <span class="math inline">\(y[1 \cdots j]\)</span>? Well, its rightmost column can only be one of three things:</p>
+  <p><span class="math display">\[\begin{matrix}
+  \begin{matrix} x[i] \\ - \end{matrix} &amp;&amp; \text{or} &amp;&amp; \begin{matrix} - \\ y[j] \end{matrix} &amp;&amp; \text{or} &amp;&amp; \begin{matrix} x[i] \\ y[j] \end{matrix}
+  \end{matrix}\]</span></p>
+  <p> </p>
+  <p>The first case incurs a cost of <span class="math inline">\(1\)</span> for this particular column, and it remains to align <span class="math inline">\(x[1 \cdots i - 1]\)</span> with <span class="math inline">\(y[1 \cdots j]\)</span>. But this is exactly the subproblem <span class="math inline">\(E(i - 1, j)\)</span>! We seem to be getting somewhere.</p>
+  <p>In the second case, also with cost <span class="math inline">\(1\)</span>, we still need to align <span class="math inline">\(x[1 \cdots i]\)</span> with <span class="math inline">\(y[1 \cdots j - 1]\)</span>. This is again another subproblem, <span class="math inline">\(E(i, j - 1)\)</span>.</p>
+  <p>And in the final case, which either costs <span class="math inline">\(1\)</span> (if <span class="math inline">\(x[i] \neq y[j]\)</span>) or <span class="math inline">\(0\)</span> (if <span class="math inline">\(x[i] = y[j]\)</span>), what's left is the subproblem <span class="math inline">\(E(i - 1, j - 1)\)</span>. In short, we have expressed <span class="math inline">\(E(i, j)\)</span> in terms of three smaller subproblems <span class="math inline">\(E(i - 1, j), E(i, j - 1), E(i - 1, j - 1)\)</span>.</p>
+  <p>We have no idea which of them is the right one, so we need to try them all and pick the best: <span class="math display">\[E(i, j) = \min\{1 + E(i - 1, j), 1 + E(i, j - 1), \text{diff}(i, j) + E(i - 1, j - 1)\}\]</span></p>
+  <p>where for convenience <span class="math inline">\(\text{diff}(i, j)\)</span> is defined to be <span class="math inline">\(0\)</span> if <span class="math inline">\(x[i] = y[j]\)</span> and <span class="math inline">\(1\)</span> otherwise.</p>
+  <p>For instance, in computing the edit distance between <span class="math inline">\(\texttt{EXPONENTIAL}\)</span> and <span class="math inline">\(\texttt{POLYNOMIAL}\)</span>, subproblem <span class="math inline">\(E(4, 3)\)</span> corresponds to the prefixes <span class="math inline">\(\texttt{EXPO}\)</span> and <span class="math inline">\(\texttt{POL}\)</span>. The rightmost column of their best alignment must be one of the following:</p>
+  <p><span class="math display">\[\begin{matrix}
+  \begin{matrix} \texttt{O} \\ - \end{matrix} &amp;&amp; \text{or} &amp;&amp; \begin{matrix} - \\ \texttt{L} \end{matrix} &amp;&amp; \text{or} &amp;&amp; \begin{matrix} \texttt{O} \\ \texttt{L} \end{matrix}
+  \end{matrix}\]</span></p>
+  <p> </p>
+  <p>Thus, <span class="math inline">\(E(4, 3) = \min\{1 + E(3, 3), 1 + E(4, 2), 1 + E(3, 2)\}\)</span>.</p>
+  <p>The answers to all the subproblems <span class="math inline">\(E(i, j)\)</span> form a two-dimensional table, as in Figure 6.4. In what order should these subproblems be solved? Any order is fine, as long as <span class="math inline">\(E(i - 1, j), E(i, j - 1),\)</span> and <span class="math inline">\(E(i - 1, j - 1)\)</span> are handled <em>before</em> <span class="math inline">\(E(i, j)\)</span>.</p>
+  <p>For instance, we could fill in the table one row at a time, from top row to bottom row, and moving left to right across each row. Or alternatively, we could fill it in column by column. Both methods would ensure that by the time we get around to computing a particular table entry, all the other entries we need are already filled in.</p>
+  <div class="figure">
+  <img src="fig-6.4-edit-distance-table-example.png" alt="Figure 6.4 (a) The table of subproblems. Entries E(i - 1, j - 1), E(i - 1, j), and E(i, j - 1) are needed to fill in E(i, j). (b) The final table of values found by dynamic programming." />
+  <p class="caption"><strong>Figure 6.4</strong> (a) The table of subproblems. Entries <span class="math inline">\(E(i - 1, j - 1), E(i - 1, j),\)</span> and <span class="math inline">\(E(i, j - 1)\)</span> are needed to fill in <span class="math inline">\(E(i, j)\)</span>. (b) The final table of values found by dynamic programming.</p>
+  </div>
+  <p> </p>
+  <p>With both the subproblems and the ordering specified, we are almost done. There just remain the &quot;base cases&quot; of the dynamic programming, the very smallest subproblems. In the present situation, these are <span class="math inline">\(E(0, \cdot)\)</span> and <span class="math inline">\(E(\cdot, 0)\)</span>, both of which are easily solved. <span class="math inline">\(E(0, j)\)</span> is the edit distance between the <span class="math inline">\(0\)</span>-length prefix of <span class="math inline">\(x\)</span>, namely the empty string, and the first <span class="math inline">\(j\)</span> letters of <span class="math inline">\(y\)</span>: clearly, <span class="math inline">\(j\)</span>. And similarly, <span class="math inline">\(E(i, 0) = i\)</span>.</p>
+  <p>At this point, the algorithm for edit distance basically writes itself.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> edit_distance(word_1, word_2):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: word_1 of length m, word_2 of length n</span>
+  <span class="co">  Output: edit distance between word_1 and word_2</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+    <span class="cf">for</span> i <span class="op">=</span> <span class="dv">0</span>, ..., m:
+      E(i, <span class="dv">0</span>) <span class="op">=</span> i
+    <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span>, ..., n:
+      E(<span class="dv">0</span>, j) <span class="op">=</span> j
+    <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span>, ..., m:
+      <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span>, ..., n:
+        E(i, j) <span class="op">=</span> <span class="bu">min</span>(<span class="dv">1</span> <span class="op">+</span> E(i <span class="op">-</span> <span class="dv">1</span>, j), <span class="dv">1</span> <span class="op">+</span> E(i, j <span class="op">-</span> <span class="dv">1</span>), diff(i, j) <span class="op">+</span> E(i <span class="op">-</span> <span class="dv">1</span>, j <span class="op">-</span> <span class="dv">1</span>))
+    <span class="cf">return</span> E(m, n)</code></pre></div>
+  <p>This procedure fills in the table row by row, and left to right within each row. Each entry takes constant time to fill in, so the overall running time is just the size of the table, <span class="math inline">\(O(m n)\)</span>.</p>
+  <p> </p>
+  <p>And in our example, the edit distance turns out to be <span class="math inline">\(6\)</span>: <span class="math display">\[\begin{matrix}
+  \begin{matrix} \texttt{E} \\ -          \end{matrix} &amp;
+  \begin{matrix} \texttt{X} \\ -          \end{matrix} &amp;
+  \begin{matrix} \texttt{P} \\ \texttt{P} \end{matrix} &amp;
+  \begin{matrix} \texttt{O} \\ \texttt{O} \end{matrix} &amp;
+  \begin{matrix} \texttt{N} \\ \texttt{L} \end{matrix} &amp;
+  \begin{matrix} \texttt{E} \\ \texttt{Y} \end{matrix} &amp;
+  \begin{matrix} \texttt{N} \\ \texttt{N} \end{matrix} &amp;
+  \begin{matrix} -          \\ \texttt{O} \end{matrix} &amp;
+  \begin{matrix} \texttt{T} \\ \texttt{M} \end{matrix} &amp;
+  \begin{matrix} \texttt{I} \\ \texttt{I} \end{matrix} &amp;
+  \begin{matrix} \texttt{A} \\ \texttt{A} \end{matrix} &amp;
+  \begin{matrix} \texttt{L} \\ \texttt{L} \end{matrix} &amp;
+  \end{matrix}\]</span></p>
+  <p> </p>
+  <h3 id="the-underlying-dag">The underlying DAG</h3>
+  <p>Every dynamic program has an underlying <span class="math inline">\(\text{DAG}\)</span> structure: think of each node as representing a subproblem, and each edge as a precedence constraint on the order in which the subproblems can be tackled. Having nodes <span class="math inline">\(u_1, \ldots, u_k\)</span> point to <span class="math inline">\(v\)</span> means &quot;subproblem <span class="math inline">\(v\)</span> can only be solved once the answers to <span class="math inline">\(u_1, \ldots, u_k\)</span> are known.&quot;</p>
+  <p>In our present edit distance application, the nodes of the underlying <span class="math inline">\(\text{DAG}\)</span> correspond to subproblems, or equivalently, to positions <span class="math inline">\((i, j)\)</span> in the table. Its edges are the precedence constraints, of the form <span class="math inline">\((i - 1, j) \rightarrow (i, j), (i, j - 1) \rightarrow (i, j)\)</span>, and <span class="math inline">\((i - 1, j - 1) \rightarrow (i, j)\)</span> (Figure 6.5). In fact, we can take things a little further and put weights on the edges so that the edit distances are given by shortest paths in the <span class="math inline">\(\text{DAG}\)</span>!</p>
+  <p>To see this, set all edge lengths to <span class="math inline">\(1\)</span>, except for <span class="math inline">\(\{(i - 1, j - 1) \rightarrow (i, j) : x[i] = y[j]\}\)</span> (shown dotted in the figure), whose length is <span class="math inline">\(0\)</span>. The final answer is then simply the distance between nodes <span class="math inline">\(s = (0, 0)\)</span> and <span class="math inline">\(t = (m, n)\)</span>. One possible shortest path is shown, the one that yields the alignment we found earlier. On this path, each move down is a deletion, each move right is an insertion, and each diagonal move is either a match or a substitution.</p>
+  <div class="figure">
+  <img src="fig-6.5-edit-distance-underlying-dag.png" alt="Figure 6.5 The underlying \text{DAG}, and a path of length 6." />
+  <p class="caption"><strong>Figure 6.5</strong> The underlying <span class="math inline">\(\text{DAG}\)</span>, and a path of length <span class="math inline">\(6\)</span>.</p>
+  </div>
+  <p> </p>
+  <p>By altering the weights on this <span class="math inline">\(\text{DAG}\)</span>, we can allow generalized forms of edit distance, in which insertions, deletions, and substitutions have different associated costs.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Common Subproblems</strong></p>
+  <p>Finding the right subproblem takes creativity and experimentation. But there are a few standard choices that seem to arise repeatedly in dynamic programming.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>The input is <span class="math inline">\(x_1, x_2, \ldots, x_n\)</span> and a subproblem is <span class="math inline">\(x_1, x_2, \ldots, x_i\)</span>. <span class="math display">\[\begin{array}{l}
+  \boxed{\text{$x_1$ \hspace{0.05cm} $x_2$ \hspace{0.05cm} $x_3$ \hspace{0.05cm} $x_4$ \hspace{0.05cm} $x_5$ \hspace{0.05cm} $x_6$}} \text{\hspace{0.05cm} $x_7$ \hspace{0.05cm} $x_8$ \hspace{0.05cm}  $x_9$ \hspace{0.05cm} $x_{10}$} \end{array}\]</span> The number of subproblems is therefore linear <span class="math inline">\(O(n)\)</span>.</p></li>
+  <li><p>The input is <span class="math inline">\(x_1, \ldots, x_n\)</span>, and <span class="math inline">\(y_1, \ldots, y_m\)</span>. A subproblem is <span class="math inline">\(x_1, \ldots, x_i\)</span> and <span class="math inline">\(y_1, \ldots, y_j\)</span>. <span class="math display">\[\begin{array}{l}
+  \boxed{\text{$x_1$ \hspace{0.05cm} $x_2$ \hspace{0.05cm} $x_3$ \hspace{0.05cm} $x_4$ \hspace{0.05cm} $x_5$ \hspace{0.05cm} $x_6$}} \text{\hspace{0.05cm} $x_7$ \hspace{0.05cm} $x_8$ \hspace{0.05cm}  $x_9$ \hspace{0.05cm} $x_{10}$} \\ \\
+  \boxed{\hspace{0.03cm} \text{$y_1$ \hspace{0.08cm} $y_2$ \hspace{0.08cm} $y_3$ \hspace{0.08cm} $y_4$ \hspace{0.08cm} $y_5$ \hspace{0.07cm} $y_6$}} \text{\hspace{0.08cm} $y_7$ \hspace{0.08cm} $y_8$}
+  \end{array}\]</span> The number of subproblems is <span class="math inline">\(O(mn)\)</span>.</p></li>
+  <li><p>The input is <span class="math inline">\(x_1, \ldots, x_n\)</span> and a subproblem is <span class="math inline">\(x_i, x_{i+1}, \ldots, x_j\)</span>. <span class="math display">\[\begin{array}{l} \text{$x_1$ \hspace{0.05cm} $x_2$ \hspace{0.05cm}} \boxed{\text{$x_3$ \hspace{0.05cm} $x_4$ \hspace{0.05cm} $x_5$ \hspace{0.05cm} $x_6$}} \text{\hspace{0.05cm} $x_7$ \hspace{0.05cm} $x_8$ \hspace{0.05cm}  $x_9$ \hspace{0.05cm} $x_{10}$}
+  \end{array}\]</span> The number of subproblems <span class="math inline">\(O(n^2)\)</span>.</p></li>
+  <li><p>The input is a rooted tree. A subproblem is a rooted subtree. <img src="rooted-subtree-subproblem.png" /> If the tree has <span class="math inline">\(n\)</span> nodes, how many subproblems are there?</p></li>
+  </ol>
+  <p>We've already encountered the first two cases, and the others are coming up shortly.</p>
+  </blockquote>
+  <p> </p>
+  <blockquote>
+  <p><strong>Of Mice and Men</strong></p>
+  <p>Our bodies are extraordinary machines: flexible in function, adaptive to new environments, and able to interact and reproduce. All these capabilities are specified by a program unique to each of us, a string that is <span class="math inline">\(3\)</span> billion characters long over the alphabet <span class="math inline">\(\{A, C, G, T\}\)</span>—our DNA.</p>
+  <p>The DNA sequences of any two people differ by only about <span class="math inline">\(0.1\%\)</span>. However, this still leaves <span class="math inline">\(3\)</span> million positions on which they vary, more than enough to explain the vast range of human diversity. These differences are of great scientific and medical interest—for instance, they might help predict which people are prone to certain diseases.</p>
+  <p>DNA is a vast and seemingly inscrutable program, but it can be broken down into smaller units that are more specific in their role, rather like subroutines. These are called genes. Computers have become a crucial tool in understanding the genes of humans and other organisms, to the extent that <a href="https://en.wikipedia.org/wiki/Computational_genomics">computational genomics</a> is now a field in its own right. Here are examples of typical questions that arise.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>When a new gene is discovered, one way to gain insight into its function is to find known genes that match it closely. This is particularly helpful in transferring knowledge from well-studied species, such as mice, to human beings. A basic primitive in this search problem is to define an efficiently computable notion of when two strings approximately match. The biology suggests a generalization of edit distance, and dynamic programming can be used to compute it. Then there's the problem of searching through the vast thicket of known genes: the database GenBank already has a total length of over <span class="math inline">\(10^{10}\)</span>, and this number is growing rapidly. The current method of choice is BLAST, a clever combination of algorithmic tricks and biological intuitions that has made it the most widely used software in computational biology.</p></li>
+  <li><p>Methods for <em>sequencing</em> DNA (that is, determining the string of characters that constitute it) typically only find fragments of <span class="math inline">\(500–700\)</span> characters. Billions of these randomly scattered fragments can be generated, but how can they be assembled into a coherent DNA sequence? For one thing, the position of any one fragment in the final sequence is unknown and must be inferred by piecing together overlapping fragments. A showpiece of these efforts is the draft of human DNA completed in 2001 by two groups simultaneously: the publicly funded Human Genome Consortium and the private Celera Genomics.</p></li>
+  <li><p>When a particular gene has been sequenced in each of several species, can this information be used to reconstruct the evolutionary history of these species?</p></li>
+  </ol>
+  <p>We will explore these problems in the exercises at the end of this chapter. Dynamic programming has turned out to be an invaluable tool for some of them and for computational biology in general.</p>
+  </blockquote>
+  <p> </p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

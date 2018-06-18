@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>9.2 Approximation Algorithms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="approximation-algorithms">9.2 Approximation Algorithms</h2>
+  <p>In an optimization problem we are given an instance <span class="math inline">\(I\)</span> and are asked to find the optimum solution – the one with the maximum gain if we have a maximization problem like <span class="math inline">\(\text{INDEPENDENT SET}\)</span>, or the minimum cost if we are dealing with a minimization problem such as the <span class="math inline">\(\text{TSP}\)</span>. For every instance <span class="math inline">\(I\)</span>, let us denote by <span class="math inline">\(\text{OPT}(I)\)</span> the value (benefit or cost) of the optimum solution. It makes the math a little simpler (and is not too far from the truth) to <em>assume that <span class="math inline">\(\text{OPT}(I)\)</span> is always a positive integer</em>.</p>
+  <p>We have already seen an example of a (famous) approximation algorithm in Section 5.4: the greedy scheme for <span class="math inline">\(\text{SET COVER}\)</span>. For any instance <span class="math inline">\(I\)</span> of size <span class="math inline">\(n\)</span>, we showed that this greedy algorithm is guaranteed to quickly find a set cover of cardinality at most <span class="math inline">\(\text{OPT}(I)\log{n}\)</span>. This <span class="math inline">\(\log{n}\)</span> factor is known as the approximation guarantee of the algorithm.</p>
+  <p>More generally, consider any minimization problem. Suppose now that we have an algorithm <span class="math inline">\(\mathcal{A}\)</span> for our problem which, given an instance <span class="math inline">\(I\)</span>, returns a solution with value <span class="math inline">\(\mathcal{A}(I)\)</span>. The approximation ratio of algorithm <span class="math inline">\(\mathcal{A}\)</span> is defined to be</p>
+  <p><span class="math display">\[\alpha_{\mathcal{A}} = \max_{I} \frac{\mathcal{A}(I)}{\text{OPT}(I)}.\]</span></p>
+  <p>In other words, <span class="math inline">\(\alpha_{\mathcal{A}}\)</span> measures by the factor by which the output of algorithm <span class="math inline">\(\mathcal{A}\)</span> exceeds the optimal solution, on the worst-case input. The approximation ratio can also be defined for maximization problems, such as <span class="math inline">\(\text{INDEPENDENT SET}\)</span>, in the same way – except that to get a number larger than 1 we take the reciprocal.</p>
+  <p>So, when faced with an <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problem, a reasonable goal is to look for an approximation algorithm <span class="math inline">\(\mathcal{A}\)</span> whose <span class="math inline">\(\alpha_{\mathcal{A}}\)</span> is as small as possible. But this kind of guarantee might seem a little puzzling: How can we come close to the optimum if we cannot determine the optimum? Let's look at a simple example.</p>
+  <p> </p>
+  <h3 id="textvertex-cover">9.2.1 <span class="math inline">\(\text{VERTEX COVER}\)</span></h3>
+  <p>We already know the <span class="math inline">\(\text{VERTEX COVER}\)</span> problem is <span class="math inline">\(\textbf{NP}\)</span>-hard.</p>
+  <p> </p>
+  <p><span class="math inline">\(\text{VERTEX COVER}\)</span></p>
+  <ul>
+  <li><p><em>input</em>: an undirected graph <span class="math inline">\(G = (V, E)\)</span>.</p></li>
+  <li><p><em>output</em>: a subset of the vertices <span class="math inline">\(S \subseteq V\)</span> that touches every edge.</p></li>
+  <li><p><em>goal</em>: minimize <span class="math inline">\(|S|\)</span>.</p></li>
+  </ul>
+  <p> </p>
+  <p>See Figure 9.3 for an example.</p>
+  <p>Since <span class="math inline">\(\text{VERTEX COVER}\)</span> is a special case of <span class="math inline">\(\text{SET COVER}\)</span>, we know from Chapter 5 that it can be approximated within a factor of <span class="math inline">\(O(\log{n})\)</span> by the greedy algorithm: repeatedly delete the vertex of highest degree and include it in the vertex cover. And there are graphs on which the greedy algorithm returns a vertex cover that is indeed <span class="math inline">\(\log{n}\)</span> times the optimum.</p>
+  <p>A better approximation algorithm for <span class="math inline">\(\text{VERTEX COVER}\)</span> is based on the notion of a <strong>matching</strong>, a subset of edges that have no vertices in common (Figure 9.4). A matching is <em>maximal</em> if no more edges can be added to it. Maximal matchings will help us find good vertex covers, and moreover, they are easy to generate: repeatedly pick edges that are disjoint from the ones chosen already, until this is no longer possible.</p>
+  <div class="figure">
+  <img src="fig-9.3-vertex-cover-example.png" alt="Figure 9.3 A graph whose optimal vertex cover, shown shaded, is of size 8." />
+  <p class="caption"><strong>Figure 9.3</strong> A graph whose optimal vertex cover, shown shaded, is of size 8.</p>
+  </div>
+  <div class="figure">
+  <img src="fig-9.4-maximal-matching-example.png" alt="Figure 9.4 (a) A matching, (b) its completion to a maximal matching, and (c) the resulting vertex cover." />
+  <p class="caption"><strong>Figure 9.4</strong> (a) A matching, (b) its completion to a maximal matching, and (c) the resulting vertex cover.</p>
+  </div>
+  <p>What is the relationship between matchings and vertex covers? Here is the crucial fact: any vertex cover of a graph <span class="math inline">\(G\)</span> must be at least as large as the number of edges in any matching in <span class="math inline">\(G\)</span>; that is, <em>any matching provides a lower bound on <span class="math inline">\(\text{OPT}\)</span></em>. This is simply because each edge of the matching must be covered by one of its endpoints in any vertex cover! Finding such a lower bound is a key step in designing an approximation algorithm, because we must compare the quality of the solution found by our algorithm to <span class="math inline">\(\text{OPT}\)</span>, which is <span class="math inline">\(\textbf{NP}\)</span>-complete to compute.</p>
+  <p>One more observation completes the design of our approximation algorithm: let <span class="math inline">\(S\)</span> be a set that contains both endpoints of each edge in a maximal matching <span class="math inline">\(M\)</span>. Then <span class="math inline">\(S\)</span> must be a vertex cover – if it isn't, that is, if it doesn't touch some edge <span class="math inline">\(e \in E\)</span>, then <span class="math inline">\(M\)</span> could not possibly be maximal since we could still add <span class="math inline">\(e\)</span> to it. But our cover <span class="math inline">\(S\)</span> has <span class="math inline">\(2|M|\)</span> vertices. And from the previous paragraph we know that any vertex cover must have size at least <span class="math inline">\(|M|\)</span>. So we're done.</p>
+  <p>Here's the algorithm for <span class="math inline">\(\text{VERTEX COVER}\)</span>.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">Find a maximal matching M ⊆ E
+  Return S <span class="op">=</span> {<span class="bu">all</span> endpoints of edges <span class="kw">in</span> M }</code></pre></div>
+  <p>This simple procedure always returns a vertex cover whose size is at most twice optimal!</p>
+  <p>In summary, even though we have no way of finding the best vertex cover, we can easily find another structure, a maximal matching, with two key properties:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Its size gives us a lower bound on the optimal vertex cover.</p></li>
+  <li><p>It can be used to build a vertex cover, whose size can be related to that of the optimal cover using property 1.</p></li>
+  </ol>
+  <p>Thus, this simple algorithm has an approximation ratio of <span class="math inline">\(\alpha_{\mathcal{A}} \leq 2\)</span>. In fact, it is not hard to find examples on which it does make a 100% error; hence <span class="math inline">\(\alpha_{\mathcal{A}} = 2\)</span>.</p>
+  <p> </p>
+  <h3 id="clustering">9.2.2 Clustering</h3>
+  <p>We turn next to a <strong>clustering</strong> problem, in which we have some data (text documents, say, or images, or speech samples) that we want to divide into groups. It is often useful to define “distances” between these data points, numbers that capture how close or far they are from one another. Often the data are true points in some high-dimensional space and the distances are the usual Euclidean distance; in other cases, the distances are the result of some “similarity tests” to which we have subjected the data points.</p>
+  <p>Assume that we have such distances and that they satisfy the usual <em>metric</em> properties:</p>
+  <ol style="list-style-type: decimal">
+  <li><p><span class="math inline">\(d(x, y) \geq 0\)</span> for all <span class="math inline">\(x, y\)</span>.</p></li>
+  <li><p><span class="math inline">\(d(x, y) = 0\)</span> if and only if <span class="math inline">\(x = y\)</span>.</p></li>
+  <li><p><span class="math inline">\(d(x, y) = d(y, x)\)</span>.</p></li>
+  <li><p><span class="math inline">\(d(x, y) \leq d(x, z) + d(z, y)\)</span> (triangle inequality).</p></li>
+  </ol>
+  <p>We would like to partition the data points into groups that are compact in the sense of having small diameter.</p>
+  <p> </p>
+  <p><span class="math inline">\(k-\text{CLUSTER}\)</span></p>
+  <ul>
+  <li><p><em>input</em>: points <span class="math inline">\(X = \{x_1, \cdots, x_n\}\)</span> with underlying distance metric <span class="math inline">\(d(\cdot, \cdot)\)</span>; an integer <span class="math inline">\(k\)</span>.</p></li>
+  <li><p><em>output</em>: a partition of the points into <span class="math inline">\(k\)</span> clusters <span class="math inline">\(C_1, \cdots, C_k\)</span>.</p></li>
+  <li><p><em>goal</em>: minimize the diameter of clusters, <span class="math display">\[\max_{j} \max_{x_a, x_b \in C_j} d(x_a, x_b).\]</span></p></li>
+  </ul>
+  <p> </p>
+  <p>One way to visualize this task is to imagine <span class="math inline">\(n\)</span> points in space, which are to be covered by <span class="math inline">\(k\)</span> spheres of equal size. What is the smallest possible diameter of the spheres? Figure 9.5 shows an example.</p>
+  <p>This problem is <span class="math inline">\(\textbf{NP}\)</span>-hard, but has a very simple approximation algorithm. The idea is to pick <span class="math inline">\(k\)</span> of the data points as cluster centers and to then assign each of the remaining points to the center closest to it, thus creating <span class="math inline">\(k\)</span> clusters. The centers are picked one at a time, using an intuitive rule: always pick the next center to be as far as possible from the centers chosen so far (see Figure 9.6).</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">Pick <span class="bu">any</span> point μ_<span class="dv">1</span> ∈ X <span class="im">as</span> the first cluster center
+  <span class="cf">for</span> i <span class="op">=</span> <span class="dv">2</span> to k:
+    let μ_i be the first point <span class="kw">in</span> X that <span class="kw">is</span> farthest <span class="im">from</span> μ_<span class="dv">1</span>, ..., μ_(i <span class="op">-</span> <span class="dv">1</span>)
+    <span class="co"># i.e. maximizes min_(j &lt; i) d(., μ_j)</span>
+  Create k clusters: C_i <span class="op">=</span> {<span class="bu">all</span> x ∈ X whose closest center <span class="kw">is</span> μ_i}</code></pre></div>
+  <div class="figure">
+  <img src="fig-9.5-clustering-example.png" alt="Figure 9.5 Some data points and the optimal k = 4 clusters." />
+  <p class="caption"><strong>Figure 9.5</strong> Some data points and the optimal <span class="math inline">\(k = 4\)</span> clusters.</p>
+  </div>
+  <div class="figure">
+  <img src="fig-9.6-clustering-step.png" alt="Figure 9.6 (a) Four centers chosen by farthest-first traversal. (b) The resulting clusters." />
+  <p class="caption"><strong>Figure 9.6</strong> (a) Four centers chosen by farthest-first traversal. (b) The resulting clusters.</p>
+  </div>
+  <p>It's clear that this algorithm returns a valid partition. What's more, the resulting diameter is guaranteed to be at most twice optimal.</p>
+  <p>Here's the argument. Let <span class="math inline">\(x \in X\)</span> be the point farthest from <span class="math inline">\(\mu_1, \cdots, \mu_k\)</span> (in other words the next center we would have chosen, if we wanted <span class="math inline">\(k + 1\)</span> of them), and let <span class="math inline">\(r\)</span> be its distance to its closest center. Then every point in <span class="math inline">\(X\)</span> must be within distance <span class="math inline">\(r\)</span> of its cluster center. By the triangle inequality, this means that every cluster has diameter at most <span class="math inline">\(2r\)</span>.</p>
+  <p>But how does <span class="math inline">\(r\)</span> relate to the diameter of the optimal clustering? Well, we have identified <span class="math inline">\(k + 1\)</span> points <span class="math inline">\(\{\mu_1, \mu_2, \cdots, μ_k, x\}\)</span> that are all at a distance at least <span class="math inline">\(r\)</span> from each other (why?). Any partition into k clusters must put two of these points in the same cluster and must therefore have diameter at least <span class="math inline">\(r\)</span>. Any partition into <span class="math inline">\(k\)</span> clusters must put two of these points in the same cluster and must therefore have diameter at least <span class="math inline">\(r\)</span>.</p>
+  <p>This algorithm has a certain high-level similarity to our scheme for <span class="math inline">\(\text{VERTEX COVER}\)</span>. Instead of a maximal matching, we use a different easily computable structure – a set of <span class="math inline">\(k\)</span> points that cover all of <span class="math inline">\(X\)</span> within some radius <span class="math inline">\(r\)</span>, while at the same time being mutually separated by a distance of at least <span class="math inline">\(r\)</span>. This structure is used both to generate a clustering and to give a lower bound on the optimal clustering. We know of no better approximation algorithm for this problem.</p>
+  <p> </p>
+  <h3 id="metric-texttsp">9.2.3 Metric <span class="math inline">\(\text{TSP}\)</span></h3>
+  <p>The triangle inequality played a crucial role in making the <span class="math inline">\(k-\text{CLUSTER}\)</span> problem approximable. It also helps with the <span class="math inline">\(\text{TRAVELING SALESMAN PROBLEM}\)</span>: if the distances between cities satisfy the metric properties, then there is an algorithm that outputs a tour of length at most <span class="math inline">\(1.5\)</span> times optimal. We'll now look at a slightly weaker result that achieves a factor of <span class="math inline">\(2\)</span>.</p>
+  <p>Continuing with the thought processes of our previous two approximation algorithms, we can ask whether there is some structure that is easy to compute and that is plausibly related to the best traveling salesman tour (as well as providing a good lower bound on <span class="math inline">\(\text{OPT}\)</span>). A little thought and experimentation reveals the answer to be the <em>minimum spanning tree</em>.</p>
+  <p>Let's understand this relation. Removing any edge from a traveling salesman tour leaves a path through all the vertices, which is a spanning tree.</p>
+  <p>Therefore, <span class="math display">\[\text{TSP cost} \geq \text{cost of this path} \geq \text{MST cost}.\]</span></p>
+  <p>Now, we somehow need to use the <span class="math inline">\(\text{MST}\)</span> to build a traveling salesman tour. If we can use each edge <em>twice</em>, then by following the shape of the <span class="math inline">\(\text{MST}\)</span> we end up with a tour that visits all the cities, some of them more than once. Here's an example, with the <span class="math inline">\(\text{MST}\)</span> on the left and the resulting tour on the right (the numbers show the order in which the edges are taken).</p>
+  <div class="figure">
+  <img src="tsp-approximation-example.png" />
+
+  </div>
+  <p>Therefore, this tour has a length at most twice the <span class="math inline">\(\text{MST}\)</span> cost, which as we've already seen is at most twice the <span class="math inline">\(\text{TSP}\)</span> cost.</p>
+  <p>This is the result we wanted, but we aren't quite done because our tour visits some cities multiple times and is therefore not legal. To fix the problem, the tour should simply skip any city it is about to revisit, and instead move directly to the next <em>new</em> city in its list:</p>
+  <div class="figure">
+  <img src="tsp-approximation-revisited-example.png" />
+
+  </div>
+  <p>By the triangle inequality, these bypasses can only make the overall tour shorter.</p>
+  <p> </p>
+  <h3 id="general-texttsp">9.2.4 General <span class="math inline">\(\text{TSP}\)</span></h3>
+  <p>But what if we are interested in instances of <span class="math inline">\(\text{TSP}\)</span> that do not satisfy the triangle inequality? It turns out that this is a <em>much</em> harder problem to approximate.</p>
+  <p>Here is why: Recall that on page 259 we gave a polynomial-time reduction which given any graph <span class="math inline">\(G\)</span> and integer any <span class="math inline">\(C &gt; 0\)</span> produces an instance <span class="math inline">\(I(G, C)\)</span> of the <span class="math inline">\(\text{TSP}\)</span> such that:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>If <span class="math inline">\(G\)</span> has a Rudrata path, then <span class="math inline">\(\text{OPT}(I(G, C)) = n\)</span>, the number of vertices in <span class="math inline">\(G\)</span>.</p></li>
+  <li><p>If <span class="math inline">\(G\)</span> has no Rudrata path, then <span class="math inline">\(\text{OPT}(I(G, C)) = n + C\)</span>.</p></li>
+  </ol>
+  <p>This means that even an approximate solution to <span class="math inline">\(\text{TSP}\)</span> would enable us to solve <span class="math inline">\(\text{RUDRATA PATH}\)</span>! Let's work out the details.</p>
+  <p>Consider an approximation algorithm <span class="math inline">\(\mathcal{A}\)</span> for <span class="math inline">\(\text{TSP}\)</span> and let <span class="math inline">\(\alpha_{\mathcal{A}}\)</span> denote its approximation ratio. From any instance <span class="math inline">\(G\)</span> of <span class="math inline">\(\text{RUDRATA PATH}\)</span>, we will create an instance <span class="math inline">\(I(G, C)\)</span> of <span class="math inline">\(\text{TSP}\)</span> using the specific constant <span class="math inline">\(C = n\alpha_{\mathcal{A}}\)</span>. What happens when algorithm <span class="math inline">\(\mathcal{A}\)</span> is run on this <span class="math inline">\(\text{TSP}\)</span> instance?</p>
+  <p>In case 1, it must output a tour of length at most <span class="math inline">\(\alpha_{\mathcal{A}}\text{OPT}(I(G,C)) = n\alpha_{\mathcal{A}}\)</span>, whereas in case 2 it must output a tour of length at least <span class="math inline">\(\text{OPT}(I(G, C)) &gt; n\alpha_{\mathcal{A}}\)</span>. Thus we can figure out whether <span class="math inline">\(G\)</span> has a Rudrata path! Here is the resulting procedure:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">Given <span class="bu">any</span> graph G:
+    compute I(G, C) (<span class="cf">with</span> C <span class="op">=</span> n <span class="op">*</span> αA) <span class="kw">and</span> run algorithm A on it
+    <span class="cf">if</span> the resulting tour has length ≤ n <span class="op">*</span> αA:
+      conclude that G has a Rudrata path
+    <span class="cf">else</span>: conclude that G has no Rudrata path</code></pre></div>
+  <p>This tells us whether or not <span class="math inline">\(G\)</span> has a Rudrata path; by calling the procedure a polynomial number of times, we can find the actual path (Exercise 8.2).</p>
+  <p>We've shown that if <span class="math inline">\(\text{TSP}\)</span> has a polynomial-time approximation algorithm, then there is a polynomial algorithm for the <span class="math inline">\(\textbf{NP}\)</span>-complete <span class="math inline">\(\text{RUDRATA PATH}\)</span> problem. So, unless <span class="math inline">\(\textbf{P} = \textbf{NP}\)</span>, there cannot exist an efficient approximation algorithm for the <span class="math inline">\(\text{TSP}\)</span>.</p>
+  <p> </p>
+  <h3 id="knapsack">9.2.5 Knapsack</h3>
+  <p>Our last approximation algorithm is for a maximization problem and has a very impressive guarantee: given any <span class="math inline">\(\epsilon &gt; 0\)</span>, it will return a solution of value at least <span class="math inline">\((1 - \epsilon)\)</span> times the optimal value, in time that scales only polynomially in the input size and in <span class="math inline">\(1 / \epsilon\)</span>.</p>
+  <p>The problem is <span class="math inline">\(\text{KNAPSACK}\)</span>, which we first encountered in Chapter 6. There are <span class="math inline">\(n\)</span> items, with weights <span class="math inline">\(w_1, \cdots, w_n\)</span> and values <span class="math inline">\(v_1, \cdots, v_n\)</span> (all positive integers), and the goal is to pick the most valuable combination of items subject to the constraint that their total weight is at most <span class="math inline">\(W\)</span>.</p>
+  <p>Earlier we saw a dynamic programming solution to this problem with running time <span class="math inline">\(O(nW)\)</span>. Using a similar technique, a running time of <span class="math inline">\(O(nV)\)</span> can also be achieved, where <span class="math inline">\(V\)</span> is the sum of the values. Neither of these running times is polynomial, because <span class="math inline">\(W\)</span> and <span class="math inline">\(V\)</span> can be very large, exponential in the size of the input.</p>
+  <p>Let's consider the <span class="math inline">\(O(nV)\)</span> algorithm. In the bad case when <span class="math inline">\(V\)</span> is large, what if we simply scale down all the values in some way? For instance, if</p>
+  <p><span class="math display">\[v_1 = 117,586,003, v_2 = 738,493,291, v_3 = 238,827,453,\]</span></p>
+  <p>we could simply knock off some precision and instead use <span class="math inline">\(117, 738,\)</span> and <span class="math inline">\(238\)</span>. This doesn't change the problem all that much and will make the algorithm much, much faster!</p>
+  <p>Now for the details. Along with the input, the user is assumed to have specified some approximation factor <span class="math inline">\(\epsilon &gt; 0\)</span>.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">Discard <span class="bu">any</span> item <span class="cf">with</span> weight <span class="op">&gt;</span> W
+  Let v_max <span class="op">=</span> max_i v_i
+  Rescale values v_i <span class="op">=</span> v_i <span class="op">*</span> ⌊n <span class="op">/</span> (ε <span class="op">*</span> v_max)⌋
+  Run the dynamic programming algorithm <span class="cf">with</span> values {v_i}
+  Output the resulting choice of items</code></pre></div>
+  <p>Let's see why this works. First of all, since the rescaled values <span class="math inline">\(v_i\)</span> are all at most <span class="math inline">\(n / \epsilon\)</span>, the dynamic program is efficient, running in time <span class="math inline">\(O(n^3 / \epsilon)\)</span>.</p>
+  <p>Now suppose the optimal solution to the original problem is to pick some subset of items <span class="math inline">\(S\)</span>, with total value <span class="math inline">\(K^{\star}\)</span>. The rescaled value of this same assignment is</p>
+  <p><span class="math display">\[\sum_{i \ in S} \hat{v_i} = \sum_{i \in S} \lfloor v_i \cdot \frac{n}{\epsilon v_{\text{max}}} \rfloor \geq \sum_{i \in S} (v_i \cdot \frac{n}{\epsilon v_{\text{max}}} - 1) \geq K^{\star} \cdot \frac{n}{\epsilon v_{\text{max}}} - n.\]</span></p>
+  <p>Therefore, the optimal assignment for the shrunken problem, call it <span class="math inline">\(\hat{S}\)</span>, has a rescaled value of at least this much. In terms of the original values, assignment <span class="math inline">\(\hat{S}\)</span> has a value of at least</p>
+  <p><span class="math display">\[\sum_{i \in \hat{S}} v_i \geq \sum_{i \in \hat{S}} \hat{v}_i \cdot \frac{\epsilon v_{\text{max}}}{n} \geq (K^{\star} \cdot \frac{n}{\epsilon v_{\text{max}}} - n) \cdot \frac{\epsilon v_{\text{max}}}{n} = K^{\star} - \epsilon v_{\text{max}} \geq K^{\star}(1 - \epsilon).\]</span></p>
+  <p> </p>
+  <h3 id="the-approximability-hierarchy">9.2.6 The Approximability Hierarchy</h3>
+  <p>Given any <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problem, we seek the best approximation algorithm possible. Failing this, we try to prove lower bounds on the approximation ratios that are achievable in polynomial time (we just carried out such a proof for the general <span class="math inline">\(\text{TSP}\)</span>). All told, <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problems are classified as follows:</p>
+  <ul>
+  <li><p>Those for which, like the <span class="math inline">\(\text{TSP}\)</span>, no finite approximation ratio is possible.</p></li>
+  <li><p>Those for which an approximation ratio is possible, but there are limits to how small this can be. <span class="math inline">\(\text{VERTEX COVER}\)</span>, <span class="math inline">\(k-\text{CLUSTER}\)</span>, and the <span class="math inline">\(\text{TSP}\)</span> with triangle inequality belong here. (For these problems we have not established limits to their approximability, but these limits do exist, and their proofs constitute some of the most sophisticated results in this field.)</p></li>
+  <li><p>Down below we have a more fortunate class of <span class="math inline">\(\textbf{NP}\)</span>-complete problems for which approximability has no limits, and polynomial approximation algorithms with error ratios arbitrarily close to zero exist. <span class="math inline">\(\text{KNAPSACK}\)</span> resides here.</p></li>
+  <li><p>Finally, there is another class of problems, between the first two given here, for which the approximation ratio is about <span class="math inline">\(\log{n}\)</span>. <span class="math inline">\(\text{SET COVER}\)</span> is an example.</p></li>
+  </ul>
+  <p>(A humbling reminder: All this is contingent upon the assumption <span class="math inline">\(\textbf{P} \neq \textbf{NP}\)</span>. Failing this, this hierarchy collapses down to <span class="math inline">\(\textbf{P}\)</span>, and all <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problems can be solved exactly in polynomial time.)</p>
+  <p>A final point on approximation algorithms: often these algorithms, or their variants, perform much better on typical instances than their worst-case approximation ratio would have you believe.</p>
+
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

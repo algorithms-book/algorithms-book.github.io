@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>2.3 Merge Sort</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="mergesort">2.3 Mergesort</h2>
+  <p>The problem of sorting a list of numbers lends itself immediately to a divide-and-conquer strategy: split the list into two halves, recursively sort each half, and then <em>merge</em> the two sorted sublists.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> mergesort(a[<span class="dv">1</span>, ..., n]):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: an array of numbers a[1, ..., n]</span>
+  <span class="co">  Output: a sorted version of this array</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+    <span class="cf">if</span> n <span class="op">&gt;</span> <span class="dv">1</span>:
+      <span class="cf">return</span> merge(mergesort(a[<span class="dv">1</span>, ..., ⌊n<span class="op">/</span><span class="dv">2</span>⌋]), mergesort(a[⌊n<span class="op">/</span><span class="dv">2</span>⌋ <span class="op">+</span> <span class="dv">1</span>, ..., n]))
+    <span class="cf">else</span>:
+      <span class="cf">return</span> a</code></pre></div>
+  <p>The correctness of this algorithm is self-evident, as long as a correct merge subroutine is specified. If we are given two sorted arrays <span class="math inline">\(x[1, \cdots, k]\)</span> and <span class="math inline">\(y[1, \cdots, l]\)</span>, how do we efficiently merge them into a single sorted array <span class="math inline">\(z[1, \cdots, k + l]\)</span>? Well, the very first element of <span class="math inline">\(z\)</span> is either <span class="math inline">\(x[1]\)</span> or <span class="math inline">\(y[1]\)</span>, whichever is smaller. The rest of <span class="math inline">\(z[\cdot]\)</span> can then be constructed recursively.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> merge(x[<span class="dv">1</span>, ..., k], y[<span class="dv">1</span>, ..., l]):
+
+      <span class="cf">if</span> k <span class="op">=</span> <span class="dv">0</span>:
+        <span class="cf">return</span> y[<span class="dv">1</span>, ..., l]
+      <span class="cf">if</span> l <span class="op">=</span> <span class="dv">0</span>:
+        <span class="cf">return</span> x[<span class="dv">1</span>, ..., k]
+
+      <span class="cf">if</span> x[<span class="dv">1</span>] <span class="op">&lt;=</span> y[<span class="dv">1</span>]:
+        <span class="cf">return</span> x[<span class="dv">1</span>] <span class="op">+</span> merge(x[<span class="dv">2</span>, ..., k], y[<span class="dv">1</span>, ..., l])
+      <span class="cf">else</span>:
+        <span class="cf">return</span> y[<span class="dv">1</span>] <span class="op">+</span> merge(x[<span class="dv">1</span>, ..., k], y[<span class="dv">2</span>, ..., l])</code></pre></div>
+  <p>This merge procedure does a constant amount of work per recursive call (provided the required array space is allocated in advance), for a total running time of <span class="math inline">\(O(k + l)\)</span>. Thus merge's are linear, and the overall time taken by <span class="math inline">\(\text{mergesort}\)</span> is</p>
+  <p><span class="math display">\[
+  T(n) = 2T(n / 2) + O(n),
+  \]</span></p>
+  <p>or <span class="math inline">\(O(n \log{n})\)</span>.</p>
+  <p> </p>
+  <div class="figure">
+  <img src="fig-2.4-mergesort-sequence.png" alt="Figure 2.4 The sequence of merge operations in \text{mergesort}" />
+  <p class="caption"><strong>Figure 2.4</strong> The sequence of merge operations in <span class="math inline">\(\text{mergesort}\)</span></p>
+  </div>
+  <p> </p>
+  <p>Looking back at the <span class="math inline">\(\text{mergesort}\)</span> algorithm, we see that all the real work is done in merging, which doesn't start until the recursion gets down to singleton arrays. The singletons are merged in pairs, to yield arrays with two elements. Then pairs of these 2-tuples are merged, producing 4-tuples, and so on. Figure 2.4 shows an example.</p>
+  <p>This viewpoint also suggests how <span class="math inline">\(\text{mergesort}\)</span> might be made iterative. At any given moment, there is a set of “active” arrays—initially, the singletons—which are merged in pairs to give the next batch of active arrays. These arrays can be organized in a queue, and processed by repeatedly removing two arrays from the front of the queue, merging them, and putting the result at the end of the queue.</p>
+  <p>In the following pseudocode, the primitive operation inject adds an element to the end of the queue while eject removes and returns the element at the front of the queue.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> iterative_mergesort(a[<span class="dv">1</span>, ..., n]):
+
+    Q <span class="op">=</span> [] (empty queue)
+
+    <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span> to n:
+      Q.add(a[i])
+
+    <span class="cf">while</span> size(Q) <span class="op">&gt;</span> <span class="dv">1</span>:
+      Q.add(merge(Q.pop(), Q.pop()))
+
+    <span class="cf">return</span> Q.pop()</code></pre></div>
+  <p> </p>
+  <blockquote>
+  <p><strong>An <span class="math inline">\(n \log{n}\)</span> lower bound for sorting</strong></p>
+  <p>Sorting algorithms can be depicted as trees. The one in the following figure sorts an array of three elements, <span class="math inline">\(a_1, a_2, a_3\)</span>. It starts by comparing <span class="math inline">\(a_1\)</span> to <span class="math inline">\(a_2\)</span> and, if the first is larger, compares it with <span class="math inline">\(a_3\)</span>; otherwise it compares <span class="math inline">\(a_2\)</span> and <span class="math inline">\(a_3\)</span>. And so on.</p>
+  <p>Eventually we end up at a leaf, and this leaf is labeled with the true order of the three elements as a permutation of <span class="math inline">\(1, 2, 3\)</span>. For example, if <span class="math inline">\(a_2 &lt; a_1 &lt; a_3\)</span>, we get the leaf labeled &quot;<span class="math inline">\(2 1 3\)</span>&quot;. <img src="sorting-tree.png" /> The <em>depth</em> of the tree—the number of comparisons on the longest path from root to leaf, in this case 3—is exactly the worst-case time complexity of the algorithm.</p>
+  <p>This way of looking at sorting algorithms is useful because it allows one to argue that <em>mergesort is optimal</em>, in the sense that <span class="math inline">\(\Omega(n\log{n})\)</span> comparisons are necessary for sorting <span class="math inline">\(n\)</span> elements.</p>
+  <p>Here is the argument: Consider any such tree that sorts an array of <span class="math inline">\(n\)</span> elements. Each of its leaves is labeled by a permutation of <span class="math inline">\(\{ 1, 2, \cdot, n \}\)</span>. In fact, every permutation must appear as the label of a leaf.</p>
+  <p>The reason is simple: if a particular permutation is missing, what happens if we feed the algorithm an input ordered according to this same permutation? And since there are <span class="math inline">\(n!\)</span> permutations of <span class="math inline">\(n\)</span> elements, it follows that the tree has at least <span class="math inline">\(n!\)</span> leaves.</p>
+  <p>We are almost done: This is a binary tree, and we argued that it has at least <span class="math inline">\(n!\)</span> leaves. Recall now that a binary tree of depth <span class="math inline">\(d\)</span> has at most <span class="math inline">\(2^d\)</span> leaves (proof: an easy induction on <span class="math inline">\(d\)</span> ). So, the depth of our tree—and the complexity of our algorithm—must be at least <span class="math inline">\(\log{(n!)}\)</span>.</p>
+  <p>And it is well known that $ c n  for some <span class="math inline">\(c &gt; 0\)</span>. There are many ways to see this. The easiest is to notice that <span class="math inline">\(n! \geq (n / 2)(n / 2)\)</span> because <span class="math inline">\(n! = 1 \cdot 2 \cdot \cdots \cdot n\)</span> contains at least <span class="math inline">\(n / 2\)</span> factors larger than <span class="math inline">\(n / 2\)</span>; and to then take logs of both sides.</p>
+  <p>Another is to recall <a href="https://en.wikipedia.org/wiki/Stirling%27s_approximation">Stirling's formula</a> <span class="math display">\[n! \approx \sqrt{\pi (2n + \frac{1}{3})} \cdot n^n \cdot e^{-n}.\]</span> Either way, we have established that any comparison tree that sorts <span class="math inline">\(n\)</span> elements must make, in the worst case, <span class="math inline">\(\Omega(n\log{n})\)</span> comparisons, and hence mergesort is optimal!</p>
+  <p>Well, there is some fine print: this neat argument applies only to <em>algorithms that use comparisons</em>. Is it conceivable that there are alternative sorting strategies, perhaps using sophisticated numerical manipulations, that work in linear time? The answer is <em>yes</em>, under certain exceptional circumstances: the canonical such example is when the elements to be sorted are integers that lie in a small range (Exercise 2.20).</p>
+  </blockquote>
+  <p> </p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>4.6 Shortest Paths</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="shortest-paths-in-the-presence-of-negative-edges">4.6 Shortest Paths in the Presence of Negative Edges</h2>
+  <h3 id="negative-edges">4.6.1 Negative Edges</h3>
+  <p>Dijkstra's algorithm works in part because the shortest path from the starting point s to any node <span class="math inline">\(v\)</span> must pass exclusively through nodes that are closer than <span class="math inline">\(v\)</span>. This no longer holds when edge lengths can be negative. In Figure 4.12, the shortest path from <span class="math inline">\(S\)</span> to <span class="math inline">\(A\)</span> passes through <span class="math inline">\(B\)</span>, a node that is further away!</p>
+  <div class="figure">
+  <img src="fig-4.12-dijkstra-negative-example.png" alt="Figure 4.12 Dijkstra&#39;s algorithm will not work if there are negative edges." />
+  <p class="caption"><strong>Figure 4.12</strong> Dijkstra's algorithm will not work if there are negative edges.</p>
+  </div>
+  <p> </p>
+  <p>What needs to be changed in order to accommodate this new complication? To answer this, let's take a particular high-level view of Dijkstra's algorithm. A crucial invariant is that the <span class="math inline">\(\texttt{dist}\)</span> values it maintains are always either overestimates or exactly correct. They start off at <span class="math inline">\(\infty\)</span>, and the only way they ever change is by updating along an edge:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> update((u, v) ∈ E):
+    dist(v) <span class="op">=</span> <span class="bu">min</span>(dist(v), dist(u) <span class="op">+</span> l(u, v))</code></pre></div>
+  <p>This <em>update</em> operation is simply an expression of the fact that the distance to <span class="math inline">\(v\)</span> cannot possibly be more than the distance to <span class="math inline">\(u\)</span>, plus <span class="math inline">\(l(u, v)\)</span>. It has the following properties.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>It gives the correct distance to <span class="math inline">\(v\)</span> in the particular case where <span class="math inline">\(u\)</span> is the second-last node in the shortest path to <span class="math inline">\(v\)</span>, and <span class="math inline">\(\texttt{dist}(u)\)</span> is correctly set.</p></li>
+  <li><p>It will never make <span class="math inline">\(\texttt{dist(v)}\)</span> too small, and in this sense it is safe. For instance, a slew of extraneous update's can't hurt.</p></li>
+  </ol>
+  <p>This operation is extremely useful: it is harmless, and if used carefully, will correctly set distances. In fact, Dijkstra's algorithm can be thought of simply as a sequence of <span class="math inline">\(\texttt{update}\)</span>'s. We know this particular sequence doesn't work with negative edges, but is there some other sequence that does? To get a sense of the properties this sequence must possess, let's pick a node <span class="math inline">\(t\)</span> and look at the shortest path to it from <span class="math inline">\(s\)</span>.</p>
+  <div class="figure">
+  <img src="path-s-to-t.png" />
+
+  </div>
+  <p>This path can have at most <span class="math inline">\(|V| - 1\)</span> edges (do you see why?). If the sequence of updates performed includes <span class="math inline">\((s, u_1), (u_1, u_2), (u_2, u_3), \ldots, (u_k, t)\)</span>, <em>in that order</em> (though not necessarily consecutively), then by the first property the distance to <span class="math inline">\(t\)</span> will be correctly computed. It doesn't matter what other updates occur on these edges, or what happens in the rest of the graph, because updates are <em>safe</em>.</p>
+  <p>But still, if we don't know all the shortest paths beforehand, how can we be sure to update the right edges in the right order? Here is an easy solution: simply update all the edges, <span class="math inline">\(|V| - 1\)</span> times! The resulting <span class="math inline">\(O(|V| \cdot |E|)\)</span> procedure is called the Bellman-Ford algorithm and is shown in Figure 4.13, with an example run in Figure 4.14.</p>
+  <p>A note about implementation: for many graphs, the maximum number of edges in any shortest path is substantially less than <span class="math inline">\(|V| - 1\)</span>, with the result that fewer rounds of updates are needed. Therefore, it makes sense to add an extra check to the shortest-path algorithm, to make it terminate immediately after any round in which no update occurred.</p>
+  <p> </p>
+  <p><strong>Figure 4.13</strong> The Bellman-Ford algorithm for single-source shortest paths in general graphs.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> shortest_paths(G, l, s):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: Directed graph G = (V, E);</span>
+  <span class="co">         edge lengths {l_e : e ∈ E} with no negative cycles;</span>
+  <span class="co">         vertex s ∈ V</span>
+  <span class="co">  Output: For all vertices u reachable from s, dist(u) is set to the distance from s to u.</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+    <span class="cf">for</span> <span class="bu">all</span> u ∈ V:
+      dist(u) <span class="op">=</span> ∞
+      prev(u) <span class="op">=</span> nil
+
+    dist(s) <span class="op">=</span> <span class="dv">0</span>
+    repeat <span class="op">|</span>V<span class="op">|</span> <span class="op">-</span> <span class="dv">1</span> times:
+      <span class="cf">for</span> <span class="bu">all</span> e ∈ E:
+        update(e)
+
+    <span class="cf">return</span> dist</code></pre></div>
+  <p> </p>
+  <div class="figure">
+  <p class="caption"><strong>Figure 4.14</strong> The Bellman-Ford algorithm illustrated on a sample graph.</p>
+  <img src="fig-4.14-bellman-ford-example.png" alt="Figure 4.14 The Bellman-Ford algorithm illustrated on a sample graph." />
+  </div>
+  <p> </p>
+  <h3 id="negative-cycles">4.6.2 Negative Cycles</h3>
+  <p>If the length of edge <span class="math inline">\((E, B)\)</span> in Figure 4.14 were changed to <span class="math inline">\(-4\)</span>, the graph would have a <em>negative</em> cycle <span class="math inline">\(A \rightarrow E \rightarrow B \rightarrow A\)</span>. In such situations, it doesn't make sense to even ask about shortest paths. There is a path of length <span class="math inline">\(2\)</span> from <span class="math inline">\(A\)</span> to <span class="math inline">\(E\)</span>. But going round the cycle, there's also a path of length <span class="math inline">\(1\)</span>, and going round multiple times, we find paths of lengths <span class="math inline">\(0, -1, -2,\)</span> and so on.</p>
+  <p>The shortest-path problem is ill-posed in graphs with negative cycles. As might be expected, our algorithm from Section 4.6.1 works only in the absence of such cycles. But where did this assumption appear in the derivation of the algorithm? Well, it slipped in when we asserted the <em>existence</em> of a shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>.</p>
+  <p>Fortunately, it is easy to automatically detect negative cycles and issue a warning. Such a cycle would allow us to endlessly apply rounds of update operations, reducing <span class="math inline">\(\texttt{dist}\)</span> estimates every time. So instead of stopping after <span class="math inline">\(|V| - 1\)</span> iterations, perform one extra round. There is a negative cycle if and only if some <span class="math inline">\(\texttt{dist}\)</span> value is reduced during this final round.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

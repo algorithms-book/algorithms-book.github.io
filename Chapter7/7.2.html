@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.2 Flows in Networks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="flows-in-networks">7.2 Flows in Networks</h2>
+  <p> </p>
+  <h3 id="example-shipping-oil">7.2.1 Example: shipping oil</h3>
+  <p>Figure 7.4(a) shows a directed graph representing a network of pipelines along which oil can be sent. The goal is to ship as much oil as possible from the <em>source</em> <span class="math inline">\(s\)</span> to the <em>sink</em> <span class="math inline">\(t\)</span>. Each pipeline has a maximum <em>capacity</em> it can handle, and there are no opportunities for storing oil en route. Figure 7.4(b) shows a possible <em>flow</em> from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>, which ships <span class="math inline">\(7\)</span> units in all. Is this the best that can be done?</p>
+  <div class="figure">
+  <img src="fig-7.4-oil-network.png" alt="Figure 7.4 (a) A network with edge capacities. (b) A flow in the network." />
+  <p class="caption"><strong>Figure 7.4</strong> (a) A network with edge capacities. (b) A <em>flow</em> in the network.</p>
+  </div>
+  <p> </p>
+  <h3 id="maximizing-flow">7.2.2 Maximizing Flow</h3>
+  <p>The networks we are dealing with consist of a directed graph <span class="math inline">\(G = (V, E)\)</span>; two special nodes <span class="math inline">\(s, t \in V\)</span>, which are respectively a source and sink of <span class="math inline">\(G\)</span> and <em>capacities</em> <span class="math inline">\(c_e &gt; 0\)</span> on the edges.</p>
+  <p>We would like to send as much oil as possible from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span> without exceeding the capacities of any of the edges. A particular shipping scheme is called a <em>flow</em> and consists of a variable <span class="math inline">\(f_e\)</span> for each edge <span class="math inline">\(e\)</span> of the network, satisfying the following two properties:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>It doesn't violate edge capacities: <span class="math inline">\(0 \leq f_e \leq c_e\)</span> for all <span class="math inline">\(e \in E\)</span>.</p></li>
+  <li><p>For all nodes <span class="math inline">\(u\)</span> except <span class="math inline">\(s\)</span> and <span class="math inline">\(t\)</span>, the amount of flow entering <span class="math inline">\(u\)</span> equals the amount leaving <span class="math inline">\(u\)</span>: <span class="math display">\[\sum_{(w, u) \in E} f_{wu} = \sum_{(u, z) \in E} f_{uz}.\]</span></p></li>
+  </ol>
+  <p>In other words, flow is <em>conserved</em>.</p>
+  <p>The <em>size</em> of a flow is the total quantity sent from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span> and, by the conservation principle, is equal to the quantity leaving <span class="math inline">\(s\)</span>: <span class="math display">\[\text{size}(f) = \sum_{(s, u) \in E} f_{su}.\]</span></p>
+  <p>In short, our goal is to assign values to <span class="math inline">\(\{f_e : e \in E\}\)</span> that will satisfy a set of linear constraints and maximize a linear objective function. But this is a linear program! <em>The maximum-flow problem reduces to linear programming.</em></p>
+  <p>For example, for the network of Figure 7.4 the <span class="math inline">\(\text{LP}\)</span> has <span class="math inline">\(11\)</span> variables, one per edge. It seeks to maximize <span class="math inline">\(f_{sa} + f_{sb} + f_{sc}\)</span> subject to a total of <span class="math inline">\(27\)</span> constraints: <span class="math inline">\(11\)</span> for nonnegativity (such as <span class="math inline">\(f_{sa} \geq 0\)</span>), <span class="math inline">\(11\)</span> for capacity (such as <span class="math inline">\(f_{sa} \leq 3\)</span>), and <span class="math inline">\(5\)</span> for flow conservation (one for each node of the graph other than <span class="math inline">\(s\)</span> and <span class="math inline">\(t\)</span>, such as <span class="math inline">\(f_{sc} + f_{dc} = f_{ce}\)</span>). Simplex would take no time at all to correctly solve the problem and to confirm that, in our example, a flow of <span class="math inline">\(7\)</span> is in fact optimal.</p>
+  <p> </p>
+  <h3 id="a-closer-look-at-the-algorithm">7.2.3 A Closer Look at the Algorithm</h3>
+  <p>All we know so far of the simplex algorithm is the vague geometric intuition that it keeps making local moves on the surface of a convex feasible region, successively improving the objective function until it finally reaches the optimal solution. Once we have studied it in more detail (Section 7.6), we will be in a position to understand exactly how it handles flow <span class="math inline">\(\text{LP}\)</span>s, which is useful as a source of inspiration for designing <em>direct</em> max-flow algorithms.</p>
+  <p>It turns out that in fact the behavior of simplex has an elementary interpretation:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Start with zero flow.</p></li>
+  <li><p>Repeat: choose an appropriate path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>, and increase flow along the edges of this path as much as possible.</p></li>
+  </ol>
+  <p>Figure 7.5(a)-(d) shows a small example in which simplex halts after two iterations. The final flow has size <span class="math inline">\(2\)</span>, which is easily seen to be optimal.</p>
+  <div class="figure">
+  <img src="fig-7.5-max-flow-algorithm.png" alt="Figure 7.5 An illustration of the max-flow algorithm. (a) A toy network. (b) The first path chosen. (c) The second path chosen. (d) The final flow. (e) We could have chosen this path first. (f) In which case, we would have to allow this second path." />
+  <p class="caption"><strong>Figure 7.5</strong> An illustration of the max-flow algorithm. (a) A toy network. (b) The first path chosen. (c) The second path chosen. (d) The final flow. (e) We could have chosen this path first. (f) In which case, we would have to allow this second path.</p>
+  </div>
+  <p>There is just one complication. What if we had initially chosen a different path, the one in Figure 7.5(e)? This gives only one unit of flow and yet seems to block all other paths. Simplex gets around this problem by also allowing paths to <em>cancel existing flow</em>. In this particular case, it would subsequently choose the path of Figure 7.5(f). Edge <span class="math inline">\((b, a)\)</span> of this path isn't in the original network and has the effect of canceling flow previously assigned to edge <span class="math inline">\((a, b)\)</span>.</p>
+  <p>To summarize, in each iteration simplex looks for an <span class="math inline">\(s-t\)</span> path whose edges <span class="math inline">\((u, v)\)</span> can be of two types:</p>
+  <ol style="list-style-type: decimal">
+  <li><p><span class="math inline">\((u, v)\)</span> is in the original network, and is not yet at full capacity.</p></li>
+  <li><p>The reverse edge <span class="math inline">\((v, u)\)</span> is in the original network, and there is some flow along it.</p></li>
+  </ol>
+  <p>If the current flow is <span class="math inline">\(f\)</span>,then in the first case, edge <span class="math inline">\((u,v)\)</span> can handle up to <span class="math inline">\(c_{uv} - f_{uv}\)</span> additional units of flow, and in the second case, up to <span class="math inline">\(f_{vu}\)</span> additional units (canceling all or part of the existing flow on <span class="math inline">\((v, u)\)</span>). These flow-increasing opportunities can be captured in a <em>residual network</em> <span class="math inline">\(G^f=(V, E^f)\)</span>, which has exactly the two types of edges listed, with residual capacities: <span class="math display">\[c^f = \begin{cases} c_{uv} - f_{uv} &amp; \text{if $(u, v) \in E$ and $f_{uv} &lt; c_{uv}$} \\ f_{uv} &amp; \text{if $(v, u) \in E$ and $f_{uv} &gt; 0$} \end{cases}\]</span></p>
+  <p>Thus we can equivalently think of simplex as choosing an <span class="math inline">\(s-t\)</span> path in the residual network.</p>
+  <p>By simulating the behavior of simplex, we get a direct algorithm for solving max-flow. It proceeds in iterations, each time explicitly constructing <span class="math inline">\(G^f\)</span> , finding a suitable <span class="math inline">\(s-t\)</span> path in <span class="math inline">\(G^f\)</span> by using, say, a linear-time breadth-first search, and halting if there is no longer any such path along which flow can be increased.</p>
+  <p>Figure 7.6 illustrates the algorithm on our oil example.</p>
+  <div class="figure">
+  <img src="fig-7.6-max-flow-example.png" alt="Figure 7.6 The max-flow algorithm applied to the network of Figure 7.4. At each iteration, the current flow is shown on the left and the residual network on the right. The paths chosen are shown in bold." />
+  <p class="caption"><strong>Figure 7.6</strong> The max-flow algorithm applied to the network of Figure 7.4. At each iteration, the current flow is shown on the left and the residual network on the right. The paths chosen are shown in bold.</p>
+  </div>
+  <div class="figure">
+  <img src="fig-7.6-max-flow-continued-example.png" alt="Figure 7.6 continued" />
+  <p class="caption"><strong>Figure 7.6</strong> <em>continued</em></p>
+  </div>
+  <p> </p>
+  <h3 id="a-certificate-of-optimality">7.2.4 A Certificate of Optimality</h3>
+  <p>Now for a truly remarkable fact: not only does simplex correctly compute a maximum flow, but it also generates a short proof of the optimality of this flow!</p>
+  <p>Let's see an example of what this means. Partition the nodes of the oil network (Figure 7.4) into two groups, <span class="math inline">\(L = \{s, a, b\}\)</span> and <span class="math inline">\(R = \{c, d, e, t\}\)</span>:</p>
+  <div class="figure">
+  <img src="max-flow-partition.png" />
+
+  </div>
+  <p>Any oil transmitted must pass from <span class="math inline">\(L\)</span> to <span class="math inline">\(R\)</span>. Therefore, no flow can possibly exceed the total capacity of the edges from <span class="math inline">\(L\)</span> to $R4, which is <span class="math inline">\(7\)</span>. But this means that the flow we found earlier, of size <span class="math inline">\(7\)</span>, must be optimal!</p>
+  <p>More generally, an <span class="math inline">\((s, t)\)</span>-cut partitions the vertices into two disjoint groups <span class="math inline">\(L\)</span> and <span class="math inline">\(R\)</span> such that <span class="math inline">\(s\)</span> is in <span class="math inline">\(L\)</span> and <span class="math inline">\(t\)</span> is in <span class="math inline">\(R\)</span>. Its capacity is the total capacity of the edges from <span class="math inline">\(L\)</span> to <span class="math inline">\(R\)</span>, and as argued previously, is an upper bound on any flow:</p>
+  <ul>
+  <li>Pick any flow <span class="math inline">\(f\)</span> and any <span class="math inline">\((s, t)\)</span>-cut <span class="math inline">\((L, R)\)</span>. Then <span class="math inline">\(\text{size}(f) \leq \text{capacity}(L, R)\)</span>.</li>
+  </ul>
+  <p>Some cuts are large and give loose upper bounds—cut <span class="math inline">\((\{s, b, c\}, \{a, d, e, t\})\)</span> has a capacity of <span class="math inline">\(19\)</span>. But there is also a cut of capacity <span class="math inline">\(7\)</span>, which is effectively a <em>certificate of optimality</em> of the maximum flow. This isn't just a lucky property of our oil network; such a cut <em>always</em> exists.</p>
+  <p> </p>
+  <h3 id="max-flow-min-cut-theorem">Max-flow Min-Cut Theorem</h3>
+  <p><strong>Max-flow Min-Cut Theorem</strong> The size of the maximum flow in a network equals the capacity of the smallest <span class="math inline">\((s, t)\)</span>-cut.</p>
+  <p>Moreover, our algorithm automatically finds this cut as a by-product!</p>
+  <p>Let's see why this is true. Suppose <span class="math inline">\(f\)</span> is the final flow when the algorithm terminates. We know that node <span class="math inline">\(t\)</span> is no longer reachable from <span class="math inline">\(s\)</span> in the residual network <span class="math inline">\(G^f\)</span> . Let <span class="math inline">\(L\)</span> be the nodes that are reachable from <span class="math inline">\(s\)</span> in <span class="math inline">\(G^f\)</span>, and let <span class="math inline">\(R = V - L\)</span> be the rest of the nodes. Then <span class="math inline">\((L, R)\)</span> is a cut in the graph <span class="math inline">\(G\)</span>:</p>
+  <div class="figure">
+  <img src="max-flow-min-cut.png" />
+
+  </div>
+  <p>We claim <span class="math display">\[\text{size}(f) = \text{capacity}(L, R).\]</span></p>
+  <p>To see this, observe that by the way <span class="math inline">\(L\)</span> is defined, any edge going from <span class="math inline">\(L\)</span> to <span class="math inline">\(R\)</span> must be at full capacity (in the current flow <span class="math inline">\(f\)</span>), and any edge from <span class="math inline">\(R\)</span> to <span class="math inline">\(L\)</span> must have zero flow. (So, in the figure, <span class="math inline">\(f_{e} = c_{e}\)</span> and <span class="math inline">\(f_{e&#39;} = 0\)</span>.) Therefore the net flow across <span class="math inline">\((L, R)\)</span> is exactly the capacity of the cut.</p>
+  <p> </p>
+  <h3 id="efficiency">Efficiency</h3>
+  <p>Each iteration of our maximum-flow algorithm is efficient, requiring <span class="math inline">\(O(|E|)\)</span> time if a depth-first or breadth-first search is used to find an <span class="math inline">\(s-t\)</span> path. But how many iterations are there?</p>
+  <p>Suppose all edges in the original network have <em>integer</em> capacities <span class="math inline">\(\leq C\)</span>. Then an inductive argument shows that on each iteration of the algorithm, the flow is always an integer and increases by an integer amount. Therefore, since the maximum flow is at most <span class="math inline">\(C|E|\)</span> (why?), it follows that the number of iterations is at most this much. But this is hardly a reassuring bound: what if <span class="math inline">\(C\)</span> is in the millions?</p>
+  <p>We examine this issue further in Exercise 7.31. It turns out that it is indeed possible to construct bad examples in which the number of iterations is proportional to <span class="math inline">\(C\)</span>, <em>if</em> <span class="math inline">\(s - t\)</span> paths are not carefully chosen. However, if paths are chosen in a sensible manner—in particular, by using a breadth-first search, which finds the path with the fewest edges—then the number of iterations is at most <span class="math inline">\(O(|V | \cdot |E|)\)</span>, no matter what the capacities are. This latter bound gives an overall running time of <span class="math inline">\(O(|V | \cdot |E|^2)\)</span> for maximum flow.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

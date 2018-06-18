@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="longest-increasing-subsequences">6.2 Longest Increasing Subsequences</h2>
+  <p>In the <em>longest increasing subsequence</em> problem, the input is a sequence of numbers <span class="math inline">\(a_1, \ldots, a_n\)</span>. A subsequence is any subset of these numbers taken in order, of the form <span class="math inline">\(a_{i_1}, a_{i_2}, \ldots, a_{i_k}\)</span> where <span class="math inline">\(1 \leq i_1 &lt; i_2 &lt; \cdots &lt; i_k \leq n\)</span>, and an <em>increasing</em> subsequence is one in which the numbers are getting strictly larger. The task is to find the increasing subsequence of greatest length. For instance, the longest increasing subsequence of <span class="math inline">\(5, 2, 8, 6, 3, 6, 9, 7\)</span> is <span class="math inline">\(2, 3, 6, 9\)</span>:</p>
+  <div class="figure">
+  <img src="longest-subsequence-example.png" />
+
+  </div>
+  <p>In this example, the arrows denote transitions between consecutive elements of the optimal solution. More generally, to better understand the solution space, let’s create a graph of <em>all</em> permissible transitions: establish a node <span class="math inline">\(i\)</span> for each element <span class="math inline">\(a_i\)</span>, and add directed edges <span class="math inline">\((i, j)\)</span> whenever it is possible for <span class="math inline">\(a_i\)</span> and <span class="math inline">\(a_j\)</span> to be consecutive elements in an increasing subsequence, that is, whenever <span class="math inline">\(i &lt; j\)</span> and <span class="math inline">\(a_i &lt; a_j\)</span> (Figure 6.2).</p>
+  <div class="figure">
+  <img src="fig-6.2-dag-increasing-subsequence.png" alt="Figure 6.2 The \text{DAG} of increasing subsequences." />
+  <p class="caption"><strong>Figure 6.2</strong> The <span class="math inline">\(\text{DAG}\)</span> of increasing subsequences.</p>
+  </div>
+  <p> </p>
+  <p>Notice that</p>
+  <ol style="list-style-type: decimal">
+  <li><p>this graph <span class="math inline">\(G = (V, E)\)</span> is a <span class="math inline">\(\text{DAG}\)</span>, since all edges <span class="math inline">\((i, j)\)</span> have <span class="math inline">\(i &lt; j\)</span>, and</p></li>
+  <li><p>there is a one-to-one correspondence between increasing subsequences and paths in this <span class="math inline">\(\text{DAG}\)</span>.</p></li>
+  </ol>
+  <p>Therefore, our goal is simply to find the longest path in the <span class="math inline">\(\text{DAG}\)</span>!</p>
+  <p>Here is the algorithm:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> longest_path_DAG(G):
+    <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span>, <span class="dv">2</span>, ..., n:
+      L(j) <span class="op">=</span> <span class="dv">1</span> <span class="op">+</span> <span class="bu">max</span>{L(i): (i,j) ∈ E}
+    <span class="cf">return</span> max_j L(j)</code></pre></div>
+  <p><span class="math inline">\(L(j)\)</span> is the length of the longest path—the longest increasing subsequence—ending at <span class="math inline">\(j\)</span> (plus <span class="math inline">\(1\)</span>, since strictly speaking we need to count nodes on the path, not edges). By reasoning in the same way as we did for shortest paths, we see that any path to node <span class="math inline">\(j\)</span> must pass through one of its predecessors, and therefore <span class="math inline">\(L(j)\)</span> is <span class="math inline">\(1\)</span> plus the maximum <span class="math inline">\(L(\cdot)\)</span> value of these predecessors. If there are no edges into <span class="math inline">\(j\)</span>, we take the maximum over the empty set, zero. And the final answer is the <em>largest</em> <span class="math inline">\(L(j)\)</span>, since any ending position is allowed.</p>
+  <p> </p>
+
+  <p>This is dynamic programming. In order to solve our original problem, we have defined a collection of subproblems <span class="math inline">\(\{L(j) : 1 \leq j \leq n\}\)</span> with the following key property that allows them to be solved in a single pass:</p>
+  <ul>
+  <li>There is an ordering on the subproblems, and a relation that shows how to solve a subproblem given the answers to &quot;smaller&quot; subproblems, that is, subproblems that appear earlier in the ordering.</li>
+  </ul>
+  <p>In our case, each subproblem is solved using the relation <span class="math display">\[L(j) = 1 + \max\{L(i): (i, j) \in E\},\]</span> an expression which involves only smaller subproblems. How long does this step take? It requires the predecessors of <span class="math inline">\(j\)</span> to be known; for this the adjacency list of the reverse graph <span class="math inline">\(G^R\)</span>, constructible in linear time (recall Exercise 3.5), is handy. The computation of <span class="math inline">\(L(j)\)</span> then takes time proportional to the indegree of <span class="math inline">\(j\)</span>, giving an overall running time linear in <span class="math inline">\(|E|\)</span>. This is at most <span class="math inline">\(O(n^2)\)</span>, the maximum being when the input array is sorted in increasing order. Thus the dynamic programming solution is both simple and efficient.</p>
+  <p>There is one last issue to be cleared up: the <span class="math inline">\(L\)</span>-values only tell us the <em>length</em> of the optimal subsequence, so how do we recover the subsequence itself? This is easily managed with the same bookkeeping device we used for shortest paths in Chapter 4. While computing <span class="math inline">\(L(j)\)</span>, we should also note down <span class="math inline">\(\texttt{prev}(j)\)</span>, the next-to-last node on the longest path to <span class="math inline">\(j\)</span>. The optimal subsequence can then be reconstructed by following these backpointers.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Recursion? No, thanks.</strong></p>
+  <p>Returning to our discussion of longest increasing subsequences: the formula for <span class="math inline">\(L(j)\)</span> also suggests an alternative, recursive algorithm. Wouldn’t that be even simpler?</p>
+  <p>Actually, recursion is a very bad idea: the resulting procedure would require exponential time! To see why, suppose that the <span class="math inline">\(\text{DAG}\)</span> contains edges <span class="math inline">\((i, j)\)</span> for <em>all</em> <span class="math inline">\(i &lt; j\)</span>—that is, the given sequence of numbers <span class="math inline">\(a_1, a_2, \ldots, a_n\)</span> is sorted. In that case, the formula for subproblem <span class="math inline">\(L(j)\)</span> becomes <span class="math display">\[L(j) = 1 + \max\{L(1), L(2), \ldots, L(j - 1)\}.\]</span></p>
+  <p>The following figure unravels the recursion for <span class="math inline">\(L(5)\)</span>. Notice that the same subproblems get solved over and over again!</p>
+  <div class="figure">
+  <img src="longest-path-recursion-tree-example.png" />
+
+  </div>
+  <p>For <span class="math inline">\(L(n)\)</span> this tree has exponentially many nodes (can you bound it?), and so a recursive solution is disastrous.</p>
+  <p>Then why did recursion work so well with divide-and-conquer? The key point is that in divide-and-conquer, a problem is expressed in terms of subproblems that are <em>substantially smaller</em>, say half the size. For instance, <span class="math inline">\(\texttt{mergesort}\)</span> sorts an array of size <span class="math inline">\(n\)</span> by recursively sorting two subarrays of size <span class="math inline">\(n / 2\)</span>. Because of this sharp drop in problem size, the full recursion tree has only logarithmic depth and a polynomial number of nodes.</p>
+  <p>In contrast, in a typical dynamic programming formulation, a problem is reduced to subproblems that are only slightly smaller—for instance, <span class="math inline">\(L(j)\)</span> relies on <span class="math inline">\(L(j - 1)\)</span>. Thus the full recursion tree generally has polynomial depth and an exponential number of nodes. However, it turns out that most of these nodes are repeats, that there are not too many <em>distinct</em> subproblems among them. Efficiency is therefore obtained by explicitly enumerating the distinct subproblems and solving them in the right order.</p>
+  </blockquote>
+  <p> </p>
+  <blockquote>
+  <p><strong>Programming?</strong></p>
+  <p>The origin of the term <em>dynamic programming</em> has very little to do with writing code. It was first coined by Richard Bellman in the 1950s, a time when computer programming was an esoteric activity practiced by so few people as to not even merit a name. Back then programming meant &quot;planning&quot;, and &quot;dynamic programming&quot; was conceived to optimally plan multistage processes. The <span class="math inline">\(\text{DAG}\)</span> of Figure 6.2 can be thought of as describing the possible ways in which such a process can evolve: each node denotes a state, the leftmost node is the starting point, and the edges leaving a state represent possible actions, leading to different states in the next unit of time.</p>
+  <p>The etymology of <em>linear programming</em>, the subject of Chapter 7, is similar.</p>
+  </blockquote>
+  <p> </p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

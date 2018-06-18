@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>5.1 Minimum Spanning Trees</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="minimum-spanning-trees">5.1 Minimum Spanning Trees</h2>
+  <p>Suppose you are asked to network a collection of computers by linking selected pairs of them. This translates into a graph problem in which nodes are computers, undirected edges are potential links, and the goal is to pick enough of these edges that the nodes are connected. But this is not all; each link also has a maintenance cost, reflected in that edge's weight. What is the cheapest possible network?</p>
+  <div class="figure">
+  <img src="cheapest-possible-network.png" />
+
+  </div>
+  <p>One immediate observation is that the optimal set of edges cannot contain a cycle, because removing an edge from this cycle would reduce the cost without compromising connectivity:</p>
+  <p><strong>Property 1</strong> <em>Removing a cycle edge cannot disconnect a graph.</em></p>
+  <p>So the solution must be connected and acyclic: undirected graphs of this kind are called <em>trees</em>. The particular tree we want is the one with minimum total weight, known as the <em>minimum spanning tree</em>. Here is its formal definition.</p>
+  <ul>
+  <li><p><em>input</em>: an undirected graph <span class="math inline">\(G = (V, E)\)</span>; edge weights <span class="math inline">\(w_e\)</span>.</p></li>
+  <li><p><em>output</em>: a tree <span class="math inline">\(T = (V, E&#39;)\)</span>, with <span class="math inline">\(E&#39; \subseteq E\)</span>, that minimizes <span class="math display">\[\text{weight}(T) = \sum_{e \in E&#39;} w_e.\]</span></p></li>
+  </ul>
+  <p>In the preceding example, the minimum spanning tree has a cost of <span class="math inline">\(16\)</span>:</p>
+  <div class="figure">
+  <img src="minimum-spanning-tree-example.png" />
+
+  </div>
+  <p>However, this is not the only optimal solution. Can you spot another?</p>
+  <p> </p>
+  <h3 id="a-greedy-approach">5.1.1 A Greedy Approach</h3>
+  <p>Kruskal's minimum spanning tree algorithm starts with the empty graph and then selects edges from <span class="math inline">\(E\)</span> according to the following rule.</p>
+  <ul>
+  <li>Repeatedly add the next lightest edge that doesn't produce a cycle.</li>
+  </ul>
+  <p>In other words, it constructs the tree edge by edge and, apart from taking care to avoid cycles, simply picks whichever edge is cheapest at the moment. This is a <em>greedy</em> algorithm: every decision it makes is the one with the most obvious immediate advantage.</p>
+  <div class="figure">
+  <img src="fig-5.1-kruskal-algorithm-example.png" alt="Figure 5.1 The minimum spanning tree found by Kruskal&#39;s algorithm." />
+  <p class="caption"><strong>Figure 5.1</strong> The minimum spanning tree found by Kruskal's algorithm.</p>
+  </div>
+  <p> </p>
+  <p>Figure 5.1 shows an example. We start with an empty graph and then attempt to add edges in increasing order of weight (ties are broken arbitrarily): <span class="math display">\[B - C, C - D, B - D, C - F, D - F, E - F, A - D, A - B, C - E, A - C.\]</span></p>
+  <p>The first two succeed, but the third, <span class="math inline">\(B - D\)</span>, would produce a cycle if added. So we ignore it and move along. The final result is a tree with cost <span class="math inline">\(14\)</span>, the minimum possible.</p>
+  <p>The correctness of Kruskal's method follows from a certain <em>cut property</em>, which is general enough to also justify a whole slew of other minimum spanning tree algorithms.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Trees</strong></p>
+  <p>A <em>tree</em> is an undirected graph that is connected and acyclic. Much of what makes trees so useful is the simplicity of their structure. For instance,</p>
+  <p><strong>Property 2</strong> <em>A tree on <span class="math inline">\(n\)</span> nodes has <span class="math inline">\(n - 1\)</span> edges.</em></p>
+  <p>This can be seen by building the tree one edge at a time, starting from an empty graph. Initially each of the n nodes is disconnected from the others, in a connected component by itself. As edges are added, these components merge. Since each edge unites two different components, exactly <span class="math inline">\(n - 1\)</span> edges are added by the time the tree is fully formed.</p>
+  <p>In a little more detail: When a particular edge <span class="math inline">\(\{u, v\}\)</span> comes up, we can be sure that <span class="math inline">\(u\)</span> and <span class="math inline">\(v\)</span> lie in separate connected components, for otherwise there would already be a path between them and this edge would create a cycle. Adding the edge then merges these two components, thereby reducing the total number of connected components by one. Over the course of this incremental process, the number of components decreases from <span class="math inline">\(n\)</span> to one, meaning that <span class="math inline">\(n - 1\)</span> edges must have been added along the way.</p>
+  <p>The converse is also true.</p>
+  <p><strong>Property 3</strong> <em>Any connected, undirected graph <span class="math inline">\(G = (V, E)\)</span> with <span class="math inline">\(|E| = |V| - 1\)</span> is a tree.</em></p>
+  <p>We just need to show that <span class="math inline">\(G\)</span> is acyclic. One way to do this is to run the following iterative procedure on it: while the graph contains a cycle, remove one edge from this cycle. The process terminates with some graph <span class="math inline">\(G&#39; = (V, E&#39;), E&#39; \subseteq E\)</span>, which is acyclic and, by Property 1 (from page 133), is also connected. Therefore <span class="math inline">\(G&#39;\)</span> is a tree, whereupon <span class="math inline">\(|E&#39;| = |V| - 1\)</span> by Property 2. So <span class="math inline">\(E&#39; = E\)</span>, no edges were removed, and <span class="math inline">\(G\)</span> was acyclic to start with.</p>
+  <p>In other words, we can tell whether a connected graph is a tree just by counting how many edges it has. Here's another characterization.</p>
+  <p><strong>Property 4</strong> <em>An undirected graph is a tree if and only if there is a unique path between any pair of nodes.</em></p>
+  <p>In a tree, any two nodes can only have one path between them; for if there were two paths, the union of these paths would contain a cycle.</p>
+  <p>On the other hand, if a graph has a path between any two nodes, then it is connected. If these paths are unique, then the graph is also acyclic (since a cycle has two paths between any pair of nodes).</p>
+  </blockquote>
+  <p> </p>
+  <h3 id="the-cut-property">5.1.2 The Cut Property</h3>
+  <p>Say that in the process of building a minimum spanning tree (<span class="math inline">\(\text{MST}\)</span>), we have already chosen some edges and are so far on the right track. Which edge should we add next? The following lemma gives us a lot of flexibility in our choice.</p>
+  <p><strong>Cut property</strong> <em>Suppose edges <span class="math inline">\(X\)</span> are part of a minimum spanning tree of <span class="math inline">\(G = (V, E)\)</span>. Pick any subset of nodes <span class="math inline">\(S\)</span> for which <span class="math inline">\(X\)</span> does not cross between <span class="math inline">\(S\)</span> and <span class="math inline">\(V - S\)</span>, and let <span class="math inline">\(e\)</span> be the lightest edge across this partition. Then <span class="math inline">\(X \cup \{e\}\)</span> is part of some <span class="math inline">\(\text{MST}\)</span>.</em></p>
+  <p>A <strong>cut</strong> is any partition of the vertices into two groups, <span class="math inline">\(S\)</span> and <span class="math inline">\(V - S\)</span>. What this property says is that it is always safe to add the lightest edge across any cut (that is, between a vertex in <span class="math inline">\(S\)</span> and one in <span class="math inline">\(V - S\)</span>), provided <span class="math inline">\(X\)</span> has no edges across the cut.</p>
+  <div class="figure">
+  <img src="fig-5.2-min-cut-property.png" alt="Figure 5.2 T \cup \{e\}. The addition of e (dotted) to T (solid lines) produces a cycle. This cycle must contain at least one other edge, shown here as e&#39;, across the cut (S, V - S)." />
+  <p class="caption"><strong>Figure 5.2</strong> <span class="math inline">\(T \cup \{e\}\)</span>. The addition of <span class="math inline">\(e\)</span> (dotted) to <span class="math inline">\(T\)</span> (solid lines) produces a cycle. This cycle must contain at least one other edge, shown here as <span class="math inline">\(e&#39;\)</span>, across the cut <span class="math inline">\((S, V - S)\)</span>.</p>
+  </div>
+  <p> </p>
+  <p>Let's see why this holds. Edges <span class="math inline">\(X\)</span> are part of some <span class="math inline">\(\text{MST} T\)</span>; if the new edge <span class="math inline">\(e\)</span> also happens to be part of <span class="math inline">\(T\)</span>, then there is nothing to prove. So assume <span class="math inline">\(e\)</span> is not in <span class="math inline">\(T\)</span>. We will construct a different <span class="math inline">\(\text{MST} T&#39;\)</span> containing <span class="math inline">\(X \cup \{e\}\)</span> by altering <span class="math inline">\(T\)</span> slightly, changing just one of its edges.</p>
+  <p>Add edge <span class="math inline">\(e\)</span> to <span class="math inline">\(T\)</span>. Since <span class="math inline">\(T\)</span> is connected, it already has a path between the endpoints of <span class="math inline">\(e\)</span>, so adding <span class="math inline">\(e\)</span> creates a cycle. This cycle must also have some other edge <span class="math inline">\(e&#39;\)</span> across the cut <span class="math inline">\((S, V - S)\)</span> (Figure 8.3). If we now remove this edge, we are left with <span class="math inline">\(T&#39; = T \cup \{e\} - \{e&#39;\}\)</span>, which we will show to be a tree. <span class="math inline">\(T&#39;\)</span> is connected by Property 1, since <span class="math inline">\(e&#39;\)</span> is a cycle edge. And it has the same number of edges as <span class="math inline">\(T\)</span>; so by Properties 2 and 3, it is also a tree.</p>
+  <p>Moreover, <span class="math inline">\(T&#39;\)</span> is a minimum spanning tree. Compare its weight to that of <span class="math inline">\(T\)</span>: <span class="math display">\[\text{weight}(T&#39;) = \text{weight}(T) + w(e) - w(e&#39;).\]</span></p>
+  <p>Both <span class="math inline">\(e\)</span> and <span class="math inline">\(e&#39;\)</span> cross between <span class="math inline">\(S\)</span> and <span class="math inline">\(V - S\)</span>, and <span class="math inline">\(e\)</span> is specifically the lightest edge of this type. Therefore <span class="math inline">\(w(e) \leq w(e&#39;)\)</span>, and <span class="math inline">\(\text{weight}(T&#39;) \leq \text{weight}(T)\)</span>. Since <span class="math inline">\(T\)</span> is an <span class="math inline">\(\text{MST}\)</span>, it must be the case that <span class="math inline">\(\text{weight}(T&#39;) = \text{weight}(T)\)</span> and that <span class="math inline">\(T&#39;\)</span> is also an <span class="math inline">\(\text{MST}\)</span>.</p>
+  <p>Figure 5.3 shows an example of the cut property. Which edge is <span class="math inline">\(e&#39;\)</span>?</p>
+  <div class="figure">
+  <img src="fig-5.3-cut-property-example.png" alt="Figure 5.3 The cut property at work. (a) An undirected graph. (b) Set X has three edges, and is part of the \text{MST} T on the right. (c) If S = \{A, B, C, D\}, then one of the minimum-weight edges across the cut (S,V - S)is e = \{D, E\}. X \cup \{e\} is part of \text{MST} T&#39;,shown on the right." />
+  <p class="caption"><strong>Figure 5.3</strong> The cut property at work. (a) An undirected graph. (b) Set <span class="math inline">\(X\)</span> has three edges, and is part of the <span class="math inline">\(\text{MST} T\)</span> on the right. (c) If <span class="math inline">\(S = \{A, B, C, D\}\)</span>, then one of the minimum-weight edges across the cut <span class="math inline">\((S,V - S)\)</span>is <span class="math inline">\(e = \{D, E\}\)</span>. <span class="math inline">\(X \cup \{e\}\)</span> is part of <span class="math inline">\(\text{MST} T&#39;\)</span>,shown on the right.</p>
+  </div>
+  <p> </p>
+  <h3 id="kruskals-algorithm">5.1.3 Kruskal's Algorithm</h3>
+  <p>We are ready to justify Kruskal's algorithm. At any given moment, the edges it has already chosen form a partial solution, a collection of connected components each of which has a tree structure. The next edge <span class="math inline">\(e\)</span> to be added connects two of these components; call them <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span>. Since <span class="math inline">\(e\)</span> is the lightest edge that doesn't produce a cycle, it is certain to be the lightest edge between <span class="math inline">\(T_1\)</span> and <span class="math inline">\(V - T_1\)</span> and therefore satisfies the cut property.</p>
+  <p>Now we fill in some implementation details. At each stage, the algorithm chooses an edge to add to its current partial solution. To do so, it needs to test each candidate edge <span class="math inline">\(u - v\)</span> to see whether the endpoints <span class="math inline">\(u\)</span> and <span class="math inline">\(v\)</span> lie in different components; otherwise the edge produces a cycle. And once an edge is chosen, the corresponding components need to be merged. What kind of data structure supports such operations?</p>
+  <p>We will model the algorithm's state as a collection of <em>disjoint sets</em>, each of which contains the nodes of a particular component. Initially each node is in a component by itself: <span class="math display">\[\texttt{makeset}(x): \text{create a singleton set containing just $x$.}\]</span></p>
+  <p>We repeatedly test pairs of nodes to see if they belong to the same set. <span class="math display">\[\texttt{find}(x): \text{to which set does $x$ belong?}\]</span></p>
+  <p>And whenever we add an edge, we are merging two components. <span class="math display">\[\texttt{union}(x, y): \text{merge the sets containing $x$ and $y$.}\]</span></p>
+  <p>The final algorithm is shown in Figure 5.4. It uses <span class="math inline">\(|V| \texttt{makeset}, 2|E| \texttt{find}\)</span>, and <span class="math inline">\(|V| - 1 \texttt{union}\)</span> operations.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Kruskal(G, w):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: a connected graph G = (V, E) with edge weights w_e</span>
+  <span class="co">  Output: a minimum spanning tree defined by the edges X</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="cf">for</span> <span class="bu">all</span> u ∈ V :
+      makeset(u)
+
+    X <span class="op">=</span> {}
+    sort the edges E by weight
+
+    <span class="cf">for</span> <span class="bu">all</span> edges {u, v} ∈ E, <span class="kw">in</span> increasing order of weight:
+      <span class="cf">if</span> find(u) <span class="op">!=</span> find(v):
+        add edge {u, v} to X
+        union(u, v)
+
+    <span class="cf">return</span> X</code></pre></div>
+  <p> </p>
+  <h3 id="a-data-structure-for-disjoint-sets">5.1.4 A Data Structure for Disjoint Sets</h3>
+  <p><strong>Union by Rank</strong></p>
+  <p>One way to store a set is as a directed tree (Figure 5.5). Nodes of the tree are elements of the set, arranged in no particular order, and each has parent pointers that eventually lead up to the root of the tree. This root element is a convenient <em>representative</em>, or <em>name</em>, for the set. It is distinguished from the other elements by the fact that its parent pointer is a self-loop.</p>
+  <div class="figure">
+  <img src="fig-5.5-union-by-rank-example.png" alt="Figure 5.5 A directed-tree representation of two sets \{B, E\} and \{A, C, D, F, G, H\}." />
+  <p class="caption"><strong>Figure 5.5</strong> A directed-tree representation of two sets <span class="math inline">\(\{B, E\}\)</span> and <span class="math inline">\(\{A, C, D, F, G, H\}\)</span>.</p>
+  </div>
+  <p>In addition to a parent pointer <span class="math inline">\(\pi\)</span>, each node also has a <em>rank</em> that, for the time being, should be interpreted as the height of the subtree hanging from that node.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> makeset(x):
+    π(x) <span class="op">=</span> x
+    rank(x) <span class="op">=</span> <span class="dv">0</span>
+
+  <span class="kw">def</span> find(x):
+    <span class="cf">while</span> x <span class="op">!=</span> π(x):
+      x <span class="op">=</span> π(x)
+    <span class="cf">return</span> x</code></pre></div>
+  <p>As can be expected, <span class="math inline">\(\texttt{makeset}\)</span> is a constant-time operation. On the other hand, <span class="math inline">\(\texttt{find}\)</span> follows parent pointers to the root of the tree and therefore takes time proportional to the height of the tree. The tree actually gets built via the third operation, <span class="math inline">\(\texttt{union}\)</span>, and so we must make sure that this procedure keeps trees shallow.</p>
+  <p>Merging two sets is easy: make the root of one point to the root of the other. But we have a choice here. If the representatives (roots) of the sets are <span class="math inline">\(r_x\)</span> and <span class="math inline">\(r_y\)</span>, do we make <span class="math inline">\(r_x\)</span> point to <span class="math inline">\(r_y\)</span> or the other way around?</p>
+  <p>Since tree height is the main impediment to computational efficiency, a good strategy is to <em>make the root of the shorter tree point to the root of the taller tree</em>. This way, the overall height increases only if the two trees being merged are equally tall. Instead of explicitly computing heights of trees, we will use the rank numbers of their root nodes—which is why this scheme is called <em>union by rank</em>.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> union(x, y):
+    r_x <span class="op">=</span> find(x)
+    r_y <span class="op">=</span> find(y)
+
+    <span class="cf">if</span> r_x <span class="op">=</span> r_y:
+      <span class="cf">return</span>
+
+    <span class="cf">if</span> rank(r_x) <span class="op">&gt;</span> rank(r_y):
+      π(r_y) <span class="op">=</span> r_x
+
+    <span class="cf">else</span>:
+      π(r_x) <span class="op">=</span> r_y
+      <span class="cf">if</span> rank(r_x) <span class="op">=</span> rank(r_y):
+         rank(r_y) <span class="op">=</span>  rank(r_y) <span class="op">+</span> <span class="dv">1</span></code></pre></div>
+  <p>See Figure 5.6 for an example.</p>
+  <div class="figure">
+  <img src="fig-5.6-union-by-rank-example.png" alt="Figure 5.6 A sequence of disjoint-set operations. Superscripts denote rank." />
+  <p class="caption"><strong>Figure 5.6</strong> A sequence of disjoint-set operations. Superscripts denote rank.</p>
+  </div>
+  <p> </p>
+  <p>By design, the <em>rank</em> of a node is exactly the height of the subtree rooted at that node. This means, for instance, that as you move up a path toward a root node, the rank values along the way are strictly increasing.</p>
+  <p><strong>Property 1</strong> <em>For any <span class="math inline">\(x, \text{rank}(x) &lt; \text{rank}(\pi(x))\)</span>.</em></p>
+  <p>A root node with rank <span class="math inline">\(k\)</span> is created by the merger of two trees with roots of rank <span class="math inline">\(k - 1\)</span>. It follows by induction (try it!) that</p>
+  <p><strong>Property 2</strong> <em>Any root node of rank <span class="math inline">\(k\)</span> has at least <span class="math inline">\(2^k\)</span> nodes in its tree.</em></p>
+  <p>This extends to internal (nonroot) nodes as well: a node of rank <span class="math inline">\(k\)</span> has at least <span class="math inline">\(2^k\)</span> descendants. After all, any internal node was once a root, and neither its rank nor its set of descendants has changed since then. Moreover, different rank-<span class="math inline">\(k\)</span> nodes cannot have common descendants, since by Property 1 any element has at most one ancestor of rank <span class="math inline">\(k\)</span>. Which means</p>
+  <p><strong>Property 3</strong> <em>If there are <span class="math inline">\(n\)</span> elements overall, there can be at most <span class="math inline">\(n / 2^k\)</span> nodes of rank <span class="math inline">\(k\)</span>.</em></p>
+  <p>This last observation implies, crucially, that the maximum rank is <span class="math inline">\(\log{n}\)</span>. Therefore, all the trees have height <span class="math inline">\(\leq \log{n}\)</span>, and this is an upper bound on the running time of <span class="math inline">\(\texttt{find}\)</span> and <span class="math inline">\(\texttt{union}\)</span>.</p>
+  <p> </p>
+  <p><strong>Path Compression</strong></p>
+  <p>With the data structure as presented so far, the total time for Kruskal's algorithm becomes <span class="math inline">\(O(|E| \log{|V|})\)</span> for sorting the edges (remember, <span class="math inline">\(\log{}|E|} \approx \log{|V|}\)</span>) plus another <span class="math inline">\(O(|E|\log{|V|})\)</span> for the <span class="math inline">\(\texttt{union}\)</span> and <span class="math inline">\(\texttt{find}\)</span> operations that dominate the rest of the algorithm. So there seems to be little incentive to make our data structure any more efficient.</p>
+  <p>But what if the edges are given to us sorted? Or if the weights are small (say, <span class="math inline">\(O(|E|)\)</span>) so that sorting can be done in linear time? Then the data structure part becomes the bottleneck, and it is useful to think about improving its performance beyond <span class="math inline">\(\log{n}\)</span> per operation. As it turns out, the improved data structure is useful in many other applications.</p>
+  <p>But how can we perform <span class="math inline">\(\texttt{union}\)</span>'s and <span class="math inline">\(\texttt{find}\)</span>'s faster than <span class="math inline">\(\log{n}\)</span>? The answer is, by being a little more careful to maintain our data structure in good shape. As any housekeeper knows, a little extra effort put into routine maintenance can pay off handsomely in the long run, by forestalling major calamities.</p>
+  <p>We have in mind a particular maintenance operation for our union-find data structure, intended to keep the trees short—during each <span class="math inline">\(\texttt{find}\)</span>, when a series of parent pointers is followed up to the root of a tree, we will change all these pointers so that they point directly to the root (Figure 5.7). This <em>path compression</em> heuristic only slightly increases the time needed for a find and is easy to code.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> find(x):
+    <span class="cf">if</span> x <span class="op">!=</span> π(x):
+      π(x) <span class="op">=</span> find(π(x))
+    <span class="cf">return</span> π(x)</code></pre></div>
+  <div class="figure">
+  <img src="fig-5.7-path-compression-example.png" alt="Figure 5.7 The effect of path compression: \texttt{find}(I) followed by \texttt{find}(K)." />
+  <p class="caption"><strong>Figure 5.7</strong> The effect of path compression: <span class="math inline">\(\texttt{find}(I)\)</span> followed by <span class="math inline">\(\texttt{find}(K)\)</span>.</p>
+  </div>
+  <p>The benefit of this simple alteration is long-term rather than instantaneous and thus necessitates a particular kind of analysis: we need to look at <em>sequences</em> of <span class="math inline">\(\texttt{find}\)</span> and <span class="math inline">\(\texttt{union}\)</span> operations, starting from an empty data structure, and determine the average time per operation. This <em>amortized cost</em> turns out to be just barely more than <span class="math inline">\(O(1)\)</span>, down from the earlier <span class="math inline">\(O(\log{n})\)</span>.</p>
+  <p>Think of the data structure as having a &quot;top level&quot; consisting of the root nodes, and below it, the insides of the trees. There is a division of labor: <span class="math inline">\(\texttt{find}\)</span> operations (with or without path compression) only touch the insides of trees, whereas <span class="math inline">\(\texttt{union}\)</span>'s only look at the top level. Thus path compression has no effect on <span class="math inline">\(\texttt{union}\)</span> operations and leaves the top level unchanged.</p>
+  <p>We now know that the ranks of root nodes are unaltered, but what about <em>non-root</em> nodes? The key point here is that once a node ceases to be a root, it never resurfaces, and its rank is forever fixed. Therefore the ranks of all nodes are unchanged by path compression, even though these numbers can no longer be interpreted as tree heights. In particular, properties 1–3 still hold.</p>
+  <p>If there are <span class="math inline">\(n\)</span> elements, their rank values can range from <span class="math inline">\(0\)</span> to <span class="math inline">\(\log{n}\)</span> by Property 3. Let's divide the non-zero part of this range into certain carefully chosen intervals, for reasons that will soon become clear: <span class="math display">\[\{1\}, \{2\}, \{3, 4\}, \{5, 6, \ldots, 16\}, \{17, 18, \ldots, 2^16 = 65536\}, \{65537, 65538, \ldots, 2^{65536}\}, \ldots\]</span></p>
+  <p>Each group is of the form <span class="math inline">\(\{k + 1, k + 2, \cdots, 2^k\}\)</span>, where <span class="math inline">\(k\)</span> is a power of <span class="math inline">\(2\)</span>. The number of groups is <span class="math inline">\(\log^{\star}{n}\)</span>, which is defined to be the number of successive <span class="math inline">\(\log\)</span> operations that need to be applied to <span class="math inline">\(n\)</span> to bring it down to <span class="math inline">\(1\)</span> (or below <span class="math inline">\(1\)</span>). For instance, <span class="math inline">\(\log^{\star}{1000} = 4\)</span> since <span class="math inline">\(\log \log \log \log{1000} \leq 1\)</span>. In practice there will just be the first five of the intervals shown; more are needed only if <span class="math inline">\(n \geq 265536\)</span>, in other words never.</p>
+  <p>In a sequence of <span class="math inline">\(\texttt{find}\)</span> operations, some may take longer than others. We'll bound the overall running time using some creative accounting. Specifically, we will give each node a certain amount of pocket money, such that the total money doled out is at most <span class="math inline">\(n \log^{\star}{n}\)</span> dollars. We will then show that each find takes <span class="math inline">\(O(\log^{\star}{n})\)</span> steps, plus some additional amount of time that can be &quot;paid for&quot; using the pocket money of the nodes involved—one dollar per unit of time. Thus the overall time for <span class="math inline">\(m \texttt{find}\)</span>'s is <span class="math inline">\(O(m \log^{\star}{n})\)</span> plus at most <span class="math inline">\(O(n \log^{\star}{n})\)</span>.</p>
+  <p>In more detail, a node receives its allowance as soon as it ceases to be a root, at which point its rank is fixed. If this rank lies in the interval <span class="math inline">\(\{k + 1, \ldots, 2^k\}\)</span>, the node receives <span class="math inline">\(2^k\)</span> dollars. By Property 3, the number of nodes with rank <span class="math inline">\(&gt; k\)</span> is bounded by <span class="math display">\[\frac{n}{2^{k + 1}} + \frac{n}{2^{k + 2}} + \cdots \leq \frac{n}{2^{k}}.\]</span></p>
+  <p>Therefore the total money given to nodes in this particular interval is at most <span class="math inline">\(n\)</span> dollars, and since there are <span class="math inline">\(\log^{\star}{n}\)</span> intervals, the total money disbursed to all nodes is <span class="math inline">\(\leq n \log^{\star}{n}\)</span>.</p>
+  <p>Now, the time taken by a specific find is simply the number of pointers followed. Consider the ascending rank values along this chain of nodes up to the root. Nodes <span class="math inline">\(x\)</span> on the chain fall into two categories: either the rank of <span class="math inline">\(\pi(x)\)</span> is in a higher interval than the rank of <span class="math inline">\(x\)</span>, or else it lies in the same interval.</p>
+  <p>There are at most <span class="math inline">\(\log^{\star}{n}\)</span> nodes of the first type (do you see why?), so the work done on them takes <span class="math inline">\(O(\log^{\star}{n})\)</span> time. The remaining nodes—whose parents' ranks are in the same interval as theirs—have to pay a dollar out of their pocket money for their processing time.</p>
+  <p>This only works if the initial allowance of each node <span class="math inline">\(x\)</span> is enough to cover all of its payments in the sequence of <span class="math inline">\(\texttt{find}\)</span> operations. Here's the crucial observation: each time <span class="math inline">\(x\)</span> pays a dollar, its parent changes to one of higher rank. Therefore, if <span class="math inline">\(x\)</span>'s rank lies in the interval <span class="math inline">\(\{k + 1, \ldots, 2^k\}\)</span>, it has to pay at most <span class="math inline">\(2^k\)</span> dollars before its parent's rank is in a higher interval; whereupon it never has to pay again.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>A Randomized Algorithm for Minimum Cut</strong></p>
+  <p>We have already seen that spanning trees and cuts are intimately related. Here is another connection. Let's remove the last edge that Kruskal's algorithm adds to the spanning tree; this breaks the tree into two components, thus defining a cut <span class="math inline">\((S, \bar{S})\)</span> in the graph. What can we say about this cut? Suppose the graph we were working with was unweighted, and that its edges were ordered uniformly at random for Kruskal's algorithm to process them.</p>
+  <p>Here is a remarkable fact: with probability at least <span class="math inline">\(1 / n^2\)</span>, <span class="math inline">\((S, \bar{S})\)</span> is the minimum cut in the graph, where the size of a cut <span class="math inline">\((S, \bar{S})\)</span> is the number of edges crossing between <span class="math inline">\(S\)</span> and <span class="math inline">\(\bar{S}\)</span>. This means that repeating the process <span class="math inline">\(O(n^2)\)</span> times and outputting the smallest cut found yields the minimum cut in <span class="math inline">\(G\)</span> with high probability: an <span class="math inline">\(O(m n^2 \log{n})\)</span> algorithm for unweighted minimum cuts. Some further tuning gives the <span class="math inline">\(O(n^2 \log{n})\)</span> minimum cut algorithm, invented by David Karger, which is the <a href="https://en.wikipedia.org/wiki/Karger%27s_algorithm">fastest known algorithm for this important problem</a>.</p>
+  <p>So let us see why the cut found in each iteration is the minimum cut with probability at least <span class="math inline">\(1 / n^2\)</span>. At any stage of Kruskal's algorithm, the vertex set <span class="math inline">\(V\)</span> is partitioned into connected components. The only edges eligible to be added to the tree have their two endpoints in distinct components. The number of edges incident to each component must be at least <span class="math inline">\(C\)</span>, the size of the minimum cut in <span class="math inline">\(G\)</span> (since we could consider a cut that separated this component from the rest of the graph).</p>
+  <p>So if there are <span class="math inline">\(k\)</span> components in the graph, the number of eligible edges is at least <span class="math inline">\(kC / 2\)</span> (each of the <span class="math inline">\(k\)</span> components has at least <span class="math inline">\(C\)</span> edges leading out of it, and we need to compensate for the double-counting of each edge). Since the edges were randomly ordered, the chance that the next eligible edge in the list is from the minimum cut is at most <span class="math inline">\(C / (kC / 2) = 2 / k\)</span>.</p>
+  <p>Thus, with probability at least <span class="math inline">\(1 - 2 / k = (k - 2) / k\)</span>, the choice leaves the minimum cut intact. But now the chance that Kruskal's algorithm leaves the minimum cut intact all the way up to the choice of the last spanning tree edge is at least <span class="math display">\[\frac{n - 2}{n} \cdot \frac{n - 3}{n - 1} \cdot \frac{n - 4}{n - 2} \cdots \frac{2}{4} \cdot \frac{1}{3} = \frac{1}{n(n - 1)}.\]</span></p>
+  </blockquote>
+  <p> </p>
+  <h3 id="prims-algorithm">5.1.5 Prim's algorithm</h3>
+  <p>Let's return to our discussion of minimum spanning tree algorithms. What the cut property tells us in most general terms is that any algorithm conforming to the following greedy schema is guaranteed to work.</p>
+  <p> </p>
+  <p><strong>Figure 5.9</strong> <em>Top</em>: Prim's minimum spanning tree algorithm. <em>Below</em>: An illustration of Prim's algorithm, starting at node <span class="math inline">\(A\)</span>. Also shown are a table of <span class="math inline">\(\texttt{cost}, \texttt{prev}\)</span> values, and the final MST.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Prim_draft(G):
+
+    <span class="co"># set of edges picked so far</span>
+    X <span class="op">=</span> {}
+
+    repeat until <span class="op">|</span>X<span class="op">|</span> <span class="op">=</span> <span class="op">|</span>V<span class="op">|</span> <span class="op">-</span> <span class="dv">1</span>:
+      pick a <span class="bu">set</span> S ⊂ V <span class="cf">for</span> which X has no edges between S <span class="kw">and</span> V <span class="op">-</span> S
+      let e ∈ E be the minimum<span class="op">-</span>weight edge between S <span class="kw">and</span> V <span class="op">-</span> S
+      X <span class="op">=</span> X ∪ {e}
+
+    <span class="cf">return</span> X</code></pre></div>
+  <p>A popular alternative to Kruskal's algorithm is Prim's, in which the intermediate set of edges <span class="math inline">\(X\)</span> always forms a subtree, and <span class="math inline">\(S\)</span> is chosen to be the set of this tree's vertices.</p>
+  <div class="figure">
+  <img src="fig-5.8-prim-algorithm.png" alt="Figure 5.8 Prim&#39;s algorithm: the edges X form a tree, and S consists of its vertices." />
+  <p class="caption"><strong>Figure 5.8</strong> Prim's algorithm: the edges X form a tree, and S consists of its vertices.</p>
+  </div>
+  <p>On each iteration, the subtree defined by <span class="math inline">\(X\)</span> <em>grows</em> by one edge, namely, the lightest edge between a vertex in <span class="math inline">\(S\)</span> and a vertex outside <span class="math inline">\(S\)</span> (Figure 5.8). We can equivalently think of <span class="math inline">\(S\)</span> as growing to include the vertex <span class="math inline">\(v \not\in S\)</span> of smallest cost: <span class="math display">\[\texttt{cost}(v) = \min_{v \in S} w(u, v).\]</span></p>
+  <p>This is strongly reminiscent of Dijkstra's algorithm, and in fact the pseudocode (Figure 5.9) is almost identical. The only difference is in the key values by which the priority queue is ordered.</p>
+  <p>In Prim's algorithm, the value of a node is the weight of the lightest incoming edge from set <span class="math inline">\(S\)</span>, whereas in Dijkstra's it is the length of an entire path to that node from the starting point. Nonetheless, the two algorithms are similar enough that they have the same running time, which depends on the particular priority queue implementation. Figure 5.9 shows Prim's algorithm at work, on a small six-node graph.</p>
+  <p>Notice how the final <span class="math inline">\(\text{MST}\)</span> is completely specified by the <span class="math inline">\(\texttt{prev}\)</span> array.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Prim(G, w):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: a connected undirected graph G = (V, E) with edge weights w_e</span>
+  <span class="co">  Output: a minimum spanning tree defined by the array prev</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="cf">for</span> <span class="bu">all</span> u ∈ V:
+      cost(u) <span class="op">=</span> ∞
+      prev(u) <span class="op">=</span> nil
+
+    pick <span class="bu">any</span> initial node u_0:
+      cost(u_0) <span class="op">=</span> <span class="dv">0</span>
+
+    <span class="co"># priority queue using cost-values as keys</span>
+    H <span class="op">=</span> make_queue(V)
+
+    <span class="cf">while</span> H <span class="kw">is</span> <span class="kw">not</span> empty:
+      v <span class="op">=</span> delete_min(H)
+
+      <span class="cf">for</span> each {v, z} ∈ E:
+
+        <span class="cf">if</span> cost(z) <span class="op">&gt;</span> w(v, z):
+           cost(z) <span class="op">=</span> w(v, z)
+           prev(z) <span class="op">=</span> v
+           decrease_key(H, z)
+
+    <span class="cf">return</span> prev</code></pre></div>
+  <div class="figure">
+  <img src="fig-5.9-prim-algorithm-example.png" />
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

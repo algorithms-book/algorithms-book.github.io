@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.1 An Introduction to Linear Programming</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body class="markdown-body">
+
+  <h2 id="an-introduction-to-linear-programming">An Introduction to Linear Programming</h2>
+  <p>In a linear programming problem we are given a set of variables, and we want to assign real values to them so as to</p>
+  <ol style="list-style-type: decimal">
+  <li><p>satisfy a set of linear equations and/or linear inequalities involving these variables and</p></li>
+  <li><p>maximize or minimize a given linear objective function.</p></li>
+  </ol>
+  <p> </p>
+  <h3 id="example-profit-maximization">7.1.1 Example: profit maximization</h3>
+  <p>A boutique chocolatier has two products: its flagship assortment of triangular chocolates, called <em>Pyramide</em>, and the more decadent and deluxe <em>Pyramide Nuit</em>. How much of each should it produce to maximize profits? Let's say it makes <span class="math inline">\(x_1\)</span> boxes of Pyramide per day, at a profit of <span class="math inline">\(\$1\)</span> each, and <span class="math inline">\(x_2\)</span> boxes of Nuit, at a more substantial profit of <span class="math inline">\(\$6\)</span> apiece; <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> are unknown values that we wish to determine.</p>
+  <p>But this is not all; there are also some constraints on <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> that must be accommodated (besides the obvious one, <span class="math inline">\(x_1, x_2 \geq 0\)</span>). First, the daily demand for these exclusive chocolates is limited to at most <span class="math inline">\(200\)</span> boxes of Pyramide and <span class="math inline">\(300\)</span> boxes of Nuit. Also, the current workforce can produce a total of at most <span class="math inline">\(400\)</span> boxes of chocolate per day. What are the optimal levels of production?</p>
+  <p>We represent the situation by a <strong>linear program</strong>, as follows.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Objective function} &amp; \max\ x_1 + 6x_2   \\
+  \text{constraints}        &amp; x_1 \leq 200       \\
+                            &amp; x_2 \leq 300       \\
+                            &amp; x_1 + x_2 \leq 400 \\
+                            &amp; x_1, x_2 \geq 0    \\
+  \end{matrix}\]</span></p>
+  <p>A linear equation in <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> defines a line in the two-dimensional (<span class="math inline">\(2D\)</span>) plane, and a linear inequality designates a <strong>half-space</strong>, the region on one side of the line. Thus the set of all <strong>feasible solutions</strong> of this linear program, that is, the points <span class="math inline">\((x_1, x_2)\)</span> which satisfy all constraints, is the intersection of five half-spaces. It is a convex polygon, shown in Figure 7.1.</p>
+  <div class="figure">
+  <img src="fig-7.1-profit-maximization-example.png" alt="Figure 7.1 (a) The feasible region for a linear program. (b) Contour lines of the objective function: x_1 + 6x_2 = c for different values of the profit c." />
+  <p class="caption"><strong>Figure 7.1</strong> (a) The feasible region for a linear program. (b) Contour lines of the objective function: <span class="math inline">\(x_1 + 6x_2 = c\)</span> for different values of the profit <span class="math inline">\(c\)</span>.</p>
+  </div>
+  <p>We want to find the point in this polygon at which the objective function—the profit—is maximized. The points with a profit of <span class="math inline">\(c\)</span> dollars lie on the line <span class="math inline">\(x_1 + 6x_2 = c\)</span>, which has a slope of <span class="math inline">\(-1 / 6\)</span> and is shown in Figure 7.1 for selected values of <span class="math inline">\(c\)</span>. As <span class="math inline">\(c\)</span> increases, this &quot;profit line&quot; moves parallel to itself, up and to the right. Since the goal is to maximize <span class="math inline">\(c\)</span>, we must move the line as far up as possible, while still touching the feasible region.</p>
+  <p>The optimum solution will be the very last feasible point that the profit line sees and must therefore be a vertex of the polygon, as shown in the figure. If the slope of the profit line were different, then its last contact with the polygon could be an entire edge rather than a single vertex. In this case, the optimum solution would not be unique, but there would certainly be an optimum vertex.</p>
+  <p>It is a general rule of linear programs that the optimum is achieved at a vertex of the feasible region. The only exceptions are cases in which there is no optimum; this can happen in two ways:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>The linear program is <em>infeasible</em>; that is, the constraints are so tight that it is impossible to satisfy all of them. For instance, <span class="math display">\[x \leq 1, x \geq 2.\]</span></p></li>
+  <li><p>The constraints are so loose that the feasible region is unbounded, and it is possible to achieve arbitrarily high objective values. For instance, <span class="math display">\[\begin{matrix} \max\ x_1 + x_2 \\ x_1, x_2 \geq 0 \end{matrix}.\]</span></p></li>
+  </ol>
+  <h3 id="solving-linear-programs">Solving Linear Programs</h3>
+  <p>Linear programs <span class="math inline">\((\text{LP})\)</span> can be solved by the <strong>simplex method</strong>, devised by George Dantzig in 1947. We shall explain it in more detail in Section 7.6, but briefly, this algorithm starts at a vertex, in our case perhaps <span class="math inline">\((0, 0)\)</span>, and repeatedly looks for an adjacent vertex (connected by an edge of the feasible region) of better objective value. In this way it does <em>hill-climbing</em> on the vertices of the polygon, walking from neighbor to neighbor so as to steadily increase profit along the way. Here's a possible trajectory.</p>
+  <div class="figure">
+  <img src="simplex-method-example.png" />
+
+  </div>
+  <p>Upon reaching a vertex that has no better neighbor, simplex declares it to be optimal and halts. Why does this <em>local</em> test imply <em>global</em> optimality? By simple geometry—think of the profit line passing through this vertex. Since all the vertex's neighbors lie below the line, the rest of the feasible polygon must also lie below this line.</p>
+  <h3 id="more-products">More Products</h3>
+  <p>Encouraged by consumer demand, the chocolatier decides to introduce a third and even more exclusive line of chocolates, called <em>Pyramide Luxe</em>. One box of these will bring in a profit of <span class="math inline">\(\$13\)</span>.</p>
+  <p>Let <span class="math inline">\(x_1, x_2, x_3\)</span> denote the number of boxes of each chocolate produced daily, with <span class="math inline">\(x_3\)</span> referring to Luxe. The old constraints on <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> persist, although the labor restriction now extends to <span class="math inline">\(x_3\)</span> as well: the sum of all three variables can be at most <span class="math inline">\(400\)</span>. What's more, it turns out that Nuit and Luxe require the same packaging machinery, except that Luxe uses it three times as much, which imposes another constraint <span class="math inline">\(x_2 + 3x_3 \leq 600\)</span>.</p>
+  <p>What are the best possible levels of production?</p>
+  <p>Here is the update linear program.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Objective function} &amp; \max\ x_1 + 6x_2 + 13x_3 \\
+  \text{constraints}        &amp; x_1 \leq 200             \\
+                            &amp; x_2 \leq 300             \\
+                            &amp; x_1 + x_2 + x_3 \leq 400 \\
+                            &amp; x_2 + 3_x3 \leq 600      \\
+                            &amp; x_1, x_2, x_3 \geq 0     \\
+  \end{matrix}\]</span></p>
+  <p>The space of solutions is now three-dimensional. Each linear equation defines a <span class="math inline">\(3D\)</span> plane, and each inequality a half-space on one side of the plane. The feasible region is an intersection of seven half-spaces, a polyhedron (Figure 7.2). Looking at the figure, can you decipher which inequality corresponds to each face of the polyhedron?</p>
+  <div class="figure">
+  <img src="fig-7.2-feasible-polyhedron.png" alt="Figure 7.2 The feasible polyhedron for a three-variable linear program." />
+  <p class="caption"><strong>Figure 7.2</strong> The feasible polyhedron for a three-variable linear program.</p>
+  </div>
+  <p>A profit of <span class="math inline">\(c\)</span> corresponds to the plane <span class="math inline">\(x_1 + 6x_2 + 13x_3 = c\)</span>. As <span class="math inline">\(c\)</span> increases, this profit-plane moves parallel to itself, further and further into the positive orthant until it no longer touches the feasible region. The point of final contact is the optimal vertex: <span class="math inline">\((0, 300, 100)\)</span>, with total profit <span class="math inline">\(\$3100\)</span>.</p>
+  <p>How would the simplex algorithm behave on this modified problem? As before, it would move from vertex to vertex, along edges of the polyhedron, increasing profit steadily. A possible trajectory is shown in Figure 7.2, corresponding to the following sequence of vertices and profits:</p>
+  <p><span class="math display">\[\begin{matrix} (0, 0, 0) \\ \$0 \end{matrix} \longrightarrow \begin{matrix} (200, 0, 0) \\ \$200 \end{matrix} \longrightarrow \begin{matrix} (200, 200, 0) \\ \$2800 \end{matrix}  \longrightarrow \begin{matrix} (0, 300, 100) \\ \$3100 \end{matrix} \]</span></p>
+  <p>Finally, upon reaching a vertex with no better neighbor, it would stop and declare this to be the optimal point. Once again by basic geometry, if all the vertex's neighbors lie on one side of the profit-plane, then so must the entire polyhedron.</p>
+  <p>What if we add a fourth line of chocolates, or hundreds more of them? Then the problem becomes high-dimensional, and hard to visualize. Simplex continues to work in this general setting, although we can no longer rely upon simple geometric intuitions for its description and justification. We will study the full-fledged simplex algorithm in Section 7.6.</p>
+  <p>In the meantime, we can rest assured in the knowledge that there are many professional, industrial-strength packages that implement simplex and take care of all the tricky details like numeric precision. In a typical application, the main task is therefore to correctly express the problem as a linear program. The package then takes care of the rest.</p>
+  <p>With this in mind, let's look at a high-dimensional application.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>A Magic Trick called Duality</strong></p>
+  <p>Here is why you should believe that <span class="math inline">\((0, 300, 100)\)</span>, with a total profit of <span class="math inline">\(\$3100\)</span>, is the optimum: Look back at the linear program. Add the second inequality to the third, and add to them the fourth multiplied by <span class="math inline">\(4\)</span>. The result is the inequality <span class="math inline">\(x_1 + 6x_2 + 13x_3 \leq 3100\)</span>.</p>
+  <p>Do you see? This inequality says that no feasible solution (values <span class="math inline">\(x_1, x_2, x_3\)</span> satisfying the constraints) can possibly have a profit greater than <span class="math inline">\(3100\)</span>. So we must indeed have found the optimum! The only question is, where did we get these mysterious multipliers <span class="math inline">\((0, 1, 1, 4)\)</span> for the four inequalities?</p>
+  <p>In Section 7.4 we'll see that it is always possible to come up with such multipliers by solving another <span class="math inline">\(\text{LP}\)</span>! Except that (it gets even better) we do not even need to solve this other <span class="math inline">\(\text{LP}\)</span>, because it is in fact so intimately connected to the original one—it is called the <em>dual</em>—that solving the original <span class="math inline">\(\text{LP}\)</span> solves the dual as well! But we are getting far ahead of our story.</p>
+  </blockquote>
+  <p> </p>
+  <h3 id="example-production-planning">7.1.2 Example: production planning</h3>
+  <p>This time, our company makes handwoven carpets, a product for which the demand is extremely seasonal. Our analyst has just obtained demand estimates for all months of the next calendar year: <span class="math inline">\(d_1, d_2, \cdots, d_{12}\)</span>. As feared, they are very uneven, ranging from <span class="math inline">\(440\)</span> to <span class="math inline">\(920\)</span>.</p>
+  <p>Here's a quick snapshot of the company. We currently have <span class="math inline">\(30\)</span> employees, each of whom makes <span class="math inline">\(20\)</span> carpets per month and gets a monthly salary of <span class="math inline">\(\$2,000\)</span>. We have no initial surplus of carpets.</p>
+  <p>How can we handle the fluctuations in demand? There are three ways:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Overtime, but this is expensive since overtime pay is <span class="math inline">\(80\%\)</span> more than regular pay. Also, workers can put in at most <span class="math inline">\(30\%\)</span> overtime.</p></li>
+  <li><p>Hiring and firing, but these cost <span class="math inline">\(\$320\)</span> and <span class="math inline">\(\$400\)</span>, respectively, per worker.</p></li>
+  <li><p>Storing surplus production, but this costs <span class="math inline">\(\$8\)</span> per carpet per month. We currently have no stored carpets on hand, and we must end the year without any carpets stored.</p></li>
+  </ol>
+  <p>This rather involved problem can be formulated and solved as a linear program!</p>
+  <p>A crucial first step is defining the variables.</p>
+  <p><span class="math display">\[\begin{aligned}
+  w_i &amp;= \text{number of workers during $i$th month}; w_0 = 30. \\
+  x_i &amp;= \text{number of carpets made during $i$th month.} \\
+  o_i &amp;= \text{number of carpets made by overtime in month $i$.} \\
+  h_i, f_i &amp;= \text{number of workers hired and fired, respectively, at beginning of month $i$.} \\
+  s_i &amp;= \text{number of carpets stored at each month $i$}; s_0 = 0. \\
+  \end{aligned}\]</span></p>
+  <p>All in all, there are <span class="math inline">\(72\)</span> variables (<span class="math inline">\(74\)</span> if you count <span class="math inline">\(w_0\)</span> and <span class="math inline">\(s_0\)</span>).</p>
+  <p>We now write the constraints. First, all variables must be nonnegative: <span class="math display">\[w_i, x_i, o_i, h_i, f_i, s_i \geq 0, \ \ i = 1, \cdots, 12.\]</span></p>
+  <p>The total number of carpets made per month consists of regular production plus overtime (one constraint for each <span class="math inline">\(i = 1, \cdots, 12\)</span>): <span class="math display">\[x_i = 20w_i + o_i.\]</span></p>
+  <p>The number of workers can potentially change at the start of each month: <span class="math display">\[w_i = w_{i-1} + h_i - f_i.\]</span></p>
+  <p>The number of carpets stored at the end of each month is what we started with, plus the number we made, minus the demand for the month: <span class="math display">\[s_i = s_{i-1} + x_i - d_i.\]</span></p>
+  <p>And overtime is limited: <span class="math display">\[o_i \leq 6w_i\]</span></p>
+  <p>Finally, what is the objective function? It is to minimize the total cost, a linear function of the variables: <span class="math display">\[\min\ 2000 \sum_i w_i + 320 \sum_i h_i + 400 \sum_i f_i + 8 \sum_i s_i + 180 \sum_i o_i.\]</span></p>
+  <p>Solving this linear program by simplex should take less than a second and will give us the optimum business strategy for our company.</p>
+  <p>Well, almost. The optimum solution might turn out to be <em>fractional</em>; for instance, it might involve hiring <span class="math inline">\(10.6\)</span> workers in the month of March. This number would have to be rounded to either <span class="math inline">\(10\)</span> or <span class="math inline">\(11\)</span> in order to make sense, and the overall cost would then increase correspondingly.</p>
+  <p>In the present example, most of the variables take on fairly large (double-digit) values, and thus rounding is unlikely to affect things too much. There are other <span class="math inline">\(\text{LP}\)</span>s, however, in which rounding decisions have to be made very carefully in order to end up with an integer solution of reasonable quality.</p>
+  <p>In general, there is a tension in linear programming between the ease of obtaining fractional solutions and the desirability of integer ones. As we shall see in Chapter 8, finding the optimum integer solution of an <span class="math inline">\(\text{LP}\)</span> is an important but very hard problem, called <em>integer linear programming</em>.</p>
+  <p> </p>
+  <h3 id="example-optimum-bandwidth-allocation">7.1.3 Example: optimum bandwidth allocation</h3>
+  <p>Next we turn to a miniaturized version of the kind of problem a network service provider might face.</p>
+  <p>Suppose we are managing a network whose lines have the bandwidths shown in Figure 7.3, and we need to establish three connections: between users <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>, between <span class="math inline">\(B\)</span> and <span class="math inline">\(C\)</span>, and between <span class="math inline">\(A\)</span> and <span class="math inline">\(C\)</span>. Each connection requires at least two units of bandwidth, but can be assigned more. Connection <span class="math inline">\(A-B\)</span> pays <span class="math inline">\(\$3\)</span> per unit of bandwidth, and connections <span class="math inline">\(B-C\)</span> and <span class="math inline">\(A-C\)</span> pay <span class="math inline">\(\$2\)</span> and <span class="math inline">\(\$4\)</span>, respectively.</p>
+  <p>Each connection can be routed in two ways, a long path and a short path, or by a combination: for instance, two units of bandwidth via the short route, one via the long route. How do we route these connections to maximize our network's revenue?</p>
+  <div class="figure">
+  <img src="fig-7.3-optimum-bandwidth-allocation.png" alt="Figure 7.3 A communications network between three users A, B, and C. Bandwidths are shown." />
+  <p class="caption"><strong>Figure 7.3</strong> A communications network between three users <span class="math inline">\(A, B,\)</span> and <span class="math inline">\(C\)</span>. Bandwidths are shown.</p>
+  </div>
+  <p>This is a linear program. We have variables for each connection and each path (long or short); for example, <span class="math inline">\(x_{AB}\)</span> is the short-path bandwidth allocated to the connection between <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>, and <span class="math inline">\(x_{AB}&#39;\)</span> the long-path bandwidth for this same connection. We demand that no edge's bandwidth is exceeded and that each connection gets a bandwidth of at least <span class="math inline">\(2\)</span> units.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Objective function} &amp; \max \ 3x_{AB} + 3x_{AB}&#39; + 2x_{BC} + 2x_{BC}&#39; + 4x_{AC} + 4x_{AC}&#39; &amp; \\
+  \text{constraints}        &amp; x_{AB} + x_{AB}&#39; + x_{BC} + x_{BC}&#39; \leq 10 &amp; [\text{edge} (b, B)]  \\
+                            &amp; x_{AB} + x_{AB}&#39; + x_{AC} + x_{AC}&#39; \leq 12 &amp; [\text{edge} (a, A)]  \\
+                            &amp; x_{BC} + x_{BC}&#39; + x_{AC} + x_{AC}&#39; \leq  8 &amp; [\text{edge} (c, C)]  \\
+                            &amp; x_{AB} + x_{BC}&#39; + x_{AC}&#39; \leq  6 &amp; [\text{edge} (a, b)]  \\
+                            &amp; x_{AB}&#39;+ x_{BC}  + x_{AC}&#39; \leq 13 &amp; [\text{edge} (b, c)]  \\
+                            &amp; x_{AB}&#39;+ x_{BC}&#39; + x_{AC}  \leq 11 &amp; [\text{edge} (a, c)]  \\
+                            &amp; x_{AB} + x_{AB}&#39; \geq 2 &amp; \\
+                            &amp; x_{BC} + x_{BC}&#39; \geq 2 &amp; \\
+                            &amp; x_{AC} + x_{AC}&#39; \geq 2 &amp; \\
+   \end{matrix}\]</span></p>
+  <p>Even a tiny example like this one is hard to solve on one's own (try it!), and yet the optimal solution is obtained instantaneously via simplex: <span class="math display">\[x_{AB} = 0, x_{AB}&#39; = 7, x_{BC} = x_{BC}&#39; = 1.5, x_{AC} = 0.5, x_{AC}&#39; = 4.5.\]</span></p>
+  <p>This solution is not integral, but in the present application we don't need it to be, and thus no rounding is required. Looking back at the original network, we see that every edge except <span class="math inline">\(a-c\)</span> is used at full capacity.</p>
+  <p>One cautionary observation: our <span class="math inline">\(\text{LP}\)</span> has one variable for every possible path between the users. In a larger network, there could easily be exponentially many such paths, and therefore this particular way of translating the network problem into an <span class="math inline">\(\text{LP}\)</span> will not scale well. We will see a cleverer and more scalable formulation in Section 7.2.</p>
+  <p>Here's a parting question for you to consider. Suppose we removed the constraint that each connection should receive at least two units of bandwidth. Would the optimum change?</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Reductions</strong></p>
+  <p>Sometimes a computational task is sufficiently general that any subroutine for it can also be used to solve a variety of other tasks, which at first glance might seem unrelated. For instance, we saw in Chapter 6 how an algorithm for finding the longest path in a <span class="math inline">\(\text{DAG}\)</span> can, surprisingly, also be used for finding longest increasing subsequences. We describe this phenomenon by saying that the longest increasing subsequence problem reduces to the longest path problem in a <span class="math inline">\(\text{DAG}\)</span>. In turn, the longest path in a <span class="math inline">\(\text{DAG}\)</span> reduces to the shortest path in a <span class="math inline">\(\text{DAG}\)</span>; here's how a subroutine for the latter can be used to solve the former:</p>
+  <div class="sourceCode"><pre class="blockQuote sourceCode python"><code class="sourceCode python">function LONGEST PATH(G)
+    negate <span class="bu">all</span> edge weights of G
+    <span class="cf">return</span> SHORTEST PATH(G)</code></pre></div>
+  <p>Let's step back and take a slightly more formal view of reductions. If any subroutine for task <span class="math inline">\(Q\)</span> can also be used to solve <span class="math inline">\(P\)</span>, we say <span class="math inline">\(P\)</span> reduces to <span class="math inline">\(Q\)</span>. Often, <span class="math inline">\(P\)</span> is solvable by a single call to <span class="math inline">\(Q\)</span>'s subroutine, which means any instance <span class="math inline">\(x\)</span> of <span class="math inline">\(P\)</span> can be transformed into an instance <span class="math inline">\(y\)</span> of <span class="math inline">\(Q\)</span> such that <span class="math inline">\(P (x)\)</span> can be deduced from <span class="math inline">\(Q(y)\)</span>:</p>
+  <div class="figure">
+  <img src="reductions.png" />
+
+  </div>
+  <p>(Do you see that the reduction from <span class="math inline">\(P = \text{LONGEST PATH}\)</span> to <span class="math inline">\(Q = \text{SHORTEST PATH}\)</span> follows this schema?) If the pre- and post-processing procedures are efficiently computable then this creates an efficient algorithm for <span class="math inline">\(P\)</span> out of <em>any</em> efficient algorithm for <span class="math inline">\(Q\)</span>!</p>
+  <p>Reductions enhance the power of algorithms: Once we have an algorithm for problem <span class="math inline">\(Q\)</span> (which could be shortest path, for example) we can use it to solve other problems. In fact, most of the computational tasks we study in this book are considered core computer science problems precisely because they arise in so many different applications, which is another way of saying that many problems reduce to them. This is especially true of linear programming.</p>
+  </blockquote>
+  <p> </p>
+  <h3 id="variants-of-linear-programming">7.1.4 Variants of Linear Programming</h3>
+  <p>As evidenced in our examples, a general linear program has many degrees of freedom.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>It can be either a maximization or a minimization problem.</p></li>
+  <li><p>Its constraints can be equations and/or inequalities.</p></li>
+  <li><p>The variables are often restricted to be nonnegative, but they can also be unrestricted in sign.</p></li>
+  </ol>
+  <p>We will now show that these various <span class="math inline">\(\text{LP}\)</span> options can all be reduced to one another via simple transformations. Here's how.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>To turn a maximization problem into a minimization (or vice versa), just multiply the coefficients of the objective function by <span class="math inline">\(-1\)</span>.</p></li>
+  <li><p>To turn an inequality constraint like <span class="math display">\[\sum_{i=1}^n a_i x_i \leq b\]</span> into an equation, introduce a new variable <span class="math inline">\(s\)</span> and use <span class="math display">\[\begin{aligned} \sum_{i=1}^{n} a_i x_i + s \ &amp;= b \\ s \ &amp;\geq 0. \\ \end{aligned}\]</span></p>
+  <p>This <span class="math inline">\(s\)</span> is called the <em>slack variable</em> for the inequality. As justification, observe that a vector <span class="math inline">\((x_1, \cdots, x_n)\)</span> satisfies the original inequality constraint if and only if there is some <span class="math inline">\(s \geq 0\)</span> for which it satisfies the new equality constraint.</p></li>
+  <li><p>To change an equality constraint into inequalities is easy: rewrite <span class="math inline">\(ax = b\)</span> as the equivalent pair of constraints <span class="math inline">\(ax \leq b\)</span> and <span class="math inline">\(ax \geq b\)</span>.</p></li>
+  <li><p>Finally, to deal with a variable <span class="math inline">\(x\)</span> that is unrestricted in sign, do the following:</p>
+  <ul>
+  <li><p>Introduce two nonnegative variables, <span class="math inline">\(x^+, x^- \geq 0\)</span>.</p></li>
+  <li><p>Replace <span class="math inline">\(x\)</span>, wherever it occurs in the constraints or the objective function, by <span class="math inline">\(x^+ - x^-\)</span>.</p></li>
+  </ul>
+  <p>This way, <span class="math inline">\(x\)</span> can take on any real value by appropriately adjusting the new variables. More precisely, any feasible solution to the original <span class="math inline">\(\text{LP}\)</span> involving <span class="math inline">\(x\)</span> can be mapped to a feasible solution of the new <span class="math inline">\(\text{LP}\)</span> involving <span class="math inline">\(x^+\)</span>, <span class="math inline">\(x^-\)</span>, and vice versa.</p></li>
+  </ol>
+  <p>By applying these transformations we can reduce any <span class="math inline">\(\text{LP}\)</span> (maximization or minimization, with both inequalities and equations, and with both nonnegative and unrestricted variables) into an <span class="math inline">\(\text{LP}\)</span> of a much more constrained kind that we call the standard form, in which the variables are all nonnegative, the constraints are all equations, and the objective function is to be minimized.</p>
+  <p>For example, our first linear program gets rewritten thus:</p>
+  <p><span class="math display">\[\begin{matrix} \max\ x_1 + 6x_2 \\ x_1 \leq 200 \\ x_2 \leq 300 \\ x_1 + x_2 \leq 400 \\ x_1, x_2 \geq 0 \end{matrix} \ \Longrightarrow\ \begin{matrix} \min\ -x_1 - 6x_2 \\ x_1 + s_1 = 200 \\ x_2 + s_2 = 300 \\ x_1 + x_2 + s_3 = 400 \\ x_1, x_2, s_1, s_2, s_3 \geq 0 \end{matrix}\]</span></p>
+  <p>The original was also in a useful form: maximize an objective subject to certain inequalities. Any <span class="math inline">\(\text{LP}\)</span> can likewise be recast in this way, using the reductions given earlier.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Matrix-vector notation</strong></p>
+  <p>A linear function like <span class="math inline">\(x_1 + 6x_2\)</span> can be written as the dot product of two vectors <span class="math display">\[\textbf{c} = \begin{bmatrix} 1 \\ 6 \end{bmatrix}\ \text{and}\ \textbf{x} = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix},\]</span> denoted <span class="math inline">\(\textbf{c} \cdot \textbf{x}\)</span> or <span class="math inline">\(\textbf{c}^{\top}\textbf{x}\)</span>. Similarly, linear constraints can be compiled into matrix-vector form: <span class="math display">\[\begin{matrix} x_1 &amp; &amp; &amp; \leq 200 \\ &amp; &amp; x_2 &amp; \leq 300 \\ x_1 &amp; + &amp; x_2 &amp; \leq 400 \end{matrix} \ \Longrightarrow\ \underbrace{\begin{bmatrix} 1 &amp; 0 \\ 0 &amp; 1 \\ 1 &amp; 1 \end{bmatrix}}_{\textbf{A}} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} \leq \underbrace{\begin{bmatrix} 200 \\ 300 \\ 400 \end{bmatrix}}_{\textbf{b}}.\]</span></p>
+  <p>Here each row of matrix <span class="math inline">\(\textbf{A}\)</span> corresponds to one constraint: its dot product with <span class="math inline">\(\textbf{x}\)</span> is at most the value in the corresponding row of <span class="math inline">\(\textbf{b}\)</span>. In other words, if the rows of <span class="math inline">\(\textbf{A}\)</span> are the vectors <span class="math inline">\(\textbf{a}_1, \cdots, \textbf{a}_m\)</span>, then the statement <span class="math inline">\(\textbf{A}\textbf{x} \leq \textbf{b}\)</span> is equivalent to <span class="math display">\[a_i \cdot \textbf{x} \leq b_i \ \forall i = 1, \cdots, m\]</span></p>
+  <p>With these notational conveniences, a generic <span class="math inline">\(\text{LP}\)</span> can be expressed simply as <span class="math display">\[\begin{matrix} \max\ \textbf{c}^{\top} \textbf{x} \\ \textbf{Ax} \leq \textbf{b} \\ \textbf{x} \geq 0. \end{matrix}\]</span></p>
+  </blockquote>
+
+<script>
+  renderMathInElement(
+      document.body,
+      {
+          delimiters: [
+              // {left: "$$", right: "$$", display: true},
+              {left: "\\[", right: "\\]", display: true},
+              // {left: "$", right: "$", display: false},
+              {left: "\\(", right: "\\)", display: false}
+          ]
+      }
+  );
+</script>
+</body>
+
+</html>

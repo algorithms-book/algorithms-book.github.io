@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>4.5 Priority Queue</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="priority-queue-implementations">4.5 Priority Queue Implementations</h2>
+  <h3 id="array">4.5.1 Array</h3>
+  <p>The simplest implementation of a priority queue is as an unordered array of key values for all potential elements (the vertices of the graph, in the case of Dijkstra's algorithm). Initially, these values are set to <span class="math inline">\(\infty\)</span>.</p>
+  <p>An <span class="math inline">\(\texttt{insert}\)</span> or <span class="math inline">\(\texttt{decreasekey}\)</span> is fast, because it just involves adjusting a key value, an <span class="math inline">\(O(1)\)</span> operation. To <span class="math inline">\(\texttt{deletemin}\)</span>, on the other hand, requires a linear-time scan of the list.</p>
+  <p> </p>
+  <h3 id="binary-heap">4.5.2 Binary Heap</h3>
+  <p>Here elements are stored in a <em>complete</em> binary tree, namely, a binary tree in which each level is filled in from left to right, and must be full before the next level is started. In addition, a special ordering constraint is enforced: <em>the key value of any node of the tree is less than or equal to that of its children</em>. In particular, therefore, the root always contains the smallest element. See Figure 4.11(a) for an example.</p>
+  <p>To <span class="math inline">\(\texttt{insert}\)</span>, place the new element at the bottom of the tree (in the first available position), and let it &quot;bubble up.&quot; That is, if it is smaller than its parent, swap the two and repeat (Figure 4.11(b)–(d)). The number of swaps is at most the height of the tree, which is <span class="math inline">\(\lfloor \log_{2}{n} \rfloor\)</span> when there are <span class="math inline">\(n\)</span> elements. A <span class="math inline">\(\texttt{decreasekey}\)</span> is similar, except that the element is already in the tree, so we let it bubble up from its current position.</p>
+  <p>To <span class="math inline">\(\texttt{deletemin}\)</span>, return the root value. To then remove this element from the heap, take the last node in the tree (in the rightmost position in the bottom row) and place it at the root. Let it &quot;sift down&quot;: if it is bigger than either child, swap it with the smaller child and repeat (Figure 4.11(e)–(g)). Again this takes <span class="math inline">\(O(\log{n})\)</span> time.</p>
+  <div class="figure">
+  <img src="fig-4.11-binary-heap-operations.png" alt="Figure 4.11 (a) A binary heap with 10 elements. Only the key values are shown. (b)–(d) The intermediate &quot;bubble-up&quot; steps in inserting an element with key 7. (e)–(g) The &quot;sift-down&quot; steps in a delete-min operation." />
+  <p class="caption"><strong>Figure 4.11</strong> (a) A binary heap with <span class="math inline">\(10\)</span> elements. Only the key values are shown. (b)–(d) The intermediate &quot;bubble-up&quot; steps in inserting an element with key 7. (e)–(g) The &quot;sift-down&quot; steps in a delete-min operation.</p>
+  </div>
+  <p> </p>
+  <p>The regularity of a complete binary tree makes it easy to represent using an array. The tree nodes have a natural ordering: row by row, starting at the root and moving left to right within each row. If there are <span class="math inline">\(n\)</span> nodes, this ordering specifies their positions <span class="math inline">\(1, 2, \ldots, n\)</span> within the array. Moving up and down the tree is easily simulated on the array, using the fact that node number <span class="math inline">\(j\)</span> has parent <span class="math inline">\(\lfloor j / 2 \rfloor\)</span> and children <span class="math inline">\(2j\)</span> and <span class="math inline">\(2j + 1\)</span> (Exercise 4.16).</p>
+  <p> </p>
+  <h3 id="d-ary-heap">4.5.3 <span class="math inline">\(d\)</span>-ary heap</h3>
+  <p>A <span class="math inline">\(d\)</span>-ary heap is identical to a binary heap, except that nodes have <span class="math inline">\(d\)</span> children instead of just two. This reduces the height of a tree with <span class="math inline">\(n\)</span> elements to <span class="math inline">\(\Theta(\log_{d}{n}) = \Theta((\log{n})/(\log{d}))\)</span>. <span class="math inline">\(\texttt{insert}\)</span> operations are therefore speeded up by a factor of <span class="math inline">\(\Theta(\log{d})\)</span>. <span class="math inline">\(\texttt{deletemin}\)</span> operations, however, take a little longer, namely <span class="math inline">\(O(d \log_{d}{n})\)</span> (do you see why?).</p>
+  <p>The array representation of a binary heap is easily extended to the <span class="math inline">\(d\)</span>-ary case. This time, node number <span class="math inline">\(j\)</span> has parent <span class="math inline">\(\lceil (j - 1) / d \rceil\)</span> and children <span class="math inline">\(\{(j - 1)d + 2, \ldots , \min\{n, (j - 1)d + d + 1\}\}\)</span> (Exercise 4.16).</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

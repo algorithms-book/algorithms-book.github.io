@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>6.4 Knapsack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="knapsack">6.4 Knapsack</h2>
+  <p>During a robbery, a burglar finds much more loot than he had expected and has to decide what to take. His bag (or “knapsack”) will hold a total weight of at most <span class="math inline">\(W\)</span> pounds. There are <span class="math inline">\(n\)</span> items to pick from, of weight <span class="math inline">\(w_1, \ldots, w_n\)</span> and dollar value <span class="math inline">\(v_1, \ldots, v_n\)</span>. What's the most valuable combination of items he can fit into his bag?<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+  <p>For instance, take <span class="math inline">\(W = 10\)</span> and <span class="math display">\[\begin{matrix}
+  \text{item} &amp; \text{weight} &amp; \text{value} \\
+  1           &amp; 6             &amp; \$30 \\
+  2           &amp; 3             &amp; \$14 \\
+  3           &amp; 4             &amp; \$16 \\
+  4           &amp; 2             &amp; \$9  \\
+  \end{matrix}\]</span></p>
+  <p>There are two versions of this problem. If there are unlimited quantities of each item available, the optimal choice is to pick item <span class="math inline">\(1\)</span> and two of item <span class="math inline">\(4\)</span> (total: <span class="math inline">\(\$48\)</span>). On the other hand, if there is one of each item (the burglar has broken into an art gallery, say), then the optimal knapsack contains items <span class="math inline">\(1\)</span> and <span class="math inline">\(3\)</span> (total: <span class="math inline">\(\$46\)</span>).</p>
+  <p>As we shall see in Chapter 8, neither version of this problem is likely to have a polynomial- time algorithm. However, using dynamic programming they can both be solved in <span class="math inline">\(O(n W)\)</span> time, which is reasonable when <span class="math inline">\(W\)</span> is small, but is not polynomial since the input size is proportional to <span class="math inline">\(\log{W}\)</span> rather than <span class="math inline">\(W\)</span>.</p>
+  <p> </p>
+  <h3 id="knapsack-with-repetition">Knapsack with Repetition</h3>
+  <p>Let's start with the version that allows repetition. As always, the main question in dynamic programming is, what are the subproblems? In this case we can shrink the original problem in two ways: we can either look at smaller knapsack capacities <span class="math inline">\(w \leq W\)</span>, or we can look at fewer items (for instance, items <span class="math inline">\(1, 2, \ldots, j\)</span>, for <span class="math inline">\(j \leq n\)</span>). It usually takes a little experimentation to figure out exactly what works.</p>
+  <p>The first restriction calls for smaller capacities. Accordingly, define <span class="math display">\[K(w) = \text{maximum value achievable with a knapsack of capacity $w$}.\]</span></p>
+  <p>Can we express this in terms of smaller subproblems? Well, if the optimal solution to <span class="math inline">\(K(w)\)</span> includes item <span class="math inline">\(i\)</span>, then removing this item from the knapsack leaves an optimal solution to <span class="math inline">\(K(w - w_i)\)</span>. In other words, <span class="math inline">\(K(w)\)</span> is simply <span class="math inline">\(K(w - w_i) + v_i\)</span>, for some <span class="math inline">\(i\)</span>. We don't know which <span class="math inline">\(i\)</span>, so we need to try all possibilities.</p>
+  <p><span class="math display">\[K(w) = \max_{i : w_i \leq w}\{K(w - w_i) + v_i\},\]</span> where as usual our convention is that the maximum over an empty set is <span class="math inline">\(0\)</span>. We're done! The algorithm now writes itself, and it is characteristically simple and elegant.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> knapsack_with_repetition(W, V):
+    K(<span class="dv">0</span>) <span class="op">=</span> <span class="dv">0</span>
+    <span class="cf">for</span> w <span class="op">=</span> <span class="dv">1</span> to W:
+      K(w) <span class="op">=</span> <span class="bu">max</span>(K(w <span class="op">-</span> w_i) <span class="op">+</span> v_i : w_i ≤ w)
+    <span class="cf">return</span> K(W)</code></pre></div>
+  <p> </p>
+  <p>This algorithm fills in a one-dimensional table of length <span class="math inline">\(W + 1\)</span>, in left-to-right order. Each entry can take up to <span class="math inline">\(O(n)\)</span> time to compute, so the overall running time is <span class="math inline">\(O(n W)\)</span>.</p>
+  <p>As always, there is an underlying dag. Try constructing it, and you will be rewarded with a startling insight: this particular variant of knapsack boils down to finding the longest path in a dag!</p>
+  <p> </p>
+  <h3 id="knapsack-without-repetition">Knapsack without Repetition</h3>
+  <p>On to the second variant: what if repetitions are not allowed? Our earlier subproblems now become completely useless. For instance, knowing that the value <span class="math inline">\(K(w - w_n)\)</span> is very high doesn't help us, because we don't know whether or not item n already got used up in this partial solution. We must therefore refine our concept of a subproblem to carry additional information about the items being used.</p>
+  <p>We add a second parameter, <span class="math inline">\(0 \leq j \leq n\)</span>: <span class="math display">\[K(w) = \text{maximum value achievable with a knapsack of capacity $w$ and items $1, \ldots, j$}.\]</span></p>
+  <p>The answer we seek is <span class="math inline">\(K(W, n)\)</span>.</p>
+  <p>How can we express a subproblem <span class="math inline">\(K(w, j)\)</span> in terms of smaller subproblems? Quite simple: either item <span class="math inline">\(j\)</span> is needed to achieve the optimal value, or it isn't needed: <span class="math display">\[K(w, j) = \max\{K(w - w_j, j - 1) + v_j, K(w, j - 1)\}.\]</span></p>
+  <p>(The first case is invoked only if <span class="math inline">\(w_j \leq w\)</span>.) In other words, we can express <span class="math inline">\(K(w, j)\)</span> in terms of subproblems <span class="math inline">\(K(\cdot, j - 1)\)</span>.</p>
+  <p>The algorithm then consists of filling out a two-dimensional table, with <span class="math inline">\(W + 1\)</span> rows and <span class="math inline">\(n + 1\)</span> columns. Each table entry takes just constant time, so even though the table is much larger than in the previous case, the running time remains the same, <span class="math inline">\(O(n W)\)</span>. Here's the code.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> knapsack_without_repetition(W, V):
+    initialize <span class="bu">all</span> K(<span class="dv">0</span>, j) <span class="op">=</span> <span class="dv">0</span> <span class="kw">and</span> <span class="bu">all</span> K(w, <span class="dv">0</span>) <span class="op">=</span> <span class="dv">0</span>
+    <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span> to n:
+      <span class="cf">for</span> w to W:
+        <span class="cf">if</span> w_j <span class="op">&gt;</span> w: K(w, j) <span class="op">=</span> K(w, j <span class="op">-</span> <span class="dv">1</span>)
+        <span class="cf">else</span>: K(w, j) <span class="op">=</span> <span class="bu">max</span>(K(w, j <span class="op">-</span> <span class="dv">1</span>), K(w <span class="op">-</span> w_j, j <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> v_j)
+    <span class="cf">return</span> K(W, n)</code></pre></div>
+  <p> </p>
+  <blockquote>
+  <p><strong>Memoization</strong></p>
+  <p>In dynamic programming, we write out a recursive formula that expresses large problems in terms of smaller ones and then use it to fill out a table of solution values in a bottom-up manner, from smallest subproblem to largest.</p>
+  <p>The formula also suggests a recursive algorithm, but we saw earlier that naive recursion can be terribly inefficient, because it solves the same subproblems over and over again. What about a more intelligent recursive implementation, one that remembers its previous invocations and thereby avoids repeating them?</p>
+  <p>On the knapsack problem (with repetitions), such an algorithm would use a hash table (recall Section 1.5) to store the values of <span class="math inline">\(K(\cdot)\)</span> that had already been computed. At each recursive call requesting some <span class="math inline">\(K(w)\)</span>, the algorithm would first check if the answer was already in the table and then would proceed to its calculation only if it wasn't. This trick is called <em>memoization</em>:</p>
+  <div class="sourceCode"><pre class="blockQuote python"><code class="sourceCode python"><span class="kw">def</span> knapsack(w):
+    <span class="cf">if</span> w <span class="kw">is</span> <span class="kw">in</span> <span class="bu">hash</span> table: <span class="cf">return</span> K(w)
+    K(w) <span class="op">=</span> <span class="bu">max</span>(knapsack(w <span class="op">-</span> w_i) <span class="op">+</span> v_i : w_i ≤ w)
+    insert K(w) into <span class="bu">hash</span> table <span class="cf">with</span> key w
+    <span class="cf">return</span> K(w)</code></pre></div>
+  <p>Since this algorithm never repeats a subproblem, its running time is <span class="math inline">\(O(nW)\)</span>, just like the dynamic program. However, the constant factor in this big-<span class="math inline">\(O\)</span> notation is substantially larger because of the overhead of recursion.</p>
+  <p>In some cases, though, memoization pays off. Here's why: dynamic programming automatically solves every subproblem that could conceivably be needed, while memoization only ends up solving the ones that are actually used. For instance, suppose that <span class="math inline">\(W\)</span> and all the weights <span class="math inline">\(w_i\)</span> are multiples of <span class="math inline">\(100\)</span>. Then a subproblem <span class="math inline">\(K(w)\)</span> is useless if <span class="math inline">\(100\)</span> does not divide <span class="math inline">\(w\)</span>. The memoized recursive algorithm will never look at these extraneous table entries.</p>
+  </blockquote>
+  <p> </p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>If this application seems frivolous, replace “weight” with “CPU time” and “only W pounds can be taken” with “only W units of CPU time are available.” Or use “bandwidth” in place of “CPU time,” etc. The knapsack problem generalizes a wide variety of resource-constrained selection tasks.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                // {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                // {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

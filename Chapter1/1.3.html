@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>1.3 Primality Testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="primality-testing">1.3 Primality Testing</h2>
+  <p>Is there some litmus test that will tell us whether a number is prime without actually trying to factor the number? We place our hopes in a theorem from the year 1640.</p>
+  <h3 id="fermats-little-theorem">Fermat's Little Theorem</h3>
+  <p>If <span class="math inline">\(p\)</span> is prime, then for every <span class="math inline">\(1 \leq a &lt; p\)</span>,</p>
+  <p><span class="math display">\[
+  a^{p-1} \equiv 1 \bmod{p}.
+  \]</span></p>
+  <p><em>Proof.</em> Let <span class="math inline">\(S\)</span> be the nonzero integers modulo <span class="math inline">\(p\)</span>; that is, <span class="math inline">\(S = \{ 1, 2, \cdots, p - 1 \}\)</span>. Here's the crucial observation: the effect of multiplying these numbers by <span class="math inline">\(a \bmod{p}\)</span> is simply to permute them. For instance, here's a picture of the case <span class="math inline">\(a = 3, p = 7\)</span>:</p>
+  <div class="figure">
+  <img src="fermat-little-theorem.png" />
+
+  </div>
+  <p>Let's carry this example a bit further. From the picture, we can conclude</p>
+  <p><span class="math display">\[
+  \{1, 2, \cdots, 6\} = \{3 \cdot 1  \bmod{7}, 3 \cdot 2 \bmod{7}, \cdots, 3 \cdot 6 \bmod{7} \}.
+  \]</span></p>
+  <p>Multiplying all the numbers in each representation then gives <span class="math inline">\(6! \equiv 36 \cdot 6! \bmod{7}\)</span>, and dividing by <span class="math inline">\(6!\)</span> we get <span class="math inline">\(3^6 \equiv 1 \bmod{7}\)</span>, exactly the result we wanted in the case <span class="math inline">\(a = 3, p = 7\)</span>.</p>
+  <p>Now let's generalize this argument to other values of <span class="math inline">\(a\)</span> and <span class="math inline">\(p\)</span>, with <span class="math inline">\(S = \{1, 2, \cdots, p - 1\}\)</span>. We'll prove that when the elements of <span class="math inline">\(S\)</span> are multiplied by <span class="math inline">\(a \bmod{p}\)</span>, the resulting numbers are all distinct and nonzero. And since they lie in the range <span class="math inline">\([1, p - 1]\)</span>, they must simply be a permutation of <span class="math inline">\(S\)</span>.</p>
+  <p>The numbers <span class="math inline">\(a \cdot i \bmod{p}\)</span> are distinct because if <span class="math inline">\(a \cdot i \equiv a \cdot j \bmod{p}\)</span>, then dividing both sides by <span class="math inline">\(a\)</span> gives <span class="math inline">\(i \equiv j \bmod{p}\)</span>. They are nonzero because <span class="math inline">\(a \cdot i \equiv 0\)</span> similarly implies <span class="math inline">\(i \equiv 0\)</span>. (And we <em>can</em> divide by <span class="math inline">\(a\)</span>, because by assumption it is nonzero and therefore relatively prime to <span class="math inline">\(p\)</span>.)</p>
+  <p>We now have two ways to write set <span class="math inline">\(S\)</span>:</p>
+  <p><span class="math display">\[
+  S = \{1, 2, \cdots, p - 1\} = \{a \cdot 1 \bmod{p}, a \cdot 2 \bmod{p}, \cdots, a \cdot (p - 1) \bmod{p}\}.
+  \]</span></p>
+  <p>We multiply together its elements in each of these representations to get</p>
+  <p><span class="math display">\[
+  (p - 1)! \equiv a^{p - 1} \cdot (p - 1)! \bmod{p}.
+  \]</span></p>
+  <p>Dividing by <span class="math inline">\((p - 1)!\)</span> (which we can do because it is relatively prime to <span class="math inline">\(p\)</span>, since <span class="math inline">\(p\)</span> is assumed to be prime) then gives the theorem. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>This theorem suggests a &quot;factorless&quot; test for determining whether a number N is prime:</p>
+  <div class="figure">
+  <img src="fermat-test.png" />
+
+  </div>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> primality(N):
+      <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">    Input: positive integer N</span>
+  <span class="co">    Output: yes (true), no (false)</span>
+  <span class="co">    &quot;&quot;&quot;</span>
+      a <span class="op">=</span> random positive integer <span class="op">&lt;</span> N
+      <span class="cf">if</span> a<span class="op">^</span>(N <span class="op">-</span> <span class="dv">1</span>) <span class="op">==</span> <span class="dv">1</span> (mod N):
+          <span class="cf">return</span> <span class="va">True</span>
+      <span class="cf">else</span>:
+          <span class="cf">return</span> <span class="va">False</span></code></pre></div>
+  <p>The problem is that Fermat's theorem is not an if-and-only-if condition; it doesn't say what happens when <span class="math inline">\(N\)</span> is not prime, so in these cases the preceding diagram is questionable. In fact, it is possible for a composite number <span class="math inline">\(N\)</span> to pass Fermat's test (that is, <span class="math inline">\(a^{N - 1} \equiv 1 \bmod{N}\)</span>) for certain choices of <span class="math inline">\(a\)</span>.</p>
+  <p>For instance, <span class="math inline">\(341 = 11 \cdot 31\)</span> is not prime, and yet <span class="math inline">\(2^{340} \equiv 1 \bmod{341}\)</span>. Nonetheless, we might hope that for composite <span class="math inline">\(N\)</span>, most values of <span class="math inline">\(a\)</span> will fail the test. This is indeed true, in a sense we will shortly make precise, and motivates the algorithm of Figure 1.7: rather than fixing an arbitrary value of <span class="math inline">\(a\)</span> in advance, we should choose it <em>randomly</em> from <span class="math inline">\(\{1, \cdots, N - 1\}\)</span>.</p>
+  <p>In analyzing the behavior of this algorithm, we first need to get a minor bad case out of the way. It turns out that certain extremely rare composite numbers <span class="math inline">\(N\)</span>, called <em>Carmichael numbers</em>, pass Fermat's test for all <span class="math inline">\(a\)</span> relatively prime to <span class="math inline">\(N\)</span>. On such numbers our algorithm will fail; but they are pathologically rare, and we will later see how to deal with them (page 38), so let's ignore these numbers for the time being.</p>
+  <p>In a Carmichael-free universe, our algorithm works well. Any prime number <span class="math inline">\(N\)</span> will of course pass Fermat's test and produce the right answer. On the other hand, any non-Carmichael composite number <span class="math inline">\(N\)</span> must fail Fermat's test for some value of <span class="math inline">\(a\)</span>; and as we will now show, this implies immediately that <span class="math inline">\(N\)</span> fails Fermat's test for <em>at least half the possible values of</em> <span class="math inline">\(a\)</span>!</p>
+  <p><strong>Lemma</strong> If <span class="math inline">\(a^{N - 1} \not\equiv 1 \bmod{N}\)</span> for some <span class="math inline">\(a\)</span> relatively prime to <span class="math inline">\(N\)</span>, then it must hold for at least half the choices of <span class="math inline">\(a &lt; N\)</span>.</p>
+  <p><em>Proof.</em> Fix some value of <span class="math inline">\(a\)</span> for which <span class="math inline">\(a^{N - 1} \not\equiv 1 \bmod{N}\)</span>. The key is to notice that every element <span class="math inline">\(b &lt; N\)</span> that passes Fermat's tests with respect to <span class="math inline">\(N\)</span> (that is, <span class="math inline">\(b^{N - 1} \equiv 1 \bmod{N}\)</span>) has a twin, <span class="math inline">\(a \cdot b\)</span>, that fails the test:</p>
+  <p><span class="math display">\[
+  (a \cdot b)^{N - 1} \equiv a^{N - 1} \cdot b^{N - 1} \equiv a^{N - 1} \not\equiv 1 \bmod{N}.
+  \]</span></p>
+  <p>Moreover, all these elements <span class="math inline">\(a \cdot b\)</span>, for fixed <span class="math inline">\(a\)</span> but different choices of <span class="math inline">\(b\)</span>, are distinct, for the same reason <span class="math inline">\(a \cdot i \not\equiv a \cdot j\)</span> in the proof of Fermat's test: just divide by <span class="math inline">\(a\)</span>.</p>
+  <div class="figure">
+  <img src="fermat-test-lemma.png" />
+
+  </div>
+  <p>The one-to-one function <span class="math inline">\(b \rightarrow a \cdot b\)</span> shows that at least as many elements fail the test as pass it.</p>
+  <blockquote>
+  <p><strong>Hey, that was group theory!</strong></p>
+  <p>For any integer <span class="math inline">\(N\)</span>, the set of all numbers modulo <span class="math inline">\(N\)</span> that are relatively prime to <span class="math inline">\(N\)</span> constitute what mathematicians call a <em>group</em>:</p>
+  <ul>
+  <li>There is a multiplication operation defined on this set.</li>
+  <li>The set contains a neutral element (namely 1: any number multiplied by this remains unchanged).</li>
+  <li>All elements have a well-defined inverse. This particular group is called the <em>multiplicative group of</em> <span class="math inline">\(N\)</span>, usually denoted <span class="math inline">\(\mathbb{Z}^{\times}_N\)</span>.</li>
+  <li>Group theory is a very well developed branch of mathematics. One of its key concepts is that a group can contain a <span class="math inline">\(subgroup\)</span> – a subset that is a group in and of itself. And an important fact about a subgroup is that its size must divide the size of the whole group.</li>
+  </ul>
+  <p>Consider now the set <span class="math inline">\(B = \{b:b^{N - 1} \equiv 1 \bmod{N}\}\)</span>. It is not hard to see that it is a subgroup of <span class="math inline">\(\mathbb{Z}^{\times}_N\)</span> (just check that <span class="math inline">\(B\)</span> is closed under multiplication and inverses).</p>
+  <p>Thus the size of <span class="math inline">\(B\)</span> must divide that of <span class="math inline">\(\mathbb{Z}^{\times}_N\)</span>. Which means that if <span class="math inline">\(B\)</span> doesn't contain all of <span class="math inline">\(\mathbb{Z}^{\times}_N\)</span>, the next largest size it can have is <span class="math inline">\(|\mathbb{Z}^{\times}_N| / 2\)</span>.</p>
+  </blockquote>
+  <p>We are ignoring Carmichael numbers, so we can now assert</p>
+  <ul>
+  <li><p>If <span class="math inline">\(N\)</span> is prime, then <span class="math inline">\(a^{N - 1} \equiv 1 \bmod{N}\)</span> for all <span class="math inline">\(a &lt; N\)</span>.</p></li>
+  <li><p>If <span class="math inline">\(N\)</span> is not prime, then <span class="math inline">\(a^{N - 1} \equiv 1 \mod[N]\)</span> for at most half the values of <span class="math inline">\(a &lt; N\)</span>.</p></li>
+  </ul>
+  <p>The algorithm of Figure 1.7 therefore has the following probabilistic behavior.</p>
+  <ul>
+  <li><p><span class="math inline">\(\mathbb{P}(\text{Algorithm returns yes when input is prime}) = 1\)</span></p></li>
+  <li><p><span class="math inline">\(\mathbb{P}(\text{Algorithm returns yes when input is not prime}) \leq \frac{1}{2}\)</span></p></li>
+  </ul>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> primality_fixed(N):
+      <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">    Input: positive integer N</span>
+  <span class="co">    Output: yes (true), no (false)</span>
+  <span class="co">    &quot;&quot;&quot;</span>
+      a_1, ..., a_k <span class="op">=</span> random positive integers <span class="op">&lt;</span> N
+      <span class="cf">if</span> a_i <span class="op">==</span> <span class="dv">1</span> (mod N) <span class="cf">for</span> <span class="bu">all</span> i <span class="op">=</span> <span class="dv">1</span>, ..., k:
+          <span class="cf">return</span> <span class="va">True</span>
+      <span class="cf">else</span>:
+          <span class="cf">return</span> <span class="va">False</span></code></pre></div>
+  <p>We can reduce this <em>one-sided error</em> by repeating the procedure many times, by randomly picking several values of a and testing them all (Figure 1.8).</p>
+  <p><span class="math display">\[
+  \mathbb{P}(\text{Algorithm returns yes when input is not prime}) \leq \frac{1}{2^k}
+  \]</span></p>
+  <p>This probability of error drops exponentially fast, and can be driven arbitrarily low by choosing <span class="math inline">\(k\)</span> large enough. Testing <span class="math inline">\(k = 100\)</span> values of <span class="math inline">\(a\)</span> makes the probability of failure at most <span class="math inline">\(2^{-100}\)</span>, which is miniscule: far less, for instance, than the probability that a random cosmic ray will sabotage the computer during the computation!</p>
+  <blockquote>
+  <p><strong>Carmichael numbers</strong></p>
+  <p>The smallest Carmichael number is <span class="math inline">\(561\)</span>. It is not a prime: <span class="math inline">\(561 = 3 \cdot 11 \cdot 17\)</span>; yet it fools the Fermat test, because <span class="math inline">\(a^{560} \equiv 1 \bmod{561}\)</span> for all values of a relatively prime to <span class="math inline">\(561\)</span>. For a long time it was thought that there might be only finitely many numbers of this type; now we know they are infinite, but exceedingly rare.</p>
+  <p>There is a way around Carmichael numbers, using a slightly more refined primality test due to Rabin and Miller. Write <span class="math inline">\(N - 1\)</span> in the form <span class="math inline">\(2^t u\)</span>. As before we'll choose a random base <span class="math inline">\(a\)</span> and check the value of <span class="math inline">\(a^{N-1} \bmod{N}\)</span>. Perform this computation by first determining $a^{u}  and then repeatedly squaring, to get the sequence: <span class="math display">\[a^u \bmod{N}, a^{2u} \bmod{N}, \cdots, a^{2^t u} = a^{N-1} \bmod{N}.\]</span></p>
+  <p>If <span class="math inline">\(a^{N-1} \not\equiv 1 \bmod{N}\)</span>, then <span class="math inline">\(N\)</span> is composite by Fermat's little theorem, and we're done. But if <span class="math inline">\(a^{N-1} \equiv 1 \bmod{N}\)</span>, we conduct a little follow-up test: somewhere in the preceding sequence, we ran into a 1 for the first time. If this happened after the first position (that is, if <span class="math inline">\(a^u \bmod{N} \neq 1\)</span>), and if the preceding value in the list is not $-1 , then we declare <span class="math inline">\(N\)</span> composite.</p>
+  <p>In the latter case, we have found a nontrivial square root of <span class="math inline">\(1 \bmod{N}\)</span>: a number that is not <span class="math inline">\(\pm 1 \bmod{N}\)</span> but that when squared is equal to <span class="math inline">\(1 \bmod{N}\)</span>. Such a number can only exist if <span class="math inline">\(N\)</span> is composite (Exercise 1.40). It turns out that if we combine this square-root check with our earlier Fermat test, then at least three-fourths of the possible values of a between <span class="math inline">\(1\)</span> and <span class="math inline">\(N - 1\)</span> will reveal a composite <span class="math inline">\(N\)</span>, even if it is a Carmichael number.</p>
+  </blockquote>
+  <h3 id="generating-random-primes">1.3.1 Generating Random Primes</h3>
+  <p>We are now close to having all the tools we need for cryptographic applications. The final piece of the puzzle is a fast algorithm for choosing random primes that are a few hundred bits long. What makes this task quite easy is that primes are abundant -- a random <span class="math inline">\(n\)</span>-bit number has roughly a one-in-<span class="math inline">\(n\)</span> chance of being prime (actually about <span class="math inline">\(1 / (\ln{(2^n)}) \approx 1.44 / n\)</span>). For instance, <em>about 1 in 20 social security numbers is prime!</em></p>
+  <p><strong>Langrange's Prime Number Theorem</strong> Let <span class="math inline">\(\pi(x)\)</span> be the number of primes <span class="math inline">\(\leq x\)</span>. Then <span class="math inline">\(\pi(x) \approx x / \ln{x}\)</span>, or more precisely,</p>
+  <p><span class="math display">\[
+  \lim_{x \rightarrow \infty} \frac{\pi(x)}{(x / \ln{x})} = 1.
+  \]</span></p>
+  <p>Such abundance makes it simple to generate a random n-bit prime:</p>
+  <ul>
+  <li><p>Pick a random <span class="math inline">\(n\)</span>-bit number <span class="math inline">\(N\)</span>.</p></li>
+  <li><p>Run a primality test on <span class="math inline">\(N\)</span>.</p></li>
+  <li><p>If it passes the test, output <span class="math inline">\(N\)</span>; else repeat the process.</p></li>
+  </ul>
+  <p>How fast is this algorithm? If the randomly chosen <span class="math inline">\(N\)</span> is truly prime, which happens with probability at least <span class="math inline">\(1 / n\)</span>, then it will certainly pass the test. So on each iteration, this procedure has at least a <span class="math inline">\(1 / n\)</span> chance of halting. Therefore on average it will halt within <span class="math inline">\(O(n)\)</span> rounds (Exercise 1.34).</p>
+  <p>Next, exactly which primality test should be used? In this application, since the numbers we are testing for primality are chosen at random rather than by an adversary, it is sufficient to perform the Fermat test with base <span class="math inline">\(a = 2\)</span> (or to be really safe, <span class="math inline">\(a = 2, 3, 5\)</span>), because for random numbers the Fermat test has a much smaller failure probability than the worst-case <span class="math inline">\(1 / 2\)</span> bound that we proved earlier.</p>
+  <p>Numbers that pass this test have been jokingly referred to as &quot;industrial grade primes.&quot; The resulting algorithm is quite fast, generating primes that are hundreds of bits long in a fraction of a second on a PC.</p>
+  <p>The important question that remains is: what is the probability that the output of the algorithm is really prime? To answer this we must first understand how discerning the Fermat test is. As a concrete example, suppose we perform the test with base <span class="math inline">\(a = 2\)</span> for all numbers <span class="math inline">\(N \leq 25 \times 10^9\)</span>.</p>
+  <p>In this range, there are about <span class="math inline">\(10^9\)</span> primes, and about <span class="math inline">\(20,000\)</span> composites that pass the test (see the following figure). Thus the chance of erroneously outputting a composite is approximately <span class="math inline">\(20,000 / 10^9 = 2 \times 10^{-5}\)</span>. This chance of error decreases rapidly as the length of the numbers involved is increased (to the few hundred digits we expect in our applications).</p>
+  <blockquote>
+  <p><strong>Randomized algorithms: a virtual chapter</strong></p>
+  <p>Surprisingly – almost paradoxically – some of the fastest and most clever algorithms we have rely on chance: at specified steps they proceed according to the outcomes of random coin tosses. These randomized algorithms are often very simple and elegant, and their output is correct with high probability. This success probability does not depend on the randomness of the input; it only depends on the random choices made by the algorithm itself.</p>
+  <p>Instead of devoting a special chapter to this topic, in this book we intersperse randomized algorithms at the chapters and sections where they arise most naturally. Furthermore, no specialized knowledge of probability is necessary to follow what is happening. You just need to be familiar with the concept of probability, expected value, the expected number of times we must flip a coin before getting heads, and the property known as &quot;linearity of expectation.&quot;</p>
+  <p>Here are pointers to the major randomized algorithms in this book: One of the earliest and most dramatic examples of a randomized algorithm is the randomized primality test of Figure 1.8. Hashing is a general randomized data structure that supports inserts, deletes, and lookups and is described later in this chapter, in Section 1.5. Randomized algorithms for sorting and median finding are described in Chapter 2. A randomized algorithm for the min cut problem is described in the box on page 143. Randomization plays an important role in heuristics as well; these are described in Section 9.3. And finally the quantum algorithm for factoring (Section 10.7) works very much like a randomized algorithm, its output being correct with high probability – except that it draws its randomness not from coin tosses, but from the superposition principle in quantum mechanics.</p>
+  <p>Virtual exercises: 1.29, 1.34, 2.24, 9.8, 10.8.</p>
+  </blockquote>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

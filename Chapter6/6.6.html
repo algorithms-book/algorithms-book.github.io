@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>6.6 Shortest Paths</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="shortest-paths">6.6 Shortest Paths</h2>
+  <p>We started this chapter with a dynamic programming algorithm for the elementary task of finding the shortest path in a <span class="math inline">\(\text{DAG}\)</span>. We now turn to more sophisticated shortest-path problems and see how these too can be accommodated by our powerful algorithmic technique.</p>
+  <p> </p>
+  <h3 id="shortest-reliable-paths">Shortest Reliable Paths</h3>
+  <p>Life is complicated, and abstractions such as graphs, edge lengths, and shortest paths rarely capture the whole truth. In a communications network, for example, even if edge lengths faithfully reflect transmission delays, there may be other considerations involved in choosing a path. For instance, each extra edge in the path might be an extra “hop” fraught with uncertainties and dangers of packet loss. In such cases, we would like to avoid paths with too many edges.</p>
+  <p>Figure 6.8 illustrates this problem with a graph in which the shortest path from <span class="math inline">\(S\)</span> to <span class="math inline">\(T\)</span> has four edges, while there is another path that is a little longer but uses only two edges. If four edges translate to prohibitive unreliability, we may have to choose the latter path.</p>
+  <div class="figure">
+  <img src="fig-6.8-shortest-path-example.png" alt="Figure 6.8 We want a path from s to t that is both short and has few edges." />
+  <p class="caption"><strong>Figure 6.8</strong> We want a path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span> that is both short <em>and</em> has few edges.</p>
+  </div>
+  <p> </p>
+  <p>Suppose then that we are given a graph <span class="math inline">\(G\)</span> with lengths on the edges, along with two nodes <span class="math inline">\(s\)</span> and <span class="math inline">\(t\)</span> and an integer <span class="math inline">\(k\)</span>, and we want the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span> that uses at most <span class="math inline">\(k\)</span> edges.</p>
+  <p>Is there a quick way to adapt Dijkstra's algorithm to this new task? Not quite: that algorithm focuses on the length of each shortest path without “remembering” the number of hops in the path, which is now a crucial piece of information.</p>
+  <p>In dynamic programming, the trick is to choose subproblems so that all vital information is remembered and carried forward. In this case, let us define, for each vertex <span class="math inline">\(v\)</span> and each integer <span class="math inline">\(i \leq k, \texttt{dist}(v, i)\)</span> to be the length of the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(v\)</span> that uses <span class="math inline">\(i\)</span> edges.</p>
+  <p>The starting values <span class="math inline">\(\texttt{dist}(v, 0)\)</span> are <span class="math inline">\(\infty\)</span> for all vertices except <span class="math inline">\(s\)</span>, for which it is <span class="math inline">\(0\)</span>. And the general update equation is, naturally enough, <span class="math display">\[\texttt{dist}(v, i) = \min_{(u, v) \in E}\{\texttt{dist}(u, i - 1) + l(u, v)\}.\]</span></p>
+  <p>Need we say more?</p>
+  <p> </p>
+  <h3 id="all-pairs-shortest-path">All-Pairs Shortest Path</h3>
+  <p>What if we want to find the shortest path not just between <span class="math inline">\(s\)</span> and <span class="math inline">\(t\)</span> but between all pairs of vertices? One approach would be to execute our general shortest-path algorithm from Section 4.6.1 (since there may be negative edges) <span class="math inline">\(|V|\)</span> times, once for each starting node. The total running time would then be <span class="math inline">\(O(|V|^2 |E|)\)</span>. We'll now see a better alternative, the <span class="math inline">\(O(|V|^3)\)</span> dynamic programming-based <a href="https://en.wikipedia.org/wiki/Floyd–Warshall_algorithm">Floyd-Warshall algorithm</a>.</p>
+  <p>Is there is a good subproblem for computing distances between all pairs of vertices in a graph? Simply solving the problem for more and more pairs or starting points is unhelpful, because it leads right back to the <span class="math inline">\(O(|V|^2 |E|)\)</span> algorithm.</p>
+  <p>One idea comes to mind: the shortest path $u w_1 w_l v $ between <span class="math inline">\(u\)</span> and <span class="math inline">\(v\)</span> uses some number of intermediate nodes—possibly none. Suppose we disallow intermediate nodes altogether. Then we can solve all-pairs shortest paths at once: the shortest path from <span class="math inline">\(u\)</span> to <span class="math inline">\(v\)</span> is simply the direct edge <span class="math inline">\((u, v)\)</span>, if it exists.</p>
+  <p>What if we now gradually expand the <em>set of permissible intermediate nodes</em>? We can do this one node at a time, updating the shortest path lengths at each stage. Eventually this set grows to all of <span class="math inline">\(V\)</span>, at which point all vertices are allowed to be on all paths, and we have found the true shortest paths between vertices of the graph!</p>
+  <p>More concretely, number the vertices in <span class="math inline">\(V\)</span> as <span class="math inline">\(\{1, 2, \ldots, n\}\)</span>, and let <span class="math inline">\(\texttt{dist}(i, j, k)\)</span> denote the length of the shortest path from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> in which only nodes <span class="math inline">\(\{1, 2, \ldots, k\}\)</span> can be used as intermediates. Initially, <span class="math inline">\(\texttt{dist}(i, j, 0)\)</span> is the length of the direct edge between <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>, if it exists, and is <span class="math inline">\(\infty\)</span> otherwise.</p>
+  <p>What happens when we expand the intermediate set to include an extra node <span class="math inline">\(k\)</span>? We must reexamine all pairs <span class="math inline">\(i, j\)</span> and check whether using <span class="math inline">\(k\)</span> as an intermediate point gives us a shorter path from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span>.</p>
+  <p>But this is easy: a shortest path from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> that uses <span class="math inline">\(k\)</span> along with possibly other lower-numbered intermediate nodes goes through <span class="math inline">\(k\)</span> just once (why? because we assume that there are no negative cycles). And we have already calculated the length of the shortest path from <span class="math inline">\(i\)</span> to <span class="math inline">\(k\)</span> and from <span class="math inline">\(k\)</span> to <span class="math inline">\(j\)</span> using only lower-numbered vertices:</p>
+  <div class="figure">
+  <img src="floyd-warshall-algorithm.png" />
+
+  </div>
+  <p> </p>
+  <p>Thus, using <span class="math inline">\(k\)</span> gives us a shorter path from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> if and only if</p>
+  <p><span class="math display">\[\texttt{dist}(i, k, k - 1) + \texttt{dist}(k, j, k - 1) &lt; \texttt{dist}(i, j, k - 1),\]</span></p>
+  <p>in which case <span class="math inline">\(\texttt{dist}(i, j, k)\)</span> should be updated accordingly.</p>
+  <p>Here is the Floyd-Warshall algorithm—and as you can see, it takes <span class="math inline">\(O(|V|^3)\)</span> time.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Floyd_Warshall(G):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: a graph G</span>
+  <span class="co">  Output: dist, a matrix of shortest distance between i and j</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="co"># Initialize all values to infinity.</span>
+    <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span> to n:
+      <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span> to n:
+        dist(i, j, <span class="dv">0</span>) <span class="op">=</span> ∞
+
+    <span class="co"># Initialize values if edge exists.</span>
+    <span class="cf">for</span> <span class="bu">all</span> (i, j) ∈ E:
+      dist(i, j, <span class="dv">0</span>) <span class="op">=</span> l(i, j)
+
+    <span class="co"># Run the algorithm.  </span>
+    <span class="cf">for</span> k <span class="op">=</span> <span class="dv">1</span> to n:
+      <span class="cf">for</span> i <span class="op">=</span> <span class="dv">1</span> to n:
+        <span class="cf">for</span> j <span class="op">=</span> <span class="dv">1</span> to n:
+          dist(i, j, k) <span class="op">=</span> <span class="bu">min</span>(dist(i, k, k <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> dist(k, j, k <span class="op">-</span> <span class="dv">1</span>), dist(i, j, k <span class="op">-</span> <span class="dv">1</span>))
+
+    <span class="cf">return</span> dist</code></pre></div>
+  <p> </p>
+  <h3 id="the-traveling-salesman-problem">The Traveling Salesman Problem</h3>
+  <p>A traveling salesman is getting ready for a big sales tour. Starting at his hometown, suitcase in hand, he will conduct a journey in which each of his target cities is visited exactly once before he returns home. Given the pairwise distances between cities, what is the best order in which to visit them, so as to minimize the overall distance traveled?</p>
+  <div class="figure">
+  <img src="fig-6.9-tsp-example.png" alt="Figure 6.9 The optimal traveling salesman tour has length 10." />
+  <p class="caption"><strong>Figure 6.9</strong> The optimal traveling salesman tour has length <span class="math inline">\(10\)</span>.</p>
+  </div>
+  <p> </p>
+  <p>Denote the cities by <span class="math inline">\(1, \ldots, n\)</span>, the salesman's hometown being <span class="math inline">\(1\)</span>, and let <span class="math inline">\(D = (d_{ij})\)</span> be the matrix of intercity distances. The goal is to design a tour that starts and ends at <span class="math inline">\(1\)</span>, includes all other cities exactly once, and has minimum total length. Figure 6.9 shows an example involving five cities. Can you spot the optimal tour? Even in this tiny example, it is tricky for a human to find the solution; imagine what happens when hundreds of cities are involved.</p>
+  <p>It turns out this problem is also difficult for computers. In fact, the <a href="https://en.wikipedia.org/wiki/Travelling_salesman_problem">traveling salesman problem</a> <span class="math inline">\(\text{(TSP)}\)</span> is one of the most notorious computational tasks. There is a long history of attempts at solving it, a long saga of failures and partial successes, and along the way, major advances in algorithms and complexity theory. The most basic piece of bad news about the <span class="math inline">\(\text{TSP}\)</span>, which we will better understand in Chapter 8, is that it is highly unlikely to be solvable in polynomial time.</p>
+  <p>How long does it take, then? Well, the brute-force approach is to evaluate every possible tour and return the best one. Since there are <span class="math inline">\((n − 1)!\)</span> possibilities, this strategy takes <span class="math inline">\(O(n!)\)</span> time. We will now see that dynamic programming yields a much faster solution, though not a polynomial one.</p>
+  <p>What is the appropriate subproblem for the <span class="math inline">\(\text{TSP}\)</span>? Subproblems refer to partial solutions, and in this case the most obvious partial solution is the initial portion of a tour.</p>
+  <p>Suppose we have started at city <span class="math inline">\(1\)</span> as required, have visited a few cities, and are now in city <span class="math inline">\(j\)</span>. What information do we need in order to extend this partial tour? We certainly need to know <span class="math inline">\(j\)</span>, since this will determine which cities are most convenient to visit next. And we also need to know all the cities visited so far, so that we don't repeat any of them. Here, then, is an appropriate subproblem.</p>
+  <ul>
+  <li>For a subset of cities <span class="math inline">\(S \subseteq \{1, 2, \ldots, n\}\)</span> that includes <span class="math inline">\(1\)</span>, and <span class="math inline">\(j \in S\)</span>, let <span class="math inline">\(C(S, j)\)</span> be the length of the shortest path visiting each node in <span class="math inline">\(S\)</span> exactly once, starting at <span class="math inline">\(1\)</span> and ending at <span class="math inline">\(j\)</span>.</li>
+  </ul>
+  <p>When <span class="math inline">\(|S| &gt; 1\)</span>, we define <span class="math inline">\(C(S, 1) = \infty\)</span> since the path cannot both start and end at <span class="math inline">\(1\)</span>.</p>
+  <p>Now, let's express <span class="math inline">\(C(S, j)\)</span> in terms of smaller subproblems. We need to start at <span class="math inline">\(1\)</span> and end at <span class="math inline">\(j\)</span>; what should we pick as the second-to-last city? It has to be some <span class="math inline">\(i \in S\)</span>, so the overall path length is the distance from <span class="math inline">\(1\)</span> to <span class="math inline">\(i\)</span>, namely, <span class="math inline">\(C(S − \{j\}, i)\)</span>, plus the length of the final edge, <span class="math inline">\(d_{ij}\)</span>. We must pick the best such <span class="math inline">\(i\)</span>: <span class="math display">\[C(S, j) = \min_{i \in S : i \neq j} C(S - \{j\}, i) + d_{ij}.\]</span></p>
+  <p>The subproblems are ordered by <span class="math inline">\(|S|\)</span>. Here's the code. (The name of the algorithm is <a href="https://en.wikipedia.org/wiki/Held–Karp_algorithm">Held-Karp</a>.)</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Held_Karp(D):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: D, a matrix with all pairs shortest paths</span>
+  <span class="co">  Output: the shortest tour beginning and ending at 1</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+    C({<span class="dv">1</span>}, <span class="dv">1</span>) <span class="op">=</span> <span class="dv">0</span>
+    <span class="cf">for</span> s <span class="op">=</span> <span class="dv">2</span> to n:
+      <span class="cf">for</span> <span class="bu">all</span> subsets S ⊆ {<span class="dv">1</span>, <span class="dv">2</span>, ..., n} of size s <span class="kw">and</span> containing <span class="dv">1</span>:
+        C(S, <span class="dv">1</span>) <span class="op">=</span> ∞
+        <span class="cf">for</span> <span class="bu">all</span> j ∈ S, j <span class="op">!=</span> <span class="dv">1</span>:
+          C(S, j) <span class="op">=</span> <span class="bu">min</span>(C(S <span class="op">-</span> {j}, i) <span class="op">+</span> d_{ij} : i ∈ S, i <span class="op">!=</span> j)
+    <span class="cf">return</span> min_j C({<span class="dv">1</span>, ..., n}, j) <span class="op">+</span> d_{j1}</code></pre></div>
+  <p>There are at most <span class="math inline">\(2^n \cdot n\)</span> subproblems, and each one takes linear time to solve. The total running time is therefore <span class="math inline">\(O(n^2 2^n)\)</span>.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>On Time and Memory</strong></p>
+  <p>The amount of time it takes to run a dynamic programming algorithm is easy to discern from the <span class="math inline">\(\text{DAG}\)</span> of subproblems: in many cases <em>it is just the total number of edges in the <span class="math inline">\(\text{DAG}\)</span>!</em> All we are really doing is visiting the nodes in linearized order, examining each node's inedges, and, most often, doing a constant amount of work per edge. By the end, each edge of the <span class="math inline">\(\text{DAG}\)</span> has been examined once.</p>
+  <p>But how much computer <em>memory</em> is required? There is no simple parameter of the <span class="math inline">\(\text{DAG}\)</span> characterizing this. It is certainly possible to do the job with an amount of memory proportional to the number of vertices (subproblems), but we can usually get away with much less. The reason is that the value of a particular subproblem only needs to be remembered until the larger subproblems depending on it have been solved. Thereafter, the memory it takes up can be released for reuse.</p>
+  <p>For example, in the Floyd-Warshall algorithm the value of <span class="math inline">\(\texttt{dist}(i, j, k)\)</span> is not needed once the <span class="math inline">\(\texttt{dist}(\cdot, \cdot, k + 1)\)</span> values have been computed. Therefore, we only need two <span class="math inline">\(|V| \times |V|\)</span> arrays to store the <span class="math inline">\(\texttt{dist}\)</span> values, one for odd values of <span class="math inline">\(k\)</span> and one for even values: when computing <span class="math inline">\(\texttt{dist}(i, j, k)\)</span>, we overwrite <span class="math inline">\(\texttt{dist}(i, j, k − 2)\)</span>.</p>
+  <p>(And let us not forget that, as always in dynamic programming, we also need one more array, <span class="math inline">\(\texttt{prev}(i, j)\)</span>, storing the next to last vertex in the current shortest path from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span>, a value that must be updated with <span class="math inline">\(\texttt{dist}(i, j, k)\)</span>. We omit this mundane but crucial bookkeeping step from our dynamic programming algorithms.)</p>
+  <p>Can you see why the edit distance <span class="math inline">\(\text{DAG}\)</span> in Figure 6.5 only needs memory proportional to the length of the shorter string?</p>
+  </blockquote>
+  <p> </p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Chapter 10</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h3 id="chapter-10">Chapter 10</h3>
+  <h1 id="quantum-algorithms">Quantum algorithms</h1>
+  <div class="figure">
+  <img src="the-talk.png" title="&quot;The Talk&quot; by Scott Aaronson and Zach Weinersmith" />
+  </div>
+  <p>This book started with the world’s oldest and most widely used algorithms (the ones for adding and multiplying numbers) and an ancient hard problem <span class="math inline">\(\text{(FACTORING)}\)</span>. In this last chapter the tables are turned: we present one of the latest algorithms—and it is an efficient algorithm for <span class="math inline">\(\text{FACTORING}\)</span>!</p>
+  <p>There is a catch, of course: this algorithm needs a <strong>quantum computer</strong> to execute.</p>
+  <p>Quantum physics is a beautiful and mysterious theory that describes Nature in the small, at the level of elementary particles. One of the major discoveries of the nineties was that quantum computers—computers based on quantum physics principles—are radically different from those that operate according to the more familiar principles of classical physics. Surprisingly, they can be exponentially more powerful: as we shall see, quantum computers can solve <span class="math inline">\(\text{FACTORING}\)</span> in polynomial time! As a result, in a world with quantum computers, the systems that currently safeguard business transactions on the Internet (and are based on the RSA cryptosystem) will no longer be secure.</p>
+  <h2 id="contents">Contents</h2>
+  <ol style="list-style-type: decimal">
+  <li><a href="/algorithms/Chapter10/10.1">Qubits, Superposition, And Measurement</a></li>
+  <li><a href="/algorithms/Chapter10/10.2">The Plan</a></li>
+  <li><a href="/algorithms/Chapter10/10.3">Quantum Fourier Transform</a></li>
+  <li><a href="/algorithms/Chapter10/10.4">Periodicity</a></li>
+  <li><a href="/algorithms/Chapter10/10.5">Quantum Circuits</a></li>
+  <li><a href="/algorithms/Chapter10/10.6">Factoring As Periodicity</a></li>
+  <li><a href="/algorithms/Chapter10/10.7">The Quantum Algorithm for Factoring</a></li>
+  <li><a href="/algorithms/Chapter10/10-ex.pdf">Exercises</a></li>
+  </ol>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

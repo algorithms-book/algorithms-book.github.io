@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>1.1 Basic Arithmetic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="basic-arithmetic">1.1 Basic Arithmetic</h2>
+  <h3 id="addition">1.1.1 Addition</h3>
+  <p>We were so young when we learned the standard technique for addition that we would scarcely have thought to ask <em>why</em> it works. But let’s go back now and take a closer look.</p>
+  <p>It is a basic property of decimal numbers that</p>
+  <ul>
+  <li><em>The sum of any three single-digit numbers is at most two digits long.</em></li>
+  </ul>
+  <p>Quick check: the sum is at most <span class="math inline">\(9 + 9 + 9 = 27\)</span>, two digits long. In fact, this rule holds not just in decimal but in <em>any</em> base <span class="math inline">\(b \geq 2\)</span> (Exercise 1.1). In binary, for instance, the maximum possible sum of three single-bit numbers is <span class="math inline">\(3\)</span>, which is a <span class="math inline">\(2\)</span>-bit number.</p>
+  <p>This simple rule gives us a way to add two numbers in any base: align their right-hand ends, and then perform a single right-to-left pass in which the sum is computed digit by digit, maintaining the overflow as a carry. Since we know each individual sum is a two-digit number, <em>the carry is always a single digit</em>, and so at any given step, three single-digit numbers are added. Here’s an example showing the addition <span class="math inline">\(53 + 35\)</span> in binary.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Carry:} &amp; 1 &amp;   &amp;   &amp; 1 &amp; 1 &amp; 1 &amp;   &amp;      \\
+                &amp;   &amp; 1 &amp; 1 &amp; 0 &amp; 1 &amp; 0 &amp; 1 &amp; (53) \\
+                &amp; + &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 1 &amp; (35) \\
+                &amp; - &amp; - &amp; - &amp; - &amp; - &amp; - &amp; - &amp; (35) \\
+                &amp; 1 &amp; 0 &amp; 1 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; (88) \\
+  \end{matrix}\]</span></p>
+  <p>Ordinarily we would spell out the algorithm in pseudocode, but in this case it is so familiar that we do not repeat it. Instead we move straight to analyzing its efficiency.</p>
+  <p><em>Given two binary numbers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, how long does our algorithm take to add them?</em> This is the kind of question we shall persistently be asking throughout this book. We want the answer expressed as a function of <em>the size of the input</em>: the number of bits of <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, the number of keystrokes needed to type them in.</p>
+  <p>Suppose <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are each <span class="math inline">\(n\)</span> bits long; in this chapter we will consistently use the letter <span class="math inline">\(n\)</span> for the sizes of numbers. Then the sum of <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> is <span class="math inline">\(n + 1\)</span> bits at most, and each individual bit of this sum gets computed in a fixed amount of time.</p>
+  <p>The total running time for the addition algorithm is therefore of the form <span class="math inline">\(c_0 + c_1 n\)</span>, where <span class="math inline">\(c_0\)</span> and <span class="math inline">\(c_1\)</span> are some constants; in other words, it is linear. Instead of worrying about the precise values of <span class="math inline">\(c_0\)</span> and <span class="math inline">\(c_1\)</span>, we will focus on the big picture and denote the running time as <span class="math inline">\(O(n)\)</span>.</p>
+  <p>Now that we have a working algorithm whose running time we know, our thoughts wander inevitably to the question of whether there is something even better.</p>
+  <p><em>Is there a faster algorithm?</em> (This is another persistent question.)</p>
+  <p>For addition, the answer is easy: in order to add two <span class="math inline">\(n\)</span>-bit numbers we must at least read them and write down the answer, and even that requires <span class="math inline">\(n\)</span> operations. So the addition algorithm is optimal, up to multiplicative constants!</p>
+  <p>Some readers may be confused at this point: Why <span class="math inline">\(O(n)\)</span> operations? Isn’t binary addition something that computers today perform by just one instruction? There are two answers.</p>
+  <p>First, it is certainly true that in a single instruction we can add integers whose size in bits is within the <em>word length</em> of today’s computers—<span class="math inline">\(32\)</span> perhaps. But, as will become apparent later in this chapter, it is often useful and necessary to handle numbers much larger than this, perhaps several thousand bits long. Adding and multiplying such large numbers on real computers is very much like performing the operations bit by bit.</p>
+  <p>Second, when we want to understand algorithms, it makes sense to study even the basic algorithms that are encoded in the hardware of today’s computers. In doing so, we shall focus on the <em>bit complexity</em> of the algorithm, the number of elementary operations on individual bits—because this accounting reflects the amount of hardware, transistors and wires, necessary for implementing the algorithm.</p>
+  <p> </p>
+  <h3 id="multiplication-and-division">1.1.2 Multiplication and Division</h3>
+  <p>Onward to multiplication! The grade-school algorithm for multiplying two numbers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> is to create an array of intermediate sums, each representing the product of <span class="math inline">\(x\)</span> by a single digit of <span class="math inline">\(y\)</span>. These values are appropriately left-shifted and then added up. Suppose for instance that we want to multiply <span class="math inline">\(13 \times 11\)</span>, or in binary notation, <span class="math inline">\(x = 1101\)</span> and <span class="math inline">\(y = 1011\)</span>. The multiplication would proceed thus.</p>
+  <p><span class="math display">\[\begin{array}{l}
+    &amp;   &amp;   &amp;        &amp; 1 &amp; 1 &amp; 0 &amp; 1 &amp; \\
+    &amp;   &amp;   &amp; \times &amp; 1 &amp; 0 &amp; 1 &amp; 1 &amp; \\
+  - &amp; - &amp; - &amp;      - &amp; - &amp; - &amp; - &amp; - &amp; \\
+    &amp;   &amp;   &amp;        &amp; 1 &amp; 1 &amp; 0 &amp; 1 &amp; \text{($1101$ times $1$, shifted by $0$)} \\
+    &amp;   &amp;   &amp;      1 &amp; 1 &amp; 0 &amp; 1 &amp;   &amp; \text{($1101$ times $1$, shifted by $1$)} \\
+    &amp;   &amp; 0 &amp;      0 &amp; 0 &amp; 0 &amp;   &amp;   &amp; \text{($1101$ times $0$, shifted by $2$)} \\
+  + &amp; 1 &amp; 1 &amp;      0 &amp; 1 &amp;   &amp;   &amp;   &amp; \text{($1101$ times $1$, shifted by $3$)} \\
+  - &amp; - &amp; - &amp;      - &amp; - &amp; - &amp; - &amp; - &amp; \\
+  1 &amp; 0 &amp; 0 &amp;      0 &amp; 1 &amp; 1 &amp; 1 &amp; 1 &amp; \text{(binary $143$)} \\
+  \end{array}\]</span></p>
+  <p>In binary this is particularly easy since each intermediate row is either zero or <span class="math inline">\(x\)</span> itself, left-shifted an appropriate amount of times. Also notice that left-shifting is just a quick way to multiply by the base, which in this case is <span class="math inline">\(2\)</span>. (Likewise, the effect of a right shift is to divide by the base, rounding down if needed.)</p>
+  <p>The correctness of this multiplication procedure is the subject of Exercise 1.6; let’s move on and figure out how long it takes. If <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are both <span class="math inline">\(n\)</span> bits, then there are <span class="math inline">\(n\)</span> intermediate rows, with lengths of up to <span class="math inline">\(2n\)</span> bits (taking the shifting into account). The total time taken to add up these rows, doing two numbers at a time, is <span class="math display">\[\underbrace{O(n) + O(n) + \cdots + O(n)}_{\text{$n - 1$ times}},\]</span></p>
+  <p>which is <span class="math inline">\(O(n^2)\)</span>, <em>quadratic</em> in the size of the inputs: still polynomial but much slower than addition (as we have all suspected since elementary school).</p>
+  <p>But Al Khwarizmi knew another way to multiply, a method which is used today in some European countries. To multiply two decimal numbers <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, write them next to each other, as in the example below. Then repeat the following: divide the first number by <span class="math inline">\(2\)</span>, rounding down the result (that is, dropping the <span class="math inline">\(.5\)</span> if the number was odd), and double the second number. Keep going till the first number gets down to <span class="math inline">\(1\)</span>. Then strike out all the rows in which the first number is even, and add up whatever remains in the second column.</p>
+  <p><span class="math display">\[\begin{array}{l}
+  11 &amp;  13 &amp; \\
+   5 &amp;  26 &amp; \\
+   2 &amp;  52 &amp; \text{(strike out)} \\
+   1 &amp; 104 &amp; \\
+   - &amp;   - &amp; \\
+     &amp; 143 &amp; \text{(answer)}     \\
+  \end{array}\]</span></p>
+  <p>But if we now compare the two algorithms, binary multiplication and multiplication by re- peated halvings of the multiplier, we notice that they are doing the same thing! The three numbers added in the second algorithm are precisely the multiples of <span class="math inline">\(13\)</span> by powers of <span class="math inline">\(2\)</span> that were added in the binary method.</p>
+  <p>Only this time <span class="math inline">\(11\)</span> was not given to us explicitly in binary, and so we had to extract its binary representation by looking at the parity of the numbers obtained from it by successive divisions by <span class="math inline">\(2\)</span>. Al Khwarizmi’s second algorithm is a fascinating mixture of decimal and binary!</p>
+  <p><strong>Figure 1.1</strong> Multiplication à la Français.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> multiply(x, y):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: two n-bit integers x and y, where y ≥ 0</span>
+  <span class="co">  Output: their product</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="cf">if</span> y <span class="op">=</span> <span class="dv">0</span>: <span class="cf">return</span> <span class="dv">0</span>
+
+    z <span class="op">=</span> multiple(x, ⌊y <span class="op">/</span> <span class="dv">2</span>⌋)
+    <span class="cf">if</span> y <span class="kw">is</span> even:
+      <span class="cf">return</span> 2z
+    <span class="cf">else</span>:
+      <span class="cf">return</span> 2z <span class="op">+</span> x</code></pre></div>
+  <p>The same algorithm can thus be repackaged in different ways. For variety we adopt a third formulation, the recursive algorithm of Figure 1.1, which directly implements the rule</p>
+  <p><span class="math display">\[x \cdot y = \begin{cases}
+  2(x \cdot \lfloor y / 2 \rfloor)     &amp; \text{if $y$ is even} \\
+  2(x \cdot \lfloor y / 2 \rfloor) + x &amp; \text{if $y$ is odd}  \\
+  \end{cases}\]</span></p>
+  <p> </p>
+  <p><em>Is this algorithm correct?</em> The preceding recursive rule is transparently correct; so checking the correctness of the algorithm is merely a matter of verifying that it mimics the rule and that it handles the base case <span class="math inline">\((y = 0)\)</span> properly.</p>
+  <p><em>How long does the algorithm take?</em> It must terminate after <span class="math inline">\(n\)</span> recursive calls, because at each call <span class="math inline">\(y\)</span> is halved—that is, its number of bits is decreased by one. And each recursive call requires these operations: a division by <span class="math inline">\(2\)</span> (right shift); a test for odd / even (looking up the last bit); a multiplication by <span class="math inline">\(2\)</span> (left shift); and possibly one addition, a total of <span class="math inline">\(O(n)\)</span> bit operations. The total time taken is thus <span class="math inline">\(O(n^2)\)</span>, just as before.</p>
+  <p><em>Can we do better?</em> Intuitively, it seems that multiplication requires adding about <span class="math inline">\(n\)</span> multiples of one of the inputs, and we know that each addition is linear, so it would appear that <span class="math inline">\(n^2\)</span> bit operations are inevitable. Astonishingly, in Chapter 2 we’ll see that we can do significantly better!</p>
+  <p> </p>
+  <p>Division is next. To divide an integer <span class="math inline">\(x\)</span> by another integer <span class="math inline">\(y \neq 0\)</span> means to find a quotient <span class="math inline">\(q\)</span> and a remainder <span class="math inline">\(r\)</span>, where <span class="math inline">\(x = yq + r\)</span> and <span class="math inline">\(r &lt; y\)</span>. We show the recursive version of division in Figure 1.2; like multiplication, it takes quadratic time. The analysis of this algorithm is the subject of Exercise 1.8.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Bases and Logs</strong></p>
+  <p>Naturally, there is nothing special about the number <span class="math inline">\(10\)</span>—we just happen to have 10 fingers, and so <span class="math inline">\(10\)</span> was an obvious place to pause and take counting to the next level. The Mayans developed a similar positional system based on the number <span class="math inline">\(20\)</span> (no shoes, see?). And of course today computers represent numbers in binary.</p>
+  <p>How many digits are needed to represent the number <span class="math inline">\(N \geq 0\)</span> in base <span class="math inline">\(b\)</span>? Let’s see—with <span class="math inline">\(k\)</span> digits in base <span class="math inline">\(b\)</span> we can express numbers up to <span class="math inline">\(b^k - 1\)</span>; for instance, in decimal, three digits get us all the way up to <span class="math inline">\(999 = 103 - 1\)</span>. By solving for <span class="math inline">\(k\)</span>, we find that <span class="math inline">\(\lceil log_{b}{(N + 1)} \rceil\)</span> digits (about <span class="math inline">\(\log_{b}{N}\)</span> digits, give or take <span class="math inline">\(1\)</span>) are needed to write <span class="math inline">\(N\)</span> in base <span class="math inline">\(b\)</span>.</p>
+  <p>How much does the size of a number change when we change bases? Recall the rule for converting logarithms from base <span class="math inline">\(a\)</span> to base <span class="math inline">\(b\)</span>: <span class="math inline">\(\log_{b}{N} = (\log_{a}{N}) / (\log_{a}{b})\)</span>. So the size of integer <span class="math inline">\(N\)</span> in base <span class="math inline">\(a\)</span> is the same as its size in base <span class="math inline">\(b\)</span>, times a constant factor <span class="math inline">\(\log_{a}{b}\)</span>. In big-<span class="math inline">\(O\)</span> notation, therefore, the base is irrelevant, and we write the size simply as <span class="math inline">\(O(\log{N})\)</span>. When we do not specify a base, as we almost never will, we mean <span class="math inline">\(\log_{2}{N}\)</span>.</p>
+  <p>Incidentally, this function <span class="math inline">\(\log{N}\)</span> appears repeatedly in our subject, in many guises. Here's a sampling: 1. <span class="math inline">\(\log{N}\)</span> is, of course, the power to which you need to raise <span class="math inline">\(2\)</span> in order to obtain <span class="math inline">\(N\)</span> . 2. Going backward, it can also be seen as the number of times you must halve <span class="math inline">\(N\)</span> to get down to <span class="math inline">\(1\)</span>. (More precisely: <span class="math inline">\(\lceil \log{N} \rceil\)</span>.) This is useful when a number is halved at each iteration of an algorithm, as in several examples later in the chapter. 3. It is the number of bits in the binary representation of <span class="math inline">\(N\)</span> . (More precisely: <span class="math inline">\(\lceil \log{(N + 1)} \rceil\)</span>.) 4. It is also the depth of a complete binary tree with <span class="math inline">\(N\)</span> nodes. (More precisely: <span class="math inline">\(\lfloor \log{N} \rfloor\)</span>.) 5. It is even the sum <span class="math inline">\(1 + 1 + 1 + \cdots + \frac{1}{N}\)</span>, to within a constant factor (Exercise 1.5).</p>
+  </blockquote>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

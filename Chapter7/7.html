@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Chapter 7</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h3 id="chapter-7">Chapter 7</h3>
+  <h1 id="linear-programming-and-reductions">Linear Programming and Reductions</h1>
+  <p>Many of the problems for which we want algorithms are optimization tasks: the shortest path, the cheapest spanning tree, the longest increasing subsequence, and so on. In such cases, we seek a solution that</p>
+  <ol style="list-style-type: decimal">
+  <li><p>satisfies certain constraints (for instance, the path must use edges of the graph and lead from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>, the tree must touch all nodes, the subsequence must be increasing); and</p></li>
+  <li><p>is the best possible, with respect to some well-defined criterion, among all solutions that satisfy these constraints.</p></li>
+  </ol>
+  <p>Linear programming describes a broad class of optimization tasks in which both the constraints and the optimization criterion are linear functions. It turns out an enormous number of problems can be expressed in this way. Given the vastness of its topic, this chapter is divided into several parts, which can be read separately subject to the following dependencies.</p>
+  <div class="figure">
+  <img src="linear-programming-flow.png" />
+
+  </div>
+  <h2 id="contents">Contents</h2>
+  <ol style="list-style-type: decimal">
+  <li><a href="/algorithms/Chapter7/7.1">An Introduction To Linear Programming</a></li>
+  <li><a href="/algorithms/Chapter7/7.2">Flows in Networks</a></li>
+  <li><a href="/algorithms/Chapter7/7.3">Bipartite Matching</a></li>
+  <li><a href="/algorithms/Chapter7/7.4">Duality</a></li>
+  <li><a href="/algorithms/Chapter7/7.5">Zero-Sum Games</a></li>
+  <li><a href="/algorithms/Chapter7/7.6">The Simplex Algorithm</a></li>
+  <li><a href="/algorithms/Chapter7/7.7">Postscript: Circuit Evaluation</a></li>
+  <li><a href="/algorithms/Chapter7/7-ex.pdf">Exercises</a></li>
+  </ol>
+
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

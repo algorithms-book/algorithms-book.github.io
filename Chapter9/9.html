@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Chapter 9</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h3 id="chapter-9">Chapter 9</h3>
+  <h1 id="coping-with-np-completeness">Coping with NP-completeness</h1>
+  <div class="figure">
+  <img src="xkcd-tsp.png" title="What&#39;s the complexity class of the best linear programming cutting-plane techniques? I couldn&#39;t find it anywhere. Man, the Garfield guy doesn&#39;t have these problems..." />
+  </div>
+  <p> </p>
+
+  <p>You are the junior member of a seasoned project team. Your current task is to write code for solving a simple-looking problem involving graphs and numbers. What are you supposed to do?</p>
+  <p>If you are very lucky, your problem will be among the half-dozen problems concerning graphs with weights (shortest path, minimum spanning tree, maximum flow, etc.), that we have solved in this book. Even if this is the case, recognizing such a problem in its natural habitat—grungy and obscured by reality and context—requires practice and skill. It is more likely that you will need to reduce your problem to one of these lucky ones—or to solve it using dynamic programming or linear programming.</p>
+  <p>But chances are that nothing like this will happen. The world of search problems is a bleak landscape. There are a few spots of light-brilliant algorithmic ideas-each illuminating a small area around it (the problems that reduce to it; two of these areas, linear and dynamic programming, are in fact decently large). But the remaining vast expanse is pitch dark: <span class="math inline">\(\textbf{NP}\)</span>-complete. What are you to do?</p>
+  <p>You can start by proving that your problem is actually <span class="math inline">\(\textbf{NP}\)</span>-complete. Often a proof by generalization (recall the discussion on page 270 and Exercise 8.10) is all that you need; and sometimes a simple reduction from <span class="math inline">\(\text{3SAT}\)</span> or <span class="math inline">\(\text{ZOE}\)</span> is not too difficult to find. This sounds like a theoretical exercise, but, if carried out successfully, it does bring some tangible rewards: now your status in the team has been elevated, you are no longer the kid who can’t do, and you have become the noble knight with the impossible quest.</p>
+  <p>But, unfortunately, a problem does not go away when proved <span class="math inline">\(\textbf{NP}\)</span>-complete. The real question is, <em>What do you do next?</em></p>
+  <p>This is the subject of the present chapter and also the inspiration for some of the most important modern research on algorithms and complexity. <span class="math inline">\(\textbf{NP}\)</span>-completeness is not a death certificate—it is only the beginning of a fascinating adventure.</p>
+  <p>Your problem’s <span class="math inline">\(\textbf{NP}\)</span>-completeness proof probably constructs graphs that are complicated and weird, very much unlike those that come up in your application. For example, even though <span class="math inline">\(\text{SAT}\)</span> is <span class="math inline">\(\textbf{NP}\)</span>-complete, satisfying assignments for <span class="math inline">\(\text{HORN SAT}\)</span> (the instances of <span class="math inline">\(\text{SAT}\)</span> that come up in logic programming) can be found efficiently (recall Section 5.3). Or, suppose the graphs that arise in your application are trees. In this case, many <span class="math inline">\(\textbf{NP}\)</span>-complete problems, such as <span class="math inline">\(\text{INDEPENDENT SET}\)</span>, can be solved in linear time by dynamic programming (recall Section 6.7).</p>
+  <p>Unfortunately, this approach does not always work. For example, we know that <span class="math inline">\(\text{3SAT}\)</span> is <span class="math inline">\(\textbf{NP}\)</span>-complete. And the <span class="math inline">\(\text{INDEPENDENT SET}\)</span> problem, along with many other <span class="math inline">\(\textbf{NP}\)</span>-complete problems, remains so even for planar graphs (graphs that can be drawn in the plane without crossing edges). Moreover, often you cannot neatly characterize the instances that come up in your application. Instead, you will have to rely on some form of intelligent exponential search—procedures such as backtracking and branch and bound which are exponential time in the worst-case, but, with the right design, could be very efficient on typical instances that come up in your application. We discuss these methods in Section 9.1.</p>
+  <p>Or you can develop an algorithm for your <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problem that falls short of the optimum but never by too much. For example, in Section 5.4 we saw that the greedy algorithm always produces a set cover that is no more than log n times the optimal set cover. An algorithm that achieves such a guarantee is called an approximation algorithm. As we will see in Section 9.2, such algorithms are known for many <span class="math inline">\(\textbf{NP}\)</span>-complete optimization problems, and they are some of the most clever and sophisticated algorithms around. And the theory of <span class="math inline">\(\textbf{NP}\)</span>-completeness can again be used as a guide in this endeavor, by showing that, for some problems, there are even severe limits to how well they can be approximated—unless of course <span class="math inline">\(\textbf{P} = \textbf{NP}\)</span>.</p>
+  <p>Finally, there are heuristics, algorithms with no guarantees on either the running time or the degree of approximation. Heuristics rely on ingenuity, intuition, a good understanding of the application, meticulous experimentation, and often insights from physics or biology, to attack a problem. We see some common kinds in Section 9.3.</p>
+  <h2 id="table-of-contents">Table of contents</h2>
+  <ol style="list-style-type: decimal">
+  <li><a href="/algorithms/Chapter9/9.1">Intelligent Exhaustive Search</a></li>
+  <li><a href="/algorithms/Chapter9/9.2">Approximation Algorithms</a></li>
+  <li><a href="/algorithms/Chapter9/9.3">Local Search Heuristics</a></li>
+  <li><a href="/algorithms/Chapter9/9-ex.pdf">Exercises</a></li>
+  </ol>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

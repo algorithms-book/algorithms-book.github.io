@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>10.1 Qubits</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="qubits-superposition-and-measurement">10.1 Qubits, Superposition, and Measurement</h2>
+  <p>In this section we introduce the basic features of quantum physics that are necessary for understanding how quantum computers work.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+  <p>In ordinary computer chips, bits are physically represented by low and high voltages on wires. But there are many other ways a bit could be stored—for instance, in the state of a hydrogen atom. The single electron in this atom can either be in the ground state (the lowest energy configuration) or it can be in an excited state (a high energy configuration). We can use these two states to encode for bit values 0 and 1, respectively.</p>
+  <p>Let us now introduce some quantum physics notation. We denote the ground state of our electron by <span class="math inline">\(\vert 0 \rangle\)</span>, since it encodes for bit value 0, and likewise the excited state by <span class="math inline">\(\vert 1 \rangle\)</span>. These are the two possible states of the electron in classical physics.</p>
+  <div class="figure">
+  <img src="fig-10.1-electron.png" alt="Figure 10.1 An electron can be in a ground state or in an excited state. In the Dirac notation used in quantum physics, these are denoted \vert 0 \rangle and \vert 1 \rangle. But the superposition principle says that, in fact, the electron is in a state that is a linear combination of these two: \alpha_0 \vert 0 \rangle + \alpha_1 \vert 1 \rangle. This would make immediate sense if the \alpha&#39;s were probabilities, nonnegative real numbers adding to 1. But the superposition principle insists that they can be arbitrary complex numbers, as long as the squares of their norms add up to 1!" />
+  <p class="caption"><strong>Figure 10.1</strong> An electron can be in a ground state or in an excited state. In the Dirac notation used in quantum physics, these are denoted <span class="math inline">\(\vert 0 \rangle\)</span> and <span class="math inline">\(\vert 1 \rangle\)</span>. But the superposition principle says that, in fact, the electron is in a state that is a <em>linear combination</em> of these two: <span class="math inline">\(\alpha_0 \vert 0 \rangle + \alpha_1 \vert 1 \rangle\)</span>. This would make immediate sense if the <span class="math inline">\(\alpha\)</span>'s were probabilities, nonnegative real numbers adding to 1. But the superposition principle insists that they can be arbitrary <em>complex numbers</em>, as long as the squares of their norms add up to 1!</p>
+  </div>
+  <p> </p>
+  <p>Many of the most counterintuitive aspects of quantum physics arise from the <em>superposition principle</em> which states that if a quantum system can be in one of two states, then it can also be in <em>any linear superposition</em> of those two states. For instance, the state of the electron could well be <span class="math inline">\(\frac{1}{\sqrt{2}}\vert 0 \rangle + \frac{1}{\sqrt{2}}\vert 1 \rangle\)</span> or <span class="math inline">\(\frac{1}{\sqrt{2}}\vert 0 \rangle - \frac{1}{\sqrt{2}}\vert 1 \rangle\)</span>; or an infinite number of other combinations of the form <span class="math inline">\(\alpha_{0}\vert 0 \rangle + \alpha_{1}\vert 1 \rangle\)</span>. The coefficient <span class="math inline">\(\alpha_{0}\)</span> is called the amplitude of state 0, and similarly with <span class="math inline">\(\alpha_{1}\)</span>.</p>
+  <p>And—if things aren't already strange enough—the <span class="math inline">\(\alpha_{i}\)</span>'s can be complex numbers, as long as they are normalized so that <span class="math inline">\(|\alpha_{0}|^2 + |\alpha_{1}|^2 = 1\)</span>. For example, <span class="math inline">\(\frac{1}{\sqrt{5}}\vert 0 \rangle + \frac{2i}{\sqrt{5}}\vert 1 \rangle\)</span> (where <span class="math inline">\(i\)</span> is the imaginary unit, <span class="math inline">\(\sqrt{-1}\)</span>) is a perfectly valid quantum state! Such a superposition, <span class="math inline">\(\alpha_{0}\vert 0 \rangle + \alpha_{1}\vert 1 \rangle\)</span>, is the basic unit of encoded information in quantum computers (Figure 10.1). It is called a <em>qubit</em> (pronounced &quot;cubit&quot;).</p>
+  <p>The whole concept of a superposition suggests that the electron does not make up its mind about whether it is in the ground or excited state, and the amplitude <span class="math inline">\(\alpha_{0}\)</span> is a measure of its inclination toward the ground state. Continuing along this line of thought, it is tempting to think of <span class="math inline">\(\alpha_{0}\)</span> as the <em>probability</em> that the electron is in the ground state. But then how are we to make sense of the fact that <span class="math inline">\(\alpha_{0}\)</span> can be negative, or even worse, imaginary? This is one of the most mysterious aspects of quantum physics, one that seems to extend beyond our intuitions about the physical world.</p>
+  <p>This linear superposition, however, is the private world of the electron. For us to get a glimpse of the electron's state we must make a <em>measurement</em>, and when we do so, we get a single bit of information—0 or 1. If the state of the electron is <span class="math inline">\(\alpha_{0}\vert 0 \rangle + \alpha_{1}\vert 1 \rangle\)</span>, then the outcome of the measurement is 0 with probability <span class="math inline">\(|\alpha_{0}|^2\)</span> and 1 with probability <span class="math inline">\(|\alpha_{1}|^2\)</span> (luckily we normalized so |<span class="math inline">\(|\alpha_{0}|^2 + |\alpha_{1}|^2 = 1\)</span>).</p>
+  <p>Moreover, the act of measurement causes the system to change its state: if the outcome of the measurement is 0, then the new state of the system is <span class="math inline">\(\vert 0 \rangle\)</span> (the ground state), and if the outcome is 1, the new state is <span class="math inline">\(\vert 1 \rangle\)</span> (the excited state). This feature of quantum physics, that a measurement disturbs the system and forces it to choose (in this case ground or excited state), is another strange phenomenon with no classical analog.</p>
+  <p>The superposition principle holds not just for 2-level systems like the one we just described, but in general for k-level systems. For example, in reality the electron in the hydrogen atom can be in one of many energy levels, starting with the ground state, the first excited state, the second excited state, and so on. So we could consider a k-level system consisting of the ground state and the first k − 1 excited states, and we could denote these by <span class="math inline">\(\vert 0 \rangle, \vert 1 \rangle, \vert 2 \rangle, \cdots , \vert k-1 \rangle\)</span>.</p>
+  <p>The superposition principle would then say that the general quantum state of the system is <span class="math inline">\(\alpha_{0}\vert 0 \rangle, \alpha_{1}\vert 1 \rangle, \alpha_{2}\vert 2 \rangle, \cdots , \alpha_{k-1}\vert k-1 \rangle\)</span>, where <span class="math inline">\(\sum_{i=0}^{k-1} |\alpha_{i}|^2 = 1\)</span>. Measuring the state of the system would now reveal a number between 0 and k − 1, and outcome <span class="math inline">\(i\)</span> would occur with probability <span class="math inline">\(|\alpha_{i}|^2\)</span>. As before, the measurement would disturb the system, and the new state would <em>actually become</em> <span class="math inline">\(\vert i \rangle\)</span> or the <span class="math inline">\(i\)</span>th excited state.</p>
+  <p>How do we encode <span class="math inline">\(n\)</span> bits of information? We could choose <span class="math inline">\(k = 2^{n}\)</span> levels of the hydrogen atom. But a more promising option is to use <span class="math inline">\(n\)</span> qubits.</p>
+  <p>Let us start by considering the case of two qubits, that is, the state of the electrons of two hydrogen atoms. Since each electron can be in either the ground or excited state, in classical physics the two electrons have a total of four possible states—<span class="math inline">\(00, 01, 10,\)</span> or <span class="math inline">\(11\)</span>—and are therefore suitable for storing 2 bits of information. But in quantum physics, the superposition principle tells us that the quantum state of the two electrons is a linear combination of the four classical states, <span class="math inline">\(\vert \mathbb{\alpha} \rangle = \alpha_{00}\vert 00 \rangle + \alpha_{01}\vert 01 \rangle + \alpha_{10}\vert 10 \rangle + \alpha_{11}\vert 11 \rangle,\)</span> normalized so that <span class="math inline">\(\sum_{x \in \{0, 1\}^2} |\alpha_{x}|^2 = 1\)</span>.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></p>
+  <p>Measuring the state of the system now reveals 2 bits of information, and the probability of outcome <span class="math inline">\(x \in \{0, 1\}^2\)</span> is <span class="math inline">\(|\alpha_{x}|^2\)</span>. Moreover, as before, if the outcome of measurement is <span class="math inline">\(jk\)</span>, then the new state of the system is <span class="math inline">\(\vert jk \rangle\)</span>. For example, if <span class="math inline">\(jk = 10\)</span>, then the first electron is in the excited state and the second electron is in the ground state.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Entanglement</strong></p>
+  <p>Suppose we have two qubits, the first in the state <span class="math inline">\(\alpha_0 \vert 0 \rangle + \alpha_1 \vert 1 \rangle\)</span> and the second in the state <span class="math inline">\(\beta_0 \vert 0 \rangle + \beta_1 \vert 1 \rangle\)</span>. What is the joint state of the two qubits? The answer is, the (tensor) product of the two: <span class="math inline">\(\alpha_0\beta_0 \vert 00 \rangle + \alpha_0\beta_1 \vert 01 \rangle + \alpha_1\beta_0 \vert 10 \rangle + \alpha_1\beta_1 \vert 11 \rangle\)</span>.</p>
+  <p>Given an arbitrary state of two qubits, can we specify the state of each individual qubit in this way? No, in general the two qubits are <em>entangled</em> and cannot be decomposed into the states of the individual qubits. For example, consider the state <span class="math inline">\(\vert \psi \rangle = \frac{1}{\sqrt{2}}\vert 00 \rangle + \frac{1}{\sqrt{2}}\vert 11 \rangle\)</span>, which is one of the famous Bell states.</p>
+  <p>It cannot be decomposed into states of the two individual qubits (see Exercise 10.1). Entanglement is one of the most mysterious aspects of quantum mechanics and is ultimately the source of the power of quantum computation.</p>
+  </blockquote>
+  <p> </p>
+  <p>An interesting question comes up here: what if we make a <em>partial measurement</em>? For instance, if we measure just the first qubit, what is the probability that the outcome is 0? This is simple. It is exactly the same as it would have been had we measured both qubits, namely, <span class="math inline">\(\Pr(\text{1st bit} = 0) = \Pr(00) + \Pr(01) = |\alpha_{00}|^2 + |\alpha_{01}|^2\)</span>. Fine, but how much does this partial measurement disturb the state of the system?</p>
+  <div class="figure">
+  <img src="fig-10.2-measurement.png" alt="Figure 10.2 Measurement of a superposition has the effect of forcing the system to decide on a particular state, with probabilities determined by the amplitudes." />
+  <p class="caption"><strong>Figure 10.2</strong> Measurement of a superposition has the effect of forcing the system to decide on a particular state, with probabilities determined by the amplitudes.</p>
+  </div>
+  <p> </p>
+  <p>The answer is elegant. If the outcome of measurin g the first qubit is 0, then the new superposition is obtained by crossing out all terms of <span class="math inline">\(\vert \alpha \rangle\)</span> that are inconsistent with this outcome (that is, whose first bit is 1). Of course the sum of the squares of the amplitudes is no longer 1, so we must renormalize. In our example, this new state would be <span class="math display">\[
+  \vert \alpha_{\text{new}} \rangle  = \frac{\alpha_{00}}{\sqrt{|\alpha_{00}|^2 + |\alpha_{01}|^2}} \vert 00 \rangle + \frac{\alpha_{01}}{\sqrt{|\alpha_{00}|^2 + |\alpha_{01}|^2}} \vert 01 \rangle.
+  \]</span></p>
+  <p>Finally, let us consider the general case of <span class="math inline">\(n\)</span> hydrogen atoms. Think of n as a fairly small number of atoms, say <span class="math inline">\(n = 500\)</span>. Classically the states of the 500 electrons could be used to store 500 bits of information in the obvious way. But the quantum state of the 500 qubits is a linear superposition of all <span class="math inline">\(2^{500}\)</span> possible classical states:</p>
+  <p><span class="math display">\[
+  \sum_{x \in \{0, 1\}^n} \alpha_{x} \vert x \rangle.
+  \]</span></p>
+  <p>It is as if Nature has <span class="math inline">\(2^{500}\)</span> scraps of paper on the side, each with a complex number written on it, just to keep track of the state of this system of 500 hydrogen atoms! Moreover, at each moment, as the state of the system evolves in time, it is as though Nature crosses out the complex number on each scrap of paper and replaces it with its new value.</p>
+  <p>Let us consider the effort involved in doing all this. The number <span class="math inline">\(2^{500}\)</span> is much larger than estimates of the number of elementary particles in the universe. Where, then, does Nature store this information? How could microscopic quantum systems of a few hundred atoms contain more information than we can possibly store in the entire classical universe? Surely this is a most extravagant theory about the amount of effort put in by Nature just to keep a tiny system evolving in time.</p>
+  <p>In this phenomenon lies the basic motivation for quantum computation. After all, if Nature is so extravagant at the quantum level, why should we base our computers on classical physics? Why not tap into this massive amount of effort being expended at the quantum level?</p>
+  <p>But there is a fundamental problem: this exponentially large linear superposition is the private world of the electrons. Measuring the system only reveals <span class="math inline">\(n\)</span> bits of information. As before, the probability that the outcome is a particular <span class="math inline">\(500\)</span>-bit string <span class="math inline">\(x\)</span> is <span class="math inline">\(|\alpha_x|^2\)</span>. And the new state after measurement is just <span class="math inline">\(\vert x \rangle\)</span>.</p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>This field is so strange that the famous physicist Richard Feynman is quoted as having said, &quot;I think I can safely say that no one understands quantum physics.&quot; So there is little chance you will understand the theory in depth after reading this section! But if you are interested in learning more, see the recommended reading at the book's end.<a href="#fnref1">↩</a></p></li>
+  <li id="fn2"><p>Recall that <span class="math inline">\(\{0, 1\}^2\)</span> denotes the set consisting of the four <span class="math inline">\(2\)</span>-bit binary strings, and in general <span class="math inline">\(\{0, 1\}^n\)</span> denotes the set of all <span class="math inline">\(n\)</span>-bit binary strings.<a href="#fnref2">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

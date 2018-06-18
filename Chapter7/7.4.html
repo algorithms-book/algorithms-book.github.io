@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>7.4 Duality</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="duality">7.4 Duality</h2>
+  <p>We have seen that in networks, flows are smaller than cuts, but the maximum flow and minimum cut exactly coincide and each is therefore a certificate of the other's optimality. Remarkable as this phenomenon is, we now generalize it from maximum flow to <em>any</em> problem that can be solved by linear programming! It turns out that every linear maximization problem has a <em>dual</em> minimization problem, and they relate to each other in much the same way as flows and cuts.</p>
+  <p>To understand what duality is about, recall our introductory <span class="math inline">\(\text{LP}\)</span> with the two types of chocolate:</p>
+  <p><span class="math display">\[\begin{aligned}
+  \max\ x_1 &amp;+\ 6x_2  \\
+  x_1       &amp;\leq 200 \\
+  x_2       &amp;\leq 300 \\
+  x_1 + x_2 &amp;\leq 400 \\
+  x_1, x_2  &amp;\geq 0   \\
+  \end{aligned}\]</span></p>
+  <p>Simplex declares the optimum solution to be <span class="math inline">\((x_1, x_2) = (100, 300)\)</span>, with objective value <span class="math inline">\(1900\)</span>. Can this answer be checked somehow? Let's see: suppose we take the first inequality and add it to six times the second inequality. We get <span class="math display">\[x_1 + 6x_2 \leq 2000.\]</span></p>
+  <p>This is interesting, because it tells us that it is impossible to achieve a profit of more than <span class="math inline">\(2000\)</span>. Can we add together some other combination of the <span class="math inline">\(\text{LP}\)</span> constraints and bring this upper bound even closer to <span class="math inline">\(1900\)</span>? After a little experimentation, we find that multiplying the three inequalities by <span class="math inline">\(0, 5,\)</span> and <span class="math inline">\(1\)</span>, respectively, and adding them up yields <span class="math display">\[x_1 + 6x_2 \leq 1900.\]</span></p>
+  <p>So <span class="math inline">\(1900\)</span> must indeed be the best possible value! The multipliers <span class="math inline">\((0, 5, 1)\)</span> magically constitute a <em>certificate of optimality</em>! It is remarkable that such a certificate exists for this <span class="math inline">\(\text{LP}\)</span>—and even if we knew there were one, how would we systematically go about finding it?</p>
+  <p>Let's investigate the issue by describing what we expect of these three multipliers, call them <span class="math inline">\(y_1, y_2, y_3\)</span>.</p>
+  <p><span class="math display">\[
+  \begin{array}{c c}
+  \text{Multiplier} &amp; \text{Inequality} \\
+  \begin{matrix} y_1 \\ y_2 \\ y_3 \\ \end{matrix} &amp;
+  \begin{matrix}
+  &amp; &amp; x_1 &amp;   &amp;     &amp; \leq 200  \\
+  &amp; &amp;     &amp;   &amp; x_2 &amp; \leq 300  \\
+  &amp; &amp; x_1 &amp; + &amp; x_2 &amp; \leq 400  \\
+  \end{matrix}
+  \end{array}
+  \]</span></p>
+  <p>To start with, these <span class="math inline">\(y_i\)</span>'s must be nonnegative, for otherwise they are unqualified to multiply inequalities (multiplying an inequality by a negative number would flip the <span class="math inline">\(\leq\)</span> to <span class="math inline">\(\geq\)</span>). After the multiplication and addition steps, we get the bound: <span class="math display">\[(y_1 + y_3)x_2 + (y_2 + y_3)x_2 \leq 200y_1 + 300y_2 + 400y_3.\]</span></p>
+  <p>We want the left-hand side to look like our objective function <span class="math inline">\(x_1\)</span> + <span class="math inline">\(6x_2\)</span> so that the right-hand side is an upper bound on the optimum solution. For this we need <span class="math inline">\(y_1 + y_3\)</span> to be <span class="math inline">\(1\)</span> and <span class="math inline">\(y_2 + y_3\)</span> to be <span class="math inline">\(6\)</span>. Come to think of it, it would be fine if <span class="math inline">\(y_1 + y_3\)</span> were larger than <span class="math inline">\(1\)</span>—the resulting certificate would be all the more convincing.</p>
+  <p>Thus, we get an upper bound <span class="math display">\[x_1 + 6x_2 \leq 200y_1 + 300y_3 + 400y_3\]</span> if <span class="math display">\[\begin{aligned}
+  y_1 + y_3    &amp;\geq 1 \\
+  y_2 + y_3    &amp;\geq 6 \\
+  y_1,y_2, y_3 &amp;\geq 0
+  \end{aligned}\]</span></p>
+  <p>We can easily find <span class="math inline">\(y\)</span>'s that satisfy the inequalities on the right by simply making them large enough, for example <span class="math inline">\((y1, y2, y3) = (5, 3, 6)\)</span>. But these particular multipliers would tell us that the optimum solution of the <span class="math inline">\(\text{LP}\)</span> is at most <span class="math inline">\(200 \cdot 5 + 300 \cdot 3 + 400 \cdot 6 = 4300\)</span>, a bound that is far too loose to be of interest.</p>
+  <p>What we want is a bound that is as tight as possible, so we should minimize <span class="math inline">\(200y_1 + 300y_2 + 400y_3\)</span> subject to the preceding inequalities. <em>And this is a new linear program!</em></p>
+  <p>Therefore, finding the set of multipliers that gives the best upper bound on our original <span class="math inline">\(\text{LP}\)</span> is tantamount to solving a new <span class="math inline">\(\text{LP}\)</span>: <span class="math display">\[\begin{aligned}
+  \min\ 200y_1 + 300&amp;y_2 + 400y_3 \\
+  y_1 + y_3 &amp;\geq 1 \\
+  y_2 + y_3 &amp;\geq 6 \\
+  y_1, y_2, y_3 &amp;\geq 0
+  \end{aligned}\]</span></p>
+  <p>By design, any feasible value of this <em>dual</em> <span class="math inline">\(\text{LP}\)</span> is an upper bound on the original <em>primal</em> <span class="math inline">\(\text{LP}\)</span>. So if we somehow find a pair of primal and dual feasible values that are equal, then they must both be optimal. Here is just such a pair: <span class="math display">\[\begin{matrix}\text{Primal}: (x_1, x_2) = (100, 300); &amp; \text{Dual}: (y_1, y_2, y_3) = (0, 5, 1) \end{matrix}\]</span></p>
+  <p>They both have value <span class="math inline">\(1900\)</span>, and therefore they certify each other's optimality (Figure 7.9).</p>
+  <div class="figure">
+  <img src="fig-7.9-duality-gap.png" alt="Figure 7.9 By design, dual feasible values \geq primal feasible values. The duality theorem tells us that moreover their optima coincide." />
+  <p class="caption"><strong>Figure 7.9</strong> By design, dual feasible values <span class="math inline">\(\geq\)</span> primal feasible values. The duality theorem tells us that moreover their optima coincide.</p>
+  </div>
+  <p>Amazingly, this is not just a lucky example, but a general phenomenon. To start with, the preceding construction—creating a multiplier for each primal constraint; writing a constraint in the dual for every variable of the primal, in which the sum is required to be above the objective coefficient of the corresponding primal variable; and optimizing the sum of the multipliers weighted by the primal right-hand sides—can be carried out for any <span class="math inline">\(\text{LP}\)</span>, as shown in Figure 7.10, and in even greater generality in Figure 7.11.</p>
+  <p> </p>
+
+  <p><strong>Figure 7.10</strong> A generic primal <span class="math inline">\(\text{LP}\)</span> in matrix-vector form, and its dual.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Primal LP} &amp; &amp; \text{Dual LP} \\
+  \max\ \textbf{c}^{\top}\textbf{x} &amp; &amp; \min\ \textbf{y}^{\top}\textbf{b} \\ \textbf{Ax} \leq \textbf{b} &amp; &amp; \textbf{y}^{\top}\textbf{A} \geq \textbf{c}^{\top} \\
+  \textbf{x} \geq 0 &amp; &amp; \textbf{y} \geq 0
+  \end{matrix}\]</span></p>
+  <p> </p>
+
+  <p><strong>Figure 7.11</strong> In the most general case of linear programming, we have a set <span class="math inline">\(I\)</span> of inequalities and a set <span class="math inline">\(E\)</span> of equalities (a total of <span class="math inline">\(m = |I| + |E|\)</span> constraints) over <span class="math inline">\(n\)</span> variables, of which a subset <span class="math inline">\(N\)</span> are constrained to be nonnegative. The dual has <span class="math inline">\(m = |I| + |E|\)</span> variables, of which only those corresponding to <span class="math inline">\(I\)</span> have nonnegativity constraints.</p>
+  <p><span class="math display">\[\begin{matrix}
+  \text{Primal LP} &amp; &amp; \text{Dual LP} &amp; \\
+  \max\ c_1x_1 + \cdots + c_nx_n &amp; &amp; \min\ b_1y_1 + \cdots b_my_m \\
+  a_{i1}x_1 + \cdots + a_{in}x_n \leq b_i \forall i \in I &amp; &amp; a_{1j}y_1 + \cdots + a_{mj}y_m \geq c_j \forall j \in N \\
+  a_{i1}x_1 + \cdots + a_{in}x_n = b_i \forall i \in E &amp; &amp; a_{1j}y_1 + \cdots + a_{mj}y_m = c_j \forall j \not\in N \\
+  x_j \geq 0 \forall j \in N &amp; &amp; y_i \geq 0 \forall i \in I \\
+  \end{matrix}\]</span></p>
+  <p> </p>
+
+  <p>The second figure has one noteworthy addition: if the primal has an equality constraint, then the corresponding multiplier (or <em>dual variable</em>) need not be nonnegative, because the validity of equations is preserved when multiplied by negative numbers.</p>
+  <p>So, the multipliers of equations are unrestricted variables. Notice also the simple symmetry between the two <span class="math inline">\(\text{LP}\)</span>s, in that the matrix <span class="math inline">\(A = (a_{ij})\)</span> defines one primal constraint with each of its <em>rows</em>, and one dual constraint with each of its <em>columns</em>.</p>
+  <p>By construction, any feasible solution of the dual is an upper bound on any feasible solution of the primal. But moreover, their optima coincide!</p>
+  <p> </p>
+  <h3 id="duality-theorem">Duality Theorem</h3>
+  <p><strong>Duality Theorem</strong> If a linear program has a bounded optimum, then so does its dual, and the two optimum values coincide.</p>
+  <p>When the primal is the <span class="math inline">\(\text{LP}\)</span> that expresses the max-flow problem, it is possible to assign interpretations to the dual variables that show the dual to be none other than the minimum-cut problem (Exercise 7.25). The relation between flows and cuts is therefore just a specific instance of the duality theorem. And in fact, the proof of this theorem falls out of the simplex algorithm, in much the same way as the max-flow min-cut theorem fell out of the analysis of the max-flow algorithm.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Visualizing Duality</strong></p>
+  <p>One can solve the shortest-path problem by the following “analog” device: Given a weighted undirected graph, build a <em>physical model</em> of it in which each edge is a string of length equal to the edge's weight, and each node is a knot at which the appropriate endpoints of strings are tied together. Then to find the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>, just pull <span class="math inline">\(s\)</span> away from <span class="math inline">\(t\)</span> until the gadget is taut. It is intuitively clear that this finds the shortest path from <span class="math inline">\(s\)</span> to <span class="math inline">\(t\)</span>.</p>
+  <div class="figure">
+  <img src="shortest-path-duality.png" />
+
+  </div>
+  <p>There is nothing remarkable or surprising about all this until we notice the following: the shortest-path problem is a <em>minimization problem</em>, right? Then why are we <em>pulling</em> <span class="math inline">\(s\)</span> away from <span class="math inline">\(t\)</span>, an act whose purpose is, obviously, <em>maximization</em>? Answer: By pulling <span class="math inline">\(s\)</span> away from <span class="math inline">\(t\)</span> we solve the <em>dual</em> of the shortest-path problem! This dual has a very simple form (Exercise 7.28), with one variable <span class="math inline">\(x_u\)</span> for each node <span class="math inline">\(u\)</span>: <span class="math display">\[\begin{gathered} \max\ x_s - x_t \\ |x_u - x_v| \leq w_{uv} \ \text{for all edges $\{u, v\}$}\end{gathered}\]</span></p>
+  <p>In words, the dual problem is to stretch <span class="math inline">\(s\)</span> and <span class="math inline">\(t\)</span> as far apart as possible, subject to the constraint that the endpoints of any edge <span class="math inline">\(\{u, v\}\)</span> are separated by a distance of at most <span class="math inline">\(w_{uv}\)</span>.</p>
+  </blockquote>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

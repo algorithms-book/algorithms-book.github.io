@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>5.4 Set Cover</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="set-cover">5.4 Set Cover</h2>
+  <p>The dots in Figure 5.11 represent a collection of towns. This county is in its early stages of planning and is deciding where to put schools. There are only two constraints: each school should be in a town, and no one should have to travel more than <span class="math inline">\(30\)</span> miles to reach one of them. What is the minimum number of schools needed?</p>
+  <div class="figure">
+  <img src="fig-5.11-set-cover-example.png" alt="Figure 5.11 (a) Eleven towns. (b) Towns that are within 30 miles of each other." />
+  <p class="caption"><strong>Figure 5.11</strong> (a) Eleven towns. (b) Towns that are within <span class="math inline">\(30\)</span> miles of each other.</p>
+  </div>
+  <p> </p>
+  <p>This is a typical <strong>set cover</strong> problem. For each town <span class="math inline">\(x\)</span>, let <span class="math inline">\(S_x\)</span> be the set of towns within <span class="math inline">\(30\)</span> miles of it. A school at <span class="math inline">\(x\)</span> will essentially &quot;cover&quot; these other towns. The question is then, how many sets <span class="math inline">\(S_x\)</span> must be picked in order to cover all the towns in the county?</p>
+  <p> </p>
+  <p><span class="math inline">\(\text{Set Cover}\)</span></p>
+  <ul>
+  <li><p><em>input</em>: a set of elements <span class="math inline">\(B\)</span>; sets <span class="math inline">\(S_1, \ldots, S_m \subseteq B\)</span>.</p></li>
+  <li><p><em>output</em>: a selection of the <span class="math inline">\(S_i\)</span> whose union is <span class="math inline">\(B\)</span>.</p></li>
+  <li><p><em>cost</em>: number of sets picked.</p></li>
+  </ul>
+  <p> </p>
+  <p>In our example, the elements of <span class="math inline">\(B\)</span> are the towns. This problem lends itself immediately to a greedy solution:</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">Repeat until <span class="bu">all</span> elements of B are covered:
+      Pick the <span class="bu">set</span> S_i <span class="cf">with</span> the largest number of uncovered elements.</code></pre></div>
+  <p>This is extremely natural and intuitive. Let's see what it would do on our earlier example: It would first place a school at town <span class="math inline">\(a\)</span>, since this covers the largest number of other towns. Thereafter, it would choose three more schools—<span class="math inline">\(c, j,\)</span> and either <span class="math inline">\(f\)</span> or <span class="math inline">\(g\)</span>—for a total of four. However, there exists a solution with just three schools, at <span class="math inline">\(b, e,\)</span> and <span class="math inline">\(i\)</span>. The greedy scheme is not optimal!</p>
+  <p>But luckily, it isn't too far from optimal.</p>
+  <p><strong>Claim</strong> Suppose <span class="math inline">\(B\)</span> contains <span class="math inline">\(n\)</span> elements and that the optimal cover consists of <span class="math inline">\(k\)</span> sets. Then the greedy algorithm will use at most <span class="math inline">\(k \ln{n}\)</span> sets.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+  <p>Let <span class="math inline">\(n_t\)</span> be the number of elements still not covered after <span class="math inline">\(t\)</span> iterations of the greedy algorithm (so <span class="math inline">\(n_0 = n\)</span>). Since these remaining elements are covered by the optimal <span class="math inline">\(k\)</span> sets, there must be some set with at least <span class="math inline">\(n_t / k\)</span> of them. Therefore, the greedy strategy will ensure that <span class="math display">\[n_{t + 1} \leq n_t - \frac{n_t}{k} = n_t (1 - \frac{1}{k}),\]</span></p>
+  <p>which by repeated application implies $n_t ≤ n_0 (1 - )^t. A more convenient bound can be obtained from the useful inequality <span class="math display">\[1 - x \leq e^{-x} \ \ \text{for all $x$, with equality if and only if $x = 0$,}\]</span></p>
+  <p>which is most easily proved by a picture: <img src="exponential-upper-bound.png" /></p>
+  <p>Thus <span class="math display">\[n_t \leq n_0 (1 - \frac{1}{k})^t &lt; n_0 (e^{-1 / k})^t = ne^{-t / k}.\]</span></p>
+  <p>At <span class="math inline">\(t = k \ln{n}\)</span>, therefore, <span class="math inline">\(n_t\)</span> is strictly less than <span class="math inline">\(n e^{-\ln{n}} = 1\)</span>, which means no elements remain to be covered.</p>
+  <p>The ratio between the greedy algorithm's solution and the optimal solution varies from input to input but is always less than <span class="math inline">\(\ln{n}\)</span>. And there are certain inputs for which the ratio is very close to <span class="math inline">\(\ln{n}\)</span> (Exercise 5.33). We call this maximum ratio the <em>approximation factor</em> of the greedy algorithm.</p>
+  <p>There seems to be a lot of room for improvement, but in fact such hopes are unjustified: it turns out that under certain widely-held complexity assumptions (which will be clearer when we reach Chapter 8), there is provably no polynomial-time algorithm with a smaller approximation factor.</p>
+  <p> </p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p><span class="math inline">\(\ln\)</span> means &quot;natural logarithm,&quot; that is, to the base <span class="math inline">\(e\)</span>.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

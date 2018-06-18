@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>2.2 Recurrence Relations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="recurrence-relations">2.2 Recurrence Relations</h2>
+  <p>Divide-and-conquer algorithms often follow a generic pattern: they tackle a problem of size <span class="math inline">\(n\)</span> by recursively solving, say, a subproblems of size <span class="math inline">\(n / b\)</span> and then combining these answers in <span class="math inline">\(O(n^d)\)</span> time, for some <span class="math inline">\(a, b, d &gt; 0\)</span> (in the multiplication algorithm, <span class="math inline">\(a = 3, b = 2\)</span>, and <span class="math inline">\(d = 1\)</span>). Their running time can therefore be captured by the equation <span class="math inline">\(T(n) = aT (\lceil n / b \rceil ) + O(n^d)\)</span>. We next derive a closed-form solution to this general recurrence so that we no longer have to solve it explicitly in each new instance.</p>
+  <p><strong>Master Theorem</strong><a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> If <span class="math inline">\(T(n) = aT(\lceil n / b \rceil ) + O(n^d)\)</span> for some constants <span class="math inline">\(a &gt; 0, b &gt; 1\)</span>, and <span class="math inline">\(d \geq 0\)</span>, then</p>
+  <p><span class="math display">\[
+  T(n) = \begin{cases}
+  O(n^d) &amp; \text{if}\ d &gt; \log_{b}{a} \\
+  O(n^d \log{n}) &amp; \text{if}\ d = \log_{b}{a} \\
+  O(n^{\log_{b}{a}}) &amp; \text{if}\ d &lt; \log_{b}{a}
+  \end{cases}.
+  \]</span></p>
+  <p>This single theorem tells us the running times of most of the divide-and-conquer procedures we are likely to use.</p>
+  <div class="figure">
+  <img src="fig-2.3-divide-tree.png" alt="Figure 2.3 Each problem of size n is divided into a subproblems of size n / b." />
+  <p class="caption"><strong>Figure 2.3</strong> Each problem of size <span class="math inline">\(n\)</span> is divided into <span class="math inline">\(a\)</span> subproblems of size <span class="math inline">\(n / b\)</span>.</p>
+  </div>
+  <p> </p>
+  <p><em>Proof.</em> To prove the claim, let's start by assuming for the sake of convenience that <span class="math inline">\(n\)</span> is a power of <span class="math inline">\(b\)</span>. This will not influence the final bound in any important way—after all, <span class="math inline">\(n\)</span> is at most a multiplicative factor of <span class="math inline">\(b\)</span> away from some power of <span class="math inline">\(b\)</span> (Exercise 2.2)—and it will allow us to ignore the rounding effect in $n / b $.</p>
+  <p>Next, notice that the size of the subproblems decreases by a factor of <span class="math inline">\(b\)</span> with each level of recursion, and therefore reaches the base case after <span class="math inline">\(\log_{b}{n}\)</span> levels. This is the height of the recursion tree. Its branching factor is <span class="math inline">\(a\)</span>, so the <span class="math inline">\(k\)</span>th level of the tree is made up of <span class="math inline">\(a^k\)</span> subproblems, each of size <span class="math inline">\(n / b^k\)</span> (Figure 2.3). The total work done at this level is</p>
+  <p><span class="math display">\[
+  a^k \times O(\frac{n}{b^k})^d = O(n^d) \times (\frac{a}{b^d})^{k}.
+  \]</span></p>
+  <p>As <span class="math inline">\(k\)</span> goes from <span class="math inline">\(0\)</span> (the root) to <span class="math inline">\(\log_{b}{n}\)</span> (the leaves), these numbers form a geometric series with ratio <span class="math inline">\(a / b^d\)</span>. Finding the sum of such a series in big-<span class="math inline">\(O\)</span> notation is easy (Exercise 0.2), and comes down to three cases.</p>
+  <ol style="list-style-type: decimal">
+  <li><p><em>The ratio is less than</em> <span class="math inline">\(1\)</span>. Then the series is decreasing, and its sum is just given by its first term, <span class="math inline">\(O(n^d)\)</span>.</p></li>
+  <li><p><em>The ratio is greater than</em> <span class="math inline">\(1\)</span>. The series is increasing and its sum is given by its last term, <span class="math inline">\(O(n^{\log_{b}{a}})\)</span>:</p></li>
+  </ol>
+  <p><span class="math display">\[
+  n^d (\frac{a}{b^d})^{\log_{b}{n}} = n^d (\frac{a^{\log_{b}{n}}}{(b^{\log_{b}{n}})^d}) = a^{\log_{b}{n}} = a^{(\log_{a}{n})(\log_{b}{a})} = n^{\log_{b}{a}}.
+  \]</span></p>
+  <ol start="3" style="list-style-type: decimal">
+  <li><em>The ratio is exactly</em> <span class="math inline">\(1\)</span>. In this case all <span class="math inline">\(O(\log{n})\)</span> terms of the series are equal to <span class="math inline">\(O(n^d)\)</span>.</li>
+  </ol>
+  <p>These cases translate directly into the three contingencies in the theorem statement. <span class="math inline">\(\blacksquare\)</span></p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Binary Search</strong></p>
+  <p>The ultimate divide-and-conquer algorithm is, of course, <em>binary</em> search: to find a key <span class="math inline">\(k\)</span> in a large file containing keys <span class="math inline">\(z[0, 1, \cdots, n - 1]\)</span> in sorted order, we first compare <span class="math inline">\(k\)</span> with <span class="math inline">\(z[n / 2]\)</span>, and depending on the result we recurse either on the first half of the file, <span class="math inline">\(z[0, \cdots , n / 2 - 1]\)</span>, or on the second half, <span class="math inline">\(z[n / 2, \cdots, n - 1]\)</span>.</p>
+  <p>The recurrence now is <span class="math inline">\(T(n) = T (\lceil n / 2 \rceil ) + O(1)\)</span>, which is the case <span class="math inline">\(a = 1, b = 2, d = 0\)</span>. Plugging into our master theorem we get the familiar solution: a running time of just <span class="math inline">\(O(\log{n})\)</span>.</p>
+  </blockquote>
+  <p> </p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>There are even more general results of this type, but we will not be needing them.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

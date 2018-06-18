@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>4.2 Breadth-First Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="breadth-first-search">4.2 Breadth-First Search</h2>
+  <p>In Figure 4.2, the lifting of <span class="math inline">\(s\)</span> partitions the graph into layers: <span class="math inline">\(s\)</span> itself, the nodes at distance <span class="math inline">\(1\)</span> from it, the nodes at distance <span class="math inline">\(2\)</span> from it, and so on. A convenient way to compute distances from <span class="math inline">\(s\)</span> to the other vertices is to proceed layer by layer. Once we have picked out the nodes at distance <span class="math inline">\(0, 1, 2, \ldots, d\)</span>, the ones at <span class="math inline">\(d + 1\)</span> are easily determined: they are precisely the as-yet- unseen nodes that are adjacent to the layer at distance <span class="math inline">\(d\)</span>.</p>
+  <p>This suggests an iterative algorithm in which two layers are active at any given time: some layer <span class="math inline">\(d\)</span>, which has been fully identified, and <span class="math inline">\(d + 1\)</span>, which is being discovered by scanning the neighbors of layer <span class="math inline">\(d\)</span>.</p>
+  <p>Breadth-first search (BFS) directly implements this simple reasoning (Figure 4.3). Initially the queue <span class="math inline">\(Q\)</span> consists only of <span class="math inline">\(s\)</span>, the one node at distance <span class="math inline">\(0\)</span>. And for each subsequent distance <span class="math inline">\(d = 1, 2, 3, \ldots\)</span>, there is a point in time at which <span class="math inline">\(Q\)</span> contains all the nodes at distance <span class="math inline">\(d\)</span> and nothing else. As these nodes are processed (ejected off the front of the queue), their as-yet-unseen neighbors are injected into the end of the queue.</p>
+  <p><strong>Figure 4.3</strong> Breadth-first search.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> bfs(G, s):
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: a graph G = (V, E), directed or undirected; vertex s ∈ V</span>
+  <span class="co">  Output: for all vertices u reachable from s, dist(u) is set to the distance from s to u.</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+    <span class="cf">for</span> <span class="bu">all</span> u ∈ V:
+      dist(u) <span class="op">=</span> ∞
+
+    dist(s) <span class="op">=</span> <span class="dv">0</span>
+    <span class="co">## Initialize queue to contain just s</span>
+    Q <span class="op">=</span> [s]
+
+    <span class="cf">while</span> Q <span class="kw">is</span> <span class="kw">not</span> empty:
+      u <span class="op">=</span> eject(Q)
+
+      <span class="cf">for</span> <span class="bu">all</span> edges (u, v) ∈ E:
+        <span class="cf">if</span> dist(v) <span class="op">=</span> ∞
+          inject(Q, v)
+          dist(v) <span class="op">=</span> dist(u) <span class="op">+</span> <span class="dv">1</span>
+
+    <span class="cf">return</span> dist</code></pre></div>
+  <p> </p>
+  <p>Let's try out this algorithm on our earlier example (Figure 4.1) to confirm that it does the right thing. If <span class="math inline">\(S\)</span> is the starting point and the nodes are ordered alphabetically, they get visited in the sequence shown in Figure 4.4. The breadth-first search tree, on the right, contains the edges through which each node is initially discovered. Unlike the DFS tree we saw earlier, it has the property that all its paths from <span class="math inline">\(S\)</span> are the shortest possible. It is therefore a <em>shortest-path tree</em>.</p>
+  <div class="figure">
+  <img src="fig-4.4-bfs-example.png" alt="Figure 4.4 The result of breadth-first search on the graph of Figure 4.1." />
+  <p class="caption"><strong>Figure 4.4</strong> The result of breadth-first search on the graph of Figure 4.1.</p>
+  </div>
+  <p> </p>
+  <h3 id="correctness-and-efficiency">Correctness and Efficiency</h3>
+  <p>We have developed the basic intuition behind breadth-first search. In order to check that the algorithm works correctly, we need to make sure that it faithfully executes this intuition. What we expect, precisely, is that</p>
+  <ul>
+  <li><p>For each <span class="math inline">\(d = 0, 1, 2, \ldots,\)</span> there is a moment at which</p>
+  <ol style="list-style-type: decimal">
+  <li><p>all nodes at distance <span class="math inline">\(\leq d\)</span> from <span class="math inline">\(s\)</span> have their distances correctly set;</p></li>
+  <li><p>all other nodes have their distances set to <span class="math inline">\(\infty\)</span>; and</p></li>
+  <li><p>the queue contains exactly the nodes at distance <span class="math inline">\(d\)</span>.</p></li>
+  </ol></li>
+  </ul>
+  <p>This has been phrased with an inductive argument in mind. We have already discussed both the base case and the inductive step. Can you fill in the details?</p>
+  <p>The overall running time of this algorithm is linear, <span class="math inline">\(O(|V| + |E|)\)</span>, for exactly the same reasons as depth-first search. Each vertex is put on the queue exactly once, when it is first encountered, so there are <span class="math inline">\(2|V|\)</span> queue operations. The rest of the work is done in the algorithm's innermost loop. Over the course of execution, this loop looks at each edge once (in directed graphs) or twice (in undirected graphs), and therefore takes <span class="math inline">\(O(|E|)\)</span> time.</p>
+  <p>Now that we have both BFS and DFS before us: how do their exploration styles compare? Depth-first search makes deep incursions into a graph, retreating only when it runs out of new nodes to visit. This strategy gives it the wonderful, subtle, and extremely useful properties we saw in the Chapter 3. But it also means that DFS can end up taking a long and convoluted route to a vertex that is actually very close by, as in Figure 4.1.</p>
+  <p>Breadth-first search makes sure to visit vertices in increasing order of their distance from the starting point. This is a broader, shallower search, rather like the propagation of a wave upon water. And it is achieved using almost exactly the same code as DFS—but with a queue in place of a stack.</p>
+  <p>Also notice one stylistic difference from DFS: since we are only interested in distances from <span class="math inline">\(s\)</span>, we do not restart the search in other connected components. Nodes not reachable from <span class="math inline">\(s\)</span> are simply ignored.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>10.5 Quantum Circuits</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="quantum-circuits">10.5 Quantum Circuits</h2>
+  <p>So quantum computers can carry out a Fourier transform exponentially faster than classical computers. But what do these computers actually look like? What is a <em>quantum circuit</em> made up of, and exactly how does it compute Fourier transforms so quickly?</p>
+  <p> </p>
+  <h3 id="elementary-quantum-gates">10.5.1 Elementary Quantum Gates</h3>
+  <p>An elementary quantum operation is analogous to an elementary gate like the <span class="math inline">\(\text{AND}\)</span> or <span class="math inline">\(\text{NOT}\)</span> gate in a classical circuit. It operates upon either a single qubit or two qubits.</p>
+  <p>One of the most important examples is the Hadamard gate, denoted by <span class="math inline">\(\textbf{H}\)</span>, which operates on a single qubit.</p>
+  <ul>
+  <li><p>On input <span class="math inline">\(\vert 0 \rangle\)</span>, it outputs <span class="math inline">\(\textbf{H}(\vert 0 \rangle) = \frac{1}{\sqrt{2}}\vert 0 \rangle + \frac{1}{\sqrt{2}}\vert 1 \rangle\)</span>.</p></li>
+  <li><p>And for input <span class="math inline">\(\vert 1 \rangle\)</span>, <span class="math inline">\(\textbf{H}(\vert 1 \rangle) = \frac{1}{\sqrt{2}}\vert 0 \rangle - \frac{1}{\sqrt{2}}\vert 1 \rangle\)</span>.</p></li>
+  </ul>
+  <p>In pictures:</p>
+  <p><span class="math display">\[\begin{matrix}
+  \vert 0 \rangle \longrightarrow\boxed{\textbf{H}}\longrightarrow  \frac{1}{\sqrt{2}}\vert 0 \rangle + \frac{1}{\sqrt{2}}\vert 1 \rangle &amp; &amp;
+  \vert 1 \rangle \longrightarrow\boxed{\textbf{H}}\longrightarrow \frac{1}{\sqrt{2}}\vert 0 \rangle - \frac{1}{\sqrt{2}}\vert 1 \rangle \end{matrix}\]</span></p>
+  <p>Notice that in either case, measuring the resulting qubit yields <span class="math inline">\(0\)</span> with probability <span class="math inline">\(1 / 2\)</span> and <span class="math inline">\(1\)</span> with probability <span class="math inline">\(1 / 2\)</span>. But what happens to the Hadamard gate is an arbitrary position <span class="math inline">\(\alpha_0 \vert 0 \rangle + \alpha_1 \vert 1 \rangle\)</span>? The answer, dictated by linearity of quantum physics, is the superposition <span class="math inline">\(\alpha_0 \textbf{H}(\vert 0 \rangle) = \frac{\alpha_0 + \alpha_1}{\sqrt{2}}\vert 0 \rangle + \frac{\alpha_0 - \alpha_1}{\sqrt{2}}\vert 1 \rangle\)</span>.</p>
+  <p>And so, if we apply the Hadamard gate to the output of a Hadamard gate, it restores the qubit to its original state!</p>
+  <p>Another basic gate is the controlled-<span class="math inline">\(\text{NOT}\)</span>, or <span class="math inline">\(\text{CNOT}\)</span>. It operates upon two qubits, with the first acting as a control qubit and the second as the target qubit. The <span class="math inline">\(\text{CNOT}\)</span> gate flips the second bit if and only if the first qubit is a <span class="math inline">\(1\)</span>. Thus <span class="math inline">\(\text{CNOT}(\vert 00 \rangle) = \vert 00 \rangle\)</span> and <span class="math inline">\(\text{CNOT}(\vert 10 \rangle) = \vert 11 \rangle\)</span>:</p>
+  <p><span class="math display">\[\begin{matrix}
+  \vert 00 \rangle \sqsupset\oplus\sqsubset \vert 00 \rangle &amp; &amp; &amp; &amp;
+  \vert 10 \rangle \sqsupset\oplus\sqsubset \vert 11 \rangle \end{matrix}\]</span></p>
+  <p>Yet another basic gate, the controlled phase gate, is described below in the subsection describing the quantum circuit for the <span class="math inline">\(\text{QFT}\)</span>.</p>
+  <p>Now let us consider the following question: suppose we have a quantum state on <span class="math inline">\(n\)</span> qubits, <span class="math inline">\(\vert \mathbf{\alpha} \rangle = \sum_{x \in \{0, 1\}^n} \alpha_x \vert x \rangle\)</span>. How many of these <span class="math inline">\(2^n\)</span> amplitutdes change if we apply the Hadamard gate to only the first qubit? The surpising answer is—all of them! The new superposition becomes <span class="math inline">\(\vert \mathbf{\beta} \rangle = \sum_{x \in \{0, 1\}^n} \beta_x \vert x \rangle\)</span>, where <span class="math inline">\(\beta_{0y} = \frac{\alpha_{0y} + \alpha_{1y}}{\sqrt{2}}\)</span> and <span class="math inline">\(\beta_{1y} = \frac{\alpha_{0y} - \alpha_{1y}}{\sqrt{2}}\)</span>. Looking at the results more closely, the quantum operation on the first qubit deals with each <span class="math inline">\(n - 1\)</span> bit suffix <span class="math inline">\(y\)</span> separately. Thus the pair of amplitudes <span class="math inline">\(\alpha_{0y}\)</span> and <span class="math inline">\(\alpha_{1y}\)</span> are transformed into <span class="math inline">\((\alpha_{0y} + \alpha_{1y}) / \sqrt{2}\)</span> and <span class="math inline">\((\alpha_{0y} + \alpha_{1y}) / \sqrt{2}\)</span>. This is exactly the feature that will give us an exponential speedup in the quantum Fourier transform.</p>
+  <p> </p>
+  <h3 id="two-basic-types-of-quantum-circuits">10.5.2 Two Basic Types of Quantum Circuits</h3>
+  <p>A quantum circuit takes some number <span class="math inline">\(n\)</span> of qubits as input, and outputs the same number of qubits. In the diagram these <span class="math inline">\(n\)</span> qubits are carried by the <span class="math inline">\(n\)</span> wires going from left to right. The quantum circuit consists of the application of a sequence of elementary quantum gates (of the kind described above) to single qubits and pairs of qubits.</p>
+  <p>At a high level, there are two basic functionalities of quantum circuits that we use in the design of quantum algorithms:</p>
+  <ul>
+  <li><p><strong>Quantum Fourier Transform</strong> These quantum circuits take as input <span class="math inline">\(n\)</span> qubits in some state <span class="math inline">\(\alpha\)</span> and output the state <span class="math inline">\(\beta\)</span> resulting from applying the <span class="math inline">\(\text{QFT}\)</span> to <span class="math inline">\(\alpha\)</span>.</p></li>
+  <li><p><strong>Classical Functions</strong> Consider a function <span class="math inline">\(f\)</span> with <span class="math inline">\(n\)</span> input bits and <span class="math inline">\(m\)</span> output bits, and suppose we have a classical circuit that outputs <span class="math inline">\(f(x)\)</span>. Then there is a quantum circuit that, on input consisting of an <span class="math inline">\(n\)</span>-bit string <span class="math inline">\(x\)</span> padded with <span class="math inline">\(m\)</span> <span class="math inline">\(0\)</span>’s, outputs <span class="math inline">\(x\)</span> and <span class="math inline">\(f(x)\)</span>: <img src="quantum-circuits.png" /></p></li>
+  </ul>
+  <p>Now the input to this quantum circuit could be a superposition over the <span class="math inline">\(n\)</span> bit strings <span class="math inline">\(x, \sum_x \vert x, 0^k \rangle\)</span>, in which case the output has to be <span class="math inline">\(\sum_x \vert x, f(x) \rangle\)</span>. Exercise 10.7 explores the construction of such circuits out of elementary quantum gates.</p>
+  <p>Understanding quantum circuits at this high level is sufficient to follow the rest of this chapter. The next subsection on quantum circuits for the <span class="math inline">\(\text{QFT}\)</span> can therefore be safely skipped by anyone not wanting to delve into these details.</p>
+  <p> </p>
+  <h3 id="the-quantum-fourier-transform-circuit">10.5.3 The Quantum Fourier Transform Circuit</h3>
+  <p>Here we have reproduced the diagram (from Section 2.6.4) showing how the classical <span class="math inline">\(\text{FFT}\)</span> circuit for <span class="math inline">\(M\)</span>-vectors is composed of two <span class="math inline">\(\text{FFT}\)</span> circuits for <span class="math inline">\((M / 2)\)</span>-vectors followed by some simple gates.</p>
+  <div class="figure">
+  <img src="classical-FFT-circuit.png" />
+
+  </div>
+  <p> </p>
+  <p>Let’s see how to simulate this on a quantum system. The input is now encoded in the <span class="math inline">\(2^m\)</span> amplitudes of <span class="math inline">\(m = \log{M}\)</span> qubits. Thus the decomposition of the inputs into evens and odds, as shown in the preceding figure, is clearly determined by one of the qubits—the least significant qubit. How do we separate the even and odd inputs and apply the recursive circuits to compute <span class="math inline">\(\text{FFT}_{M / 2}\)</span> on each half?</p>
+  <p>The answer is remarkable: just apply the quantum circuit <span class="math inline">\(\text{QFT}_{M / 2}\)</span> to the remaining <span class="math inline">\(m - 1\)</span> qubits. The effect of this is to apply <span class="math inline">\(\text{QFT}_{M / 2}\)</span> to the superposition of all the <span class="math inline">\(m\)</span>-bit strings of the form <span class="math inline">\(x0\)</span> (of which there are <span class="math inline">\(M / 2\)</span>), and separately to the superposition of all the <span class="math inline">\(m\)</span>-bit strings of the form <span class="math inline">\(x1\)</span>. Thus the two recursive classical circuits can be emulated by a single quantum circuit—an exponential speedup when we unwind the recursion!</p>
+  <div class="figure">
+  <img src="classical-FFT-circuit-parity.png" />
+
+  </div>
+  <p> </p>
+  <p>Let us now consider the gates in the classical <span class="math inline">\(\text{FFT}\)</span> circuit after the recursive calls to <span class="math inline">\(\text{FFT}_{M / 2}\)</span>: the wires pair up <span class="math inline">\(j\)</span> with <span class="math inline">\(M / 2 + j\)</span>, and ignoring for now the phase that is applied to the contents of the <span class="math inline">\((M / 2 + j)\)</span> th wire, we must add and subtract these two quantities to obtain the <span class="math inline">\(j\)</span>th and the <span class="math inline">\((M / 2 + j)\)</span> th outputs, respectively. How would a quantum circuit achieve the result of these <span class="math inline">\(M\)</span> classical gates?</p>
+  <p>Simple: just perform the Hadamard gate on the first qubit! Recall from the preceding discussion (Section 10.5.1) that for every possible configuration of the remaining <span class="math inline">\(m - 1\)</span> qubits <span class="math inline">\(x\)</span>, this pairs up the strings <span class="math inline">\(0x\)</span> and <span class="math inline">\(1x\)</span>. Translating from binary, this means we are pairing up <span class="math inline">\(x\)</span> and <span class="math inline">\(M / 2 + x\)</span>. Moreover the result of the Hadamard gate is that for each such pair, the amplitudes are replaced by the sum and difference (normalized by <span class="math inline">\(1 / \sqrt{2}\)</span>), respectively. So far the <span class="math inline">\(\text{QFT}\)</span> requires almost no gates at all!</p>
+  <p>The phase that must be applied to the <span class="math inline">\((M / 2 + j)\)</span> th wire for each <span class="math inline">\(j\)</span> requires a little more work. Notice that the phase of <span class="math inline">\(\omega^j\)</span> must be applied only if the first qubit is <span class="math inline">\(1\)</span>. Now if <span class="math inline">\(j\)</span> is represented by the <span class="math inline">\(m - 1\)</span> bits <span class="math inline">\(j_1 \cdots j_{m-1}\)</span>, then <span class="math display">\[\omega^j = \prod_{l = 1}^{m-1} \omega^{2^{j_l}}.\]</span> Thus the phase <span class="math inline">\(\omega^j\)</span> can be applied by applying for the <span class="math inline">\(l\)</span>th wire (for each <span class="math inline">\(l\)</span>) a phase of <span class="math inline">\(\omega^{2^l}\)</span> if the <span class="math inline">\(l\)</span>th qubit is a <span class="math inline">\(1\)</span> and the first qubit is a <span class="math inline">\(1\)</span>. This task can be accomplished by another two-qubit quantum gate—the conditional phase gate. It leaves the two qubits unchanged unless they are both <span class="math inline">\(1\)</span>, in which case it applies a specified phase factor.</p>
+  <p>The <span class="math inline">\(\text{QFT}\)</span> circuit is now specified. The number of quantum gates is given by the formula <span class="math inline">\(S(m) = S(m - 1) + O(m)\)</span>, which works out to <span class="math inline">\(S(m) = O(m^2)\)</span>. The <span class="math inline">\(\text{QFT}\)</span> on inputs of size <span class="math inline">\(M = 2^m\)</span> thus requires <span class="math inline">\(O(m^2) = O(\log^2 M)\)</span> quantum operations.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

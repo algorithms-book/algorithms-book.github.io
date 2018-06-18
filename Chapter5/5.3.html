@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>5.3 Horn Formulas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="horn-formulas">5.3 Horn Formulas</h2>
+  <p>In order to display human-level intelligence, a computer must be able to perform at least some modicum of logical reasoning. Horn formulas are a particular framework for doing this, for expressing logical facts and deriving conclusions.</p>
+  <p>The most primitive object in a Horn formula is a <em>Boolean variable</em>, taking value either <span class="math inline">\(\texttt{true}\)</span> or <span class="math inline">\(\texttt{false}\)</span>. For instance, variables <span class="math inline">\(x, y,\)</span> and <span class="math inline">\(z\)</span> might denote the following possibilities.</p>
+  <p><span class="math display">\[\begin{aligned}
+  x &amp;\equiv \text{the murder took place in the kitchen} \\
+  y &amp;\equiv \text{the butler is innocent} \\
+  z &amp;\equiv \text{the colonel was asleep at 8 pm} \\
+  \end{aligned}\]</span></p>
+  <p>A <strong>literal</strong> is either a variable <span class="math inline">\(x\)</span> or its negation <span class="math inline">\(\bar{x}\)</span> (“NOT <span class="math inline">\(x\)</span>”). In Horn formulas, knowledge about variables is represented by two kinds of clauses:</p>
+  <ol style="list-style-type: decimal">
+  <li><p><strong>implications</strong>, whose left-hand side is an <span class="math inline">\(\text{AND}\)</span> of any number of positive literals and whose right-hand side is a single positive literal. These express statements of the form “if the conditions on the left hold, then the one on the right must also be true.” For instance, <span class="math display">\[(z \wedge w) \implies u\]</span> might mean “if the colonel was asleep at 8 pm and the murder took place at 8 pm then the colonel is innocent.” A degenerate type of implication is the singleton “<span class="math inline">\(\implies x\)</span>”, meaning simply that <span class="math inline">\(x\)</span> is true: “the murder definitely occurred in the kitchen.”</p></li>
+  <li><p><strong>pure negative clauses</strong>, consisting of an <span class="math inline">\(\text{OR}\)</span> of any number of negative literals, as in <span class="math display">\[(\bar{u} \vee \bar{v} \vee \bar{y})\]</span> (“they can’t all be innocent”).</p></li>
+  </ol>
+  <p>Given a set of clauses of these two types, the goal is to determine whether there is a consistent explanation: an assignment of <span class="math inline">\(\texttt{true/false}\)</span> values to the variables that satisfies all the clauses. This is also called a <strong>satisfying assignment</strong>.</p>
+  <p>The two kinds of clauses pull us in different directions. The implications tell us to set some of the variables to <span class="math inline">\(\texttt{true}\)</span>, while the negative clauses encourage us to make them <span class="math inline">\(\texttt{false}\)</span>. Our strategy for solving a Horn formula is this: We start with all variables <span class="math inline">\(\texttt{false}\)</span>. We then proceed to set some of them to <span class="math inline">\(\texttt{true}\)</span>, one by one, but very reluctantly, and only if we absolutely have to because an implication would otherwise be violated. Once we are done with this phase and all implications are satisfied, only then do we turn to the negative clauses and make sure they are all satisfied.</p>
+  <p>In other words, our algorithm for Horn clauses is the following greedy scheme (<em>stingy</em> is perhaps more descriptive):</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> Horn_solver():
+    <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">  Input: a Horn formula</span>
+  <span class="co">  Output: a satisfying assignment, if one exists</span>
+  <span class="co">  &quot;&quot;&quot;</span>
+
+    <span class="bu">set</span> <span class="bu">all</span> variables to false
+
+    <span class="cf">while</span> there <span class="kw">is</span> an implication that <span class="kw">is</span> <span class="kw">not</span> satisfied:
+      <span class="bu">set</span> the right<span class="op">-</span>hand variable of the implication to true
+
+    <span class="cf">if</span> <span class="bu">all</span> pure negative clauses are satisfied:
+      <span class="cf">return</span> the assignment
+    <span class="cf">else</span>:
+      <span class="cf">return</span> <span class="st">&#39;formula is not satisfiable&#39;</span></code></pre></div>
+  <p>For instance, suppose the formula is <span class="math display">\[(w \wedge y \wedge z) \implies x, (x \wedge z) \implies w, x \implies y, \implies x, (x \wedge y) \implies w, (\bar{w} \vee \bar{x} \vee \bar{y}), (\bar{z}).\]</span></p>
+  <p>We start with everything false and then notice that x must be true on account of the singleton implication <span class="math inline">\(\implies x\)</span>. Then we see that <span class="math inline">\(y\)</span> must also be true, because of <span class="math inline">\(x \implies y\)</span>. And so on.</p>
+  <p>To see why the algorithm is correct, notice that if it returns an assignment, this assign- ment satisfies both the implications and the negative clauses, and so it is indeed a satisfying truth assignment of the input Horn formula. So we only have to convince ourselves that if the algorithm finds no satisfying assignment, then there really is none. This is so because our “stingy” rule maintains the following invariant:</p>
+  <ul>
+  <li>If a certain set of variables is set to <span class="math inline">\(\texttt{true}\)</span>, then they must be <span class="math inline">\(\texttt{true}\)</span> in <em>any</em> satisfying assignment.</li>
+  </ul>
+  <p>Hence, if the truth assignment found after the <em>while</em> loop does not satisfy the negative clauses, there can be no satisfying truth assignment.</p>
+  <p>Horn formulas lie at the heart of Prolog (“programming by logic”), a language in which you program by specifying desired properties of the output, using simple logical expressions. The workhorse of Prolog interpreters is our greedy satisfiability algorithm. Conveniently, it can be implemented in time linear in the length of the formula; do you see how (Exercise 5.32)?</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

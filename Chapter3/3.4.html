@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>3.4 Strongly Connected Components</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="strongly-connected-components">3.4 Strongly Connected Components</h2>
+  <h3 id="defining-connectivity-for-directed-graphs">3.4.1 Defining Connectivity for Directed Graphs</h3>
+  <p>Connectivity in undirected graphs is pretty straightforward: a graph that is not connected can be decomposed in a natural and obvious manner into several connected components (Figure 3.6 is a case in point). As we saw in Section 3.2.3, depth-first search does this handily, with each restart marking a new connected component.</p>
+  <p>In directed graphs, connectivity is more subtle. In some primitive sense, the directed graph of Figure 3.9(a) is &quot;connected&quot;—it can’t be &quot;pulled apart&quot;, so to speak, without breaking edges. But this notion is hardly interesting or informative. The graph cannot be considered connected, because for instance there is no path from <span class="math inline">\(G\)</span> to <span class="math inline">\(B\)</span> or from <span class="math inline">\(F\)</span> to <span class="math inline">\(A\)</span>.</p>
+  <p>The right way to define connectivity for directed graphs is this:</p>
+  <ul>
+  <li>Two nodes <span class="math inline">\(u\)</span> and <span class="math inline">\(v\)</span> of a directed graph are connected if there is a path from <span class="math inline">\(u\)</span> to <span class="math inline">\(v\)</span> and a path from <span class="math inline">\(v\)</span> to <span class="math inline">\(u\)</span>.</li>
+  </ul>
+  <div class="figure">
+  <img src="fig-3.9-strongly-connected-components-example.png" alt="Figure 3.9 (a) A directed graph and its strongly connected components. (b) The meta-graph." />
+  <p class="caption"><strong>Figure 3.9</strong> (a) A directed graph and its strongly connected components. (b) The meta-graph.</p>
+  </div>
+  <p>This relation partitions V into disjoint sets (Exercise 3.30) that we call <strong>strongly connected components</strong>. The graph of Figure 3.9(a) has five of them.</p>
+  <p>Now shrink each strongly connected component down to a single meta-node, and draw an edge from one meta-node to another if there is an edge (in the same direction) between their respective components (Figure 3.9(b)). The resulting <em>meta-graph</em> must be a <span class="math inline">\(\text{DAG}\)</span>. The reason is simple: a cycle containing several strongly connected components would merge them all into a single, strongly connected component. Restated,</p>
+  <p><strong>Property</strong> <em>Every directed graph is a <span class="math inline">\(\text{DAG}\)</span> of its strongly connected components.</em></p>
+  <p>This tells us something important: The connectivity structure of a directed graph is two-tiered. At the top level we have a <span class="math inline">\(\text{DAG}\)</span>, which is a rather simple structure—for instance, it can be linearized. If we want finer detail, we can look inside one of the nodes of this <span class="math inline">\(\text{DAG}\)</span> and examine the full-fledged strongly connected component within.</p>
+  <p> </p>
+  <h3 id="an-efficient-algorithm">3.4.2 An Efficient Algorithm</h3>
+  <p>The decomposition of a directed graph into its strongly connected components is very infor- mative and useful. It turns out, fortunately, that it can be found in linear time by making further use of depth-first search. The algorithm is based on some properties we have already seen but which we will now pinpoint more closely.</p>
+  <p><strong>Property 1</strong> <em>If the <span class="math inline">\(\texttt{explore}\)</span> subroutine is started at node <span class="math inline">\(u\)</span>, then it will terminate precisely when all nodes reachable from <span class="math inline">\(u\)</span> have been visited.</em></p>
+  <p>Therefore, if we call <span class="math inline">\(\texttt{explore}\)</span> on a node that lies somewhere in a <em>sink</em> strongly connected component (a strongly connected component that is a sink in the meta-graph), then we will retrieve exactly that component. Figure 3.9 has two sink strongly connected components. Starting <span class="math inline">\(\texttt{explore}\)</span> at node <span class="math inline">\(K\)</span>, for instance, will completely traverse the larger of them and then stop.</p>
+  <p>This suggests a way of finding one strongly connected component, but still leaves open two major problems:</p>
+  <ol style="list-style-type: decimal">
+  <li><p>how do we find a node that we know for sure lies in a sink strongly connected component and</p></li>
+  <li><p>how do we continue once this first component has been discovered?</p></li>
+  </ol>
+  <p>Let’s start with problem 1. There is not an easy, direct way to pick out a node that is guaranteed to lie in a sink strongly connected component. But there is a way to get a node in a <em>source</em> strongly connected component.</p>
+  <p><strong>Property 2</strong> <em>The node that receives the highest <span class="math inline">\(\texttt{post}\)</span> number in a depth-first search must lie in a source strongly connected component.</em></p>
+  <p>This follows from the following more general property.</p>
+  <p><strong>Property 3</strong> <em>If <span class="math inline">\(C\)</span> and <span class="math inline">\(C&#39;\)</span> are strongly connected components, and there is an edge from a node in <span class="math inline">\(C\)</span> to a node in <span class="math inline">\(C&#39;\)</span>, then the highest <span class="math inline">\(\texttt{post}\)</span> number in <span class="math inline">\(C\)</span> is bigger than the highest <span class="math inline">\(\texttt{post}\)</span> number in <span class="math inline">\(C&#39;\)</span>.</em></p>
+  <p><em>Proof.</em> In proving Property 3, there are two cases to consider. If the depth-first search visits component <span class="math inline">\(C\)</span> before component <span class="math inline">\(C&#39;\)</span>, then clearly all of <span class="math inline">\(C\)</span> and <span class="math inline">\(C&#39;\)</span> will be traversed before the procedure gets stuck (see Property 1). Therefore the first node visited in <span class="math inline">\(C\)</span> will have a higher <span class="math inline">\(\texttt{post}\)</span> number than any node of <span class="math inline">\(C&#39;\)</span>. On the other hand, if <span class="math inline">\(C&#39;\)</span> gets visited first, then the depth-first search will get stuck after seeing all of <span class="math inline">\(C&#39;\)</span> but before seeing any of <span class="math inline">\(C\)</span>, in which case the property follows immediately. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>Property 3 can be restated as saying that <em>the strongly connected components can be linearized by arranging them in decreasing order of their highest <span class="math inline">\(\texttt{post}\)</span> numbers</em>. This is a generalization of our earlier algorithm for linearizing <span class="math inline">\(\text{DAG}\)</span>s; in a <span class="math inline">\(\text{DAG}\)</span>, each node is a singleton strongly connected component.</p>
+  <p>Property 2 helps us find a node in the source strongly connected component of <span class="math inline">\(G\)</span>. However, what we need is a node in the <em>sink</em> component. Our means seem to be the opposite of our needs! But consider the <em>reverse</em> graph <span class="math inline">\(G^R\)</span>, the same as <span class="math inline">\(G\)</span> but with all edges reversed (Figure 3.10). <span class="math inline">\(G^R\)</span> has exactly the same strongly connected components as <span class="math inline">\(G\)</span> (why?). So, if we do a depth-first search of <span class="math inline">\(G^R\)</span>, the node with the highest <span class="math inline">\(\texttt{post}\)</span> number will come from a source strongly connected component in <span class="math inline">\(G^R\)</span>, which is to say a sink strongly connected component in <span class="math inline">\(G\)</span>. We have solved problem 1!</p>
+  <div class="figure">
+  <img src="fig-3.10-graph-reversal.png" alt="Figure 3.10 The reverse of the graph from Figure 3.9." />
+  <p class="caption"><strong>Figure 3.10</strong> The <em>reverse</em> of the graph from Figure 3.9.</p>
+  </div>
+  <p> </p>
+  <p>Onward to problem 2. How do we continue after the first sink component is identified? The solution is also provided by Property 3. Once we have found the first strongly connected component and deleted it from the graph, the node with the highest <span class="math inline">\(\texttt{post}\)</span> number among those remaining will belong to a sink strongly connected component of whatever remains of <span class="math inline">\(G\)</span>. Therefore we can keep using the <span class="math inline">\(\texttt{post}\)</span> numbering from our initial depth-first search on <span class="math inline">\(G^R\)</span> to successively output the second strongly connected component, the third strongly connected component, and so on. The resulting algorithm is this.</p>
+  <ol style="list-style-type: decimal">
+  <li><p>Run depth-first search on <span class="math inline">\(G^R\)</span>.</p></li>
+  <li><p>Run the undirected connected components algorithm (from Section 3.2.3) on <span class="math inline">\(G\)</span>, and during the depth-first search, process the vertices in decreasing order of their <span class="math inline">\(\texttt{post}\)</span> numbers from step 1.</p></li>
+  </ol>
+  <p>This algorithm is linear-time, only the constant in the linear term is about twice that of straight depth-first search. (Question: How does one construct an adjacency list representation of <span class="math inline">\(G^R\)</span> in linear time? And how, in linear time, does one order the vertices of <span class="math inline">\(G\)</span> by decreasing <span class="math inline">\(\texttt{post}\)</span> values?)</p>
+  <p>Let’s run this algorithm on the graph of Figure 3.9. If step 1 considers vertices in lexicographic order, then the ordering it sets up for the second step (namely, decreasing <span class="math inline">\(\texttt{post}\)</span> numbers in the depth-first search of <span class="math inline">\(G^R\)</span>) is: <span class="math inline">\(G, I, J, L, K, H, D, C, F, B, E, A\)</span>. Then step 2 peels off components in the following sequence: <span class="math inline">\(\{G, H, I, J, K, L\}, \{D\}, \{C, F\}, \{B, E\}, \{A\}\)</span>.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>Crawling Fast</strong></p>
+  <p>All this assumes that the graph is neatly given to us, with vertices numbered <span class="math inline">\(1\)</span> to <span class="math inline">\(n\)</span> and edges tucked in adjacency lists. The realities of the World Wide Web are very different. The nodes of the Web graph are not known in advance, and they have to be discovered one by one during the process of search. And, of course, recursion is out of the question.</p>
+  <p>Still, crawling the Web is done by algorithms very similar to depth-first search. An explicit stack is maintained, containing all nodes that have been discovered (as endpoints of hyperlinks) but not yet explored. In fact, this &quot;stack&quot; is not exactly a last-in, first-out list. It gives highest priority not to the nodes that were inserted most recently (nor the ones that were inserted earliest, that would be a <em>breadth-first search</em>, see Chapter 4), but to the ones that look most &quot;interesting&quot;—a heuristic criterion whose purpose is to keep the stack from overflowing and, in the worst case, to leave unexplored only nodes that are very unlikely to lead to vast new expanses.</p>
+  <p>In fact, crawling is typically done by many computers running <span class="math inline">\(\texttt{explore}\)</span> simultaneously: each one takes the next node to be explored from the top of the stack, downloads the http file (the kind of Web files that point to each other), and scans it for hyperlinks. But when a new http document is found at the end of a hyperlink, no recursive calls are made: instead, the new vertex is inserted in the central stack.</p>
+  <p>But one question remains: When we see a &quot;new&quot; document, how do we know that it is indeed new, that we have not seen it before in our crawl? And how do we give it a <em>name</em>, so it can be inserted in the stack and recorded as &quot;already seen&quot;? The answer is <em>by hashing</em>.</p>
+  <p>Incidentally, researchers have run the strongly connected components algorithm on the Web and have discovered some very interesting structure.</p>
+  </blockquote>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

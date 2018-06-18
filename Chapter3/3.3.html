@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>3.3 Depth-First Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="depth-first-search-in-directed-graphs">3.3 Depth-First Search in Directed Graphs</h2>
+  <h3 id="types-of-edges">3.3.1 Types of Edges</h3>
+  <p>Our depth-first search algorithm can be run verbatim on directed graphs, taking care to traverse edges only in their prescribed directions. Figure 3.7 shows an example and the search tree that results when vertices are considered in lexicographic order.</p>
+  <div class="figure">
+  <img src="fig-3.7-dfs-example.png" alt="Figure 3.7 DFS on a directed graph." />
+  <p class="caption"><strong>Figure 3.7</strong> DFS on a directed graph.</p>
+  </div>
+  <p> </p>
+  <p>In further analyzing the directed case, it helps to have terminology for important relationships between nodes of a tree. <span class="math inline">\(A\)</span> is the <strong>root</strong> of the search tree; everything else is its <strong>descendant</strong>. Similarly, <span class="math inline">\(E\)</span> has descendants <span class="math inline">\(F, G,\)</span> and <span class="math inline">\(H\)</span>, and conversely, is an <strong>ancestor</strong> of these three nodes. The family analogy is carried further: <span class="math inline">\(C\)</span> is the <strong>parent</strong> of <span class="math inline">\(D\)</span>, which is its <strong>child</strong>.</p>
+  <p>For undirected graphs we distinguished between tree edges and non-tree edges. In the directed case, there is a slightly more elaborate taxonomy:</p>
+  <ul>
+  <li><p><em>tree edges</em> are actually part of the DFS forest.</p></li>
+  <li><p><em>forward edges</em> lead from a node to a nonchild descendant in the DFS tree.</p></li>
+  <li><p><em>back edges</em> lead to an ancestor in the DFS tree.</p></li>
+  <li><p><em>cross edges</em> lead to neither descendant nor ancestor; they therefore lead to a node that has already been completely explored (that is, already postvisited).</p></li>
+  </ul>
+  <div class="figure">
+  <img src="edge-types.png" />
+
+  </div>
+  <p>Figure 3.7 has two forward edges, two back edges, and two cross edges. Can you spot them?</p>
+  <p>Ancestor and descendant relationships, as well as edge types, can be read off directly from <span class="math inline">\(\texttt{pre}\)</span> and <span class="math inline">\(\texttt{post}\)</span> numbers. Because of the depth-first exploration strategy, vertex <span class="math inline">\(u\)</span> is an ancestor of vertex <span class="math inline">\(v\)</span> exactly in those cases where <span class="math inline">\(u\)</span> is discovered first and <span class="math inline">\(v\)</span> is discovered during <span class="math inline">\(\texttt{explore}(u)\)</span>. This is to say <span class="math inline">\(\texttt{pre}(u) &lt; \texttt{pre}(v) &lt; \texttt{post}(v) &lt; \texttt{post}(u)\)</span>, which we can depict pictorially as two nested intervals:</p>
+  <p><span class="math display">\[\underset{u}{[} \hspace{1cm} \underset{v}{[} \hspace{1cm} \underset{v}{]} \hspace{1cm} \underset{u}{]}\]</span></p>
+  <p>The case of descendants is symmetric, since <span class="math inline">\(u\)</span> is a descendant of <span class="math inline">\(v\)</span> if and only if <span class="math inline">\(v\)</span> is an ancestor of <span class="math inline">\(u\)</span>. And since edge categories are based entirely on ancestor-descendant relationships, it follows that they, too, can be read off from pre and post numbers.</p>
+  <p>Here is a summary of the various possibilities for an edge <span class="math inline">\((u, v)\)</span>:</p>
+  <p><span class="math display">\[\boxed{\begin{matrix} \text{$\texttt{pre/post}$ ordering for $(u, v)$} &amp; \text{edge type} \\ \\
+  \underset{u}{[} \hspace{1cm} \underset{v}{[} \hspace{1cm} \underset{v}{]} \hspace{1cm} \underset{u}{]} &amp; \text{tree/forward} \\
+  \underset{v}{[} \hspace{1cm} \underset{u}{[} \hspace{1cm} \underset{u}{]} \hspace{1cm} \underset{v}{]} &amp; \text{back}         \\
+  \underset{v}{[} \hspace{1cm} \underset{v}{]} \hspace{1cm} \underset{u}{[} \hspace{1cm} \underset{u}{]} &amp; \text{cross}        \\
+  \end{matrix}}\]</span></p>
+  <p>You can confirm each of these characterizations by consulting the diagram of edge types. Do you see why no other orderings are possible?</p>
+  <p> </p>
+  <h3 id="directed-acyclic-graphs">3.3.2 Directed Acyclic Graphs</h3>
+  <p>A <em>cycle</em> in a directed graph is a circular path <span class="math inline">\(v_0 \rightarrow v_1 \rightarrow v_2 \rightarrow \cdots \rightarrow v_k \rightarrow v_0\)</span>. Figure 3.7 has quite a few of them, for example, <span class="math inline">\(B \rightarrow E \rightarrow F \rightarrow B\)</span>. A graph without cycles is <strong>acyclic</strong>. It turns out we can test for acyclicity in linear time, with a single depth-first search.</p>
+  <p><strong>Property</strong> <em>A directed graph has a cycle if and only if its depth-first search reveals a back edge.</em></p>
+  <p><em>Proof.</em> One direction is quite easy: if <span class="math inline">\((u, v)\)</span> is a back edge, then there is a cycle consisting of this edge together with the path from v to u in the search tree.</p>
+  <p>Conversely, if the graph has a cycle <span class="math inline">\(v_0 \rightarrow v_1 \rightarrow \cdots \rightarrow v_k \rightarrow v_0\)</span>, look at the first node on this cycle to be discovered (the node with the lowest <span class="math inline">\(\texttt{pre}\)</span> number). Suppose it is <span class="math inline">\(v_i\)</span>. All the other <span class="math inline">\(v_j\)</span> on the cycle are reachable from it and will therefore be its descendants in the search tree. In particular, the edge <span class="math inline">\(v_{i−1} \rightarrow v_i\)</span> (or <span class="math inline">\(v_k \rightarrow v_0\)</span> if <span class="math inline">\(i = 0\)</span>) leads from a node to its ancestor and is thus by definition a back edge. <span class="math inline">\(\blacksquare\)</span></p>
+  <p><strong>Directed acyclic graphs</strong>, or <span class="math inline">\(\text{DAGs}\)</span> for short, come up all the time. They are good for modeling relations like causalities, hierarchies, and temporal dependencies. For example, suppose that you need to perform many tasks, but some of them cannot begin until certain others are completed (you have to wake up before you can get out of bed; you have to be out of bed, but not yet dressed, to take a shower; and so on). The question then is, what is a valid order in which to perform the tasks?</p>
+  <p>Such constraints are conveniently represented by a directed graph in which each task is a node, and there is an edge from <span class="math inline">\(u\)</span> to <span class="math inline">\(v\)</span> if <span class="math inline">\(u\)</span> is a precondition for <span class="math inline">\(v\)</span>. In other words, before performing a task, all the tasks pointing to it must be completed. If this graph has a cycle, there is no hope: no ordering can possibly work.</p>
+  <p>If on the other hand the graph is a <span class="math inline">\(\text{DAG}\)</span>, we would like if possible to <em>linearize</em> (or <em>topologically sort</em>) it, to order the vertices one after the other in such a way that each edge goes from an earlier vertex to a later vertex, so that all precedence constraints are satisfied. In Figure 3.8, for instance, one valid ordering is <span class="math inline">\(B, A, D, C, E, F\)</span>. (Can you spot the other three?)</p>
+  <div class="figure">
+  <img src="fig-3.8-linearization-example.png" alt="Figure 3.8 A directed acyclic graph with one source, two sinks, and four possible linearizations." />
+  <p class="caption"><strong>Figure 3.8</strong> A directed acyclic graph with one source, two sinks, and four possible linearizations.</p>
+  </div>
+  <p> </p>
+  <p>What types of <span class="math inline">\(\text{DAGs}\)</span> can be linearized? Simple: <em>all of them</em>. And once again depth-first search tells us exactly how to do it: simply perform tasks in <em>decreasing</em> order of their post numbers. After all, the only edges <span class="math inline">\((u, v)\)</span> in a graph for which <span class="math inline">\(\texttt{post}(u) &lt; \texttt{post}(v)\)</span> are back edges (recall the table of edge types on page 100)—and we have seen that a <span class="math inline">\(\text{DAG}\)</span> cannot have back edges. Therefore:</p>
+  <p><strong>Property</strong> <em>In a <span class="math inline">\(\text{DAG}\)</span>, every edge leads to a vertex with a lower <span class="math inline">\(\texttt{post}\)</span> number.</em></p>
+  <p>This gives us a linear-time algorithm for ordering the nodes of a <span class="math inline">\(\text{DAG}\)</span>. And, together with our earlier observations, it tells us that three rather different-sounding properties—acyclicity, linearizability, and the absence of back edges during a depth-first search—are in fact one and the same thing.</p>
+  <p>Since a <span class="math inline">\(\text{DAG}\)</span> is linearized by decreasing <span class="math inline">\(\texttt{post}\)</span> numbers, the vertex with the smallest <span class="math inline">\(\texttt{post}\)</span> number comes last in this linearization, and it must be a <strong>sink</strong>—no outgoing edges. Symmetrically, the one with the highest post is a <strong>source</strong>, a node with no incoming edges.</p>
+  <p><strong>Property</strong> <em>Every <span class="math inline">\(\text{DAG}\)</span> has at least one source and at least one sink.</em></p>
+  <p>The guaranteed existence of a source suggests an alternative approach to linearization:</p>
+  <ul>
+  <li><p>Find a source, output it, and delete it from the graph.</p></li>
+  <li><p>Repeat until the graph is empty.</p></li>
+  </ul>
+  <p>Can you see why this generates a valid linearization for any <span class="math inline">\(\text{DAG}\)</span>? What happens if the graph has cycles? And, how can this algorithm be implemented in linear time? (Exercise 3.14.)</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

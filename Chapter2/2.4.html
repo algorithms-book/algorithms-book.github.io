@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>2.4 Medians</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="medians">2.4 Medians</h2>
+  <p>The <em>median</em> of a list of numbers is its <span class="math inline">\(50\)</span>th percentile: half the numbers are bigger than it, and half are smaller. For instance, the median of <span class="math inline">\([45, 1, 10, 30, 25]\)</span> is <span class="math inline">\(25\)</span>, since this is the middle element when the numbers are arranged in order. If the list has even length, there are two choices for what the middle element could be, in which case we pick the smaller of the two, say.</p>
+  <p>The purpose of the median is to summarize a set of numbers by a single, typical value. The <em>mean</em>, or average, is also very commonly used for this, but the median is in a sense more typical of the data: it is always one of the data values, unlike the mean, and it is less sensitive to outliers. For instance, the median of a list of a hundred <span class="math inline">\(1\)</span>'s is (rightly) <span class="math inline">\(1\)</span>, as is the mean. However, if just one of these numbers gets accidentally corrupted to <span class="math inline">\(10,000\)</span>, the mean shoots up above <span class="math inline">\(100\)</span>, while the median is unaffected.</p>
+  <p>Computing the median of n numbers is easy: just sort them. The drawback is that this takes <span class="math inline">\(O(n\log{n})\)</span> time, whereas we would ideally like something linear. We have reason to be hopeful, because sorting is doing far more work than we really need—we just want the middle element and don't care about the relative ordering of the rest of them.</p>
+  <p>When looking for a recursive solution, it is paradoxically often easier to work with a <em>more general</em> version of the problem—for the simple reason that this gives a more powerful step to recurse upon. In our case, the generalization we will consider is <em>selection</em>.</p>
+  <p><span class="math inline">\(\text{Selection}\)</span></p>
+  <ul>
+  <li><p>Input: a list of numbers <span class="math inline">\(S\)</span>, an integer <span class="math inline">\(k\)</span></p></li>
+  <li><p>Output: the <span class="math inline">\(k\)</span>th smallest element of <span class="math inline">\(S\)</span></p></li>
+  </ul>
+  <p>For instance, if <span class="math inline">\(k = 1\)</span>, the minimum of <span class="math inline">\(S\)</span> is sought, whereas if <span class="math inline">\(k = \lfloor |S| / 2 \rfloor\)</span>, it is the median.</p>
+  <h3 id="a-randomized-divide-and-conquer-algorithm-for-selection">A Randomized Divide-and-Conquer Algorithm for Selection</h3>
+  <p>Here's a divide-and-conquer approach to selection. For any number <span class="math inline">\(v\)</span>, imagine splitting list <span class="math inline">\(S\)</span> into three categories: elements smaller than <span class="math inline">\(v\)</span>, those equal to <span class="math inline">\(v\)</span> (there might be duplicates), and those greater than <span class="math inline">\(v\)</span>. Call these <span class="math inline">\(S_L\)</span>, <span class="math inline">\(S_v\)</span>, and <span class="math inline">\(S_R\)</span> respectively.</p>
+  <p>For instance, if the array</p>
+  <p><span class="math display">\[
+  S : \boxed{2}\boxed{36}\boxed{5}\boxed{21}\boxed{8}\boxed{13}\boxed{11}\boxed{20}\boxed{5}\boxed{4}\boxed{4}
+  \]</span></p>
+  <p>is split on <span class="math inline">\(v = 5\)</span>, three subarrays generated are</p>
+  <p><span class="math display">\[
+  S_L : \boxed{2}\boxed{4}\boxed{1} \ \ S_v : \boxed{5}\boxed{5} \ \ S_R : \boxed{36}\boxed{21}\boxed{8}\boxed{13}\boxed{11}\boxed{20}
+  \]</span></p>
+  <p>The search can instantly be narrowed down to one of these sublists. If we want, say, the <em>eighth</em>-smallest element of <span class="math inline">\(S\)</span>, we know it must be the third-smallest element of <span class="math inline">\(S_R\)</span> since <span class="math inline">\(|SL| + |Sv| = 5\)</span>. That is, <span class="math inline">\(\text{selection}(S, 8) = \text{selection}(S_R, 3)\)</span>. More generally, by checking <span class="math inline">\(k\)</span> against the sizes of the subarrays, we can quickly determine which of them holds the desired element:</p>
+  <p><span class="math display">\[
+  \text{selection}(S, k) = \begin{cases}
+  \text{selection}(S_L, k) &amp; \text{if}\ k \leq |S_L| \\
+  v &amp; \text{if}\ |S_L| &lt; k \leq |S_L| + |S_v| \\
+  \text{selection}(S_R, k - |S_L| - |S_v|) &amp; \text{if}\ k &gt; |S_L| + |S_v|
+  \end{cases}.
+  \]</span></p>
+  <p>The three sublists <span class="math inline">\(S_L, S_v\)</span>, and <span class="math inline">\(S_R\)</span> can be computed from <span class="math inline">\(S\)</span> in linear time; in fact, this computation can even be done in place, that is, without allocating new memory (Exercise 2.15). We then recurse on the appropriate sublist. The effect of the split is thus to shrink the number of elements from <span class="math inline">\(|S|\)</span> to at most <span class="math inline">\(\text{max}\{ |S_L|, |S_R| \}\)</span>.</p>
+  <p>Our divide-and-conquer algorithm for selection is now fully specified, except for the crucial detail of how to choose <span class="math inline">\(v\)</span>. It should be picked quickly, and it should shrink the array substantially, the ideal situation being <span class="math inline">\(|S_L|, |S_R| \approx \frac{1}{2}|S|\)</span>. If we could always guarantee this situation, we would get a running time of</p>
+  <p><span class="math display">\[
+  T(n) = T(n / 2) + O(n),
+  \]</span></p>
+  <p>which is linear as desired. But this requires picking <span class="math inline">\(v\)</span> to be the median, which is our ultimate goal! Instead, we follow a much simpler alternative: we pick <span class="math inline">\(v\)</span> randomly from <span class="math inline">\(S\)</span>.</p>
+  <h3 id="efficiency-analysis">Efficiency Analysis</h3>
+  <p>Naturally, the running time of our algorithm depends on the random choices of <span class="math inline">\(v\)</span>. It is possible that due to persistent bad luck we keep picking <span class="math inline">\(v\)</span> to be the largest element of the array (or the smallest element), and thereby shrink the array by only one element each time.</p>
+  <p>In the earlier example, we might first pick <span class="math inline">\(v = 36\)</span>, then <span class="math inline">\(v = 21\)</span>, and so on. This worst-case scenario would force our selection algorithm to perform</p>
+  <p><span class="math display">\[
+  n + (n - 1) + (n - 2) + \cdots + \frac{n}{2} = \Theta(n^2)
+  \]</span></p>
+  <p>operations (when computing the median), but it is extremely unlikely to occur. Equally unlikely is the <em>best</em> possible case we discussed before, in which each randomly chosen <span class="math inline">\(v\)</span> just happens to split the array perfectly in half, resulting in a running time of <span class="math inline">\(O(n)\)</span>. Where, in this spectrum from <span class="math inline">\(O(n)\)</span> to <span class="math inline">\(\Theta(n^2)\)</span>, does the <em>average</em> running time lie? Fortunately, it lies very close to the best-case time.</p>
+  <p>To distinguish between lucky and unlucky choices of <span class="math inline">\(v\)</span>, we will call <span class="math inline">\(v\)</span> good if it lies within the <span class="math inline">\(25\)</span>th to <span class="math inline">\(75\)</span>th percentile of the array that it is chosen from. We like these choices of <span class="math inline">\(v\)</span> because they ensure that the sublists <span class="math inline">\(S_L\)</span> and <span class="math inline">\(S_R\)</span> have size at most three-fourths that of <span class="math inline">\(S\)</span> (do you see why?), so that the array shrinks substantially. Fortunately, good <span class="math inline">\(v\)</span>'s are abundant: half the elements of any list must fall between the <span class="math inline">\(25\)</span>th to <span class="math inline">\(75\)</span>th percentile!</p>
+  <p>Given that a randomly chosen <span class="math inline">\(v\)</span> has a <span class="math inline">\(50\)</span>% chance of being good, how many <span class="math inline">\(v\)</span>'s do we need to pick on average before getting a good one? Here's a more familiar reformulation (see also Exercise 1.34):</p>
+  <p><strong>Lemma</strong> On average a fair coin needs to be tossed two times before a &quot;heads&quot; is seen.</p>
+  <p><em>Proof.</em> Let <span class="math inline">\(E\)</span> be the expected number of tosses before a heads is seen. We certainly need at least one toss, and if it's heads, we're done. If it's tails (which occurs with probability <span class="math inline">\(1 / 2\)</span>), we need to repeat. Hence <span class="math inline">\(E = 1 + \frac{1}{2}E\)</span>, which works out to <span class="math inline">\(E = 2\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+  <p>Therefore, after two split operations on average, the array will shrink to at most three-fourths of its size. Letting <span class="math inline">\(T(n)\)</span> be the <em>expected</em> running time on an array of size <span class="math inline">\(n\)</span>, we get</p>
+  <p><span class="math display">\[
+  T(n) \leq T(3n / 4) + O(n).
+  \]</span></p>
+  <p>This follows by taking expected values of both sides of the following statement:</p>
+  <p><span class="math display">\[
+  \text{Time taken on an array of size } n \leq (\text{time taken on an array of size } 3n / 4) + (\text{time to reduce array size to } \leq 3n / 4),
+  \]</span></p>
+  <p>and, for the right-hand side, using the familiar property that <em>the expectation of the sum is the sum of the expectations</em>.</p>
+  <p>From this recurrence we conclude that <span class="math inline">\(T(n) = O(n)\)</span>: on any input, our algorithm returns the correct answer after a linear number of steps, on the average.</p>
+  <p> </p>
+  <blockquote>
+  <p><strong>The Unix <span class="math inline">\(\text{sort}\)</span> command</strong></p>
+  <p>Comparing the algorithms for sorting and median-finding we notice that, beyond the common divide-and-conquer philosophy and structure, they are exact opposites. Mergesort splits the array in two in the most convenient way (first half, second half), without any regard to the magnitudes of the elements in each half; but then it works hard to put the sorted sub- arrays together. In contrast, the median algorithm is careful about its splitting (smaller numbers first, then the larger ones), but its work ends with the recursive call.</p>
+  <p>Quicksort is a sorting algorithm that splits the array in exactly the same way as the median algorithm; and once the subarrays are sorted, by two recursive calls, there is nothing more to do. Its worst-case performance is <span class="math inline">\(\Theta(n^2)\)</span>, like that of median-finding. But it can be proved (Exercise 2.24) that its average case is <span class="math inline">\(O(n\log{n})\)</span>; furthermore, empirically it outperforms other sorting algorithms.</p>
+  <p>This has made quicksort a favorite in many applications—for instance, it is the basis of the code by which really enormous files are sorted.</p>
+  </blockquote>
+  <p> </p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

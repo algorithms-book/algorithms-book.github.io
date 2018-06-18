@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>2.1 Multiplication</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="multiplication">2.1 Multiplication</h2>
+  <p>The mathematician Carl Friedrich Gauss (1777–1855) once noticed that although the product of two complex numbers</p>
+  <p><span class="math display">\[
+  (a + bi)(c + di) = ac - bd + (bc + ad)i
+  \]</span></p>
+  <p>seems to involve <em>four</em> real-number multiplications, it can in fact be done with just <em>three</em>: <span class="math inline">\(ac\)</span>, <span class="math inline">\(bd\)</span>, and <span class="math inline">\((a + b)(c + d)\)</span>, since</p>
+  <p><span class="math display">\[
+  bc + ad = (a + b)(c + d) - ac - bd.
+  \]</span></p>
+  <p>In our big-<span class="math inline">\(O\)</span> way of thinking, reducing the number of multiplications from four to three seems wasted ingenuity. But this modest improvement becomes very significant <em>when applied recursively</em>.</p>
+  <p>Let’s move away from complex numbers and see how this helps with regular multiplication. Suppose <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are two <span class="math inline">\(n\)</span>-bit integers, and assume for convenience that <span class="math inline">\(n\)</span> is a power of 2 (the more general case is hardly any different). As a first step toward multiplying <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, split each of them into their left and right halves, which are <span class="math inline">\(n/2\)</span> bits long:</p>
+  <p><span class="math display">\[
+  \begin{aligned}
+  x &amp;= \boxed{x_L}\boxed{x_R}                                                              &amp;&amp;= 2^{n/2}x_L + x_R \\
+  y &amp;= \boxed{\hspace{0.03cm} y_L}\boxed{\hspace{0.03cm} y_R}&amp;&amp;= 2^{n/2}y_L + y_R \\
+  \end{aligned}
+  \]</span></p>
+  <p>For instance, if <span class="math inline">\(x = 101101102\)</span> (the subscript 2 means “binary”) then <span class="math inline">\(x_L = 10112\)</span>, <span class="math inline">\(x_R = 01102\)</span>, and <span class="math inline">\(x = 10112 \times 2^4 + 01102\)</span>. The product of x and y can then be rewritten as</p>
+  <p><span class="math display">\[
+  xy = (2^{n/2} x_L + x_R)(2^{n/2} y_L + y_R) = 2^{n} x_L y_L + 2^{n/2} (x_L y_R + x_R y_L) + x_R y_R.
+  \]</span></p>
+  <p>We will compute <span class="math inline">\(xy\)</span> via the expression on the right. The additions take linear time, as do the multiplications by powers of 2 (which are merely left-shifts). The significant operations are the four <span class="math inline">\(n/2\)</span>-bit multiplications, <span class="math inline">\(x_L y_L, x_L y_R, x_R y_L, x_R y_R\)</span>; these we can handle by four recursive calls.</p>
+  <p>Thus our method for multiplying <span class="math inline">\(n\)</span>-bit numbers starts by making recursive calls to multiply these four pairs of <span class="math inline">\(n/2\)</span>-bit numbers (four subproblems of half the size), and then evaluates the preceding expression in <span class="math inline">\(O(n)\)</span> time. Writing <span class="math inline">\(T(n)\)</span> for the overall running time on <span class="math inline">\(n\)</span>-bit inputs, we get the <strong>recurrence relation</strong></p>
+  <p><span class="math display">\[
+  T(n) = 4T(n/2) + O(n).
+  \]</span></p>
+  <p>We will soon see general strategies for solving such equations. In the meantime, this particular one works out to <span class="math inline">\(O(n^2)\)</span>, the same running time as the traditional grade-school multiplication technique. So we have a radically new algorithm, but we haven’t yet made any progress in efficiency. How can our method be sped up?</p>
+  <p>This is where Gauss’s trick comes to mind. Although the expression for xy seems to demand four n/2-bit multiplications, as before just three will do: <span class="math inline">\(x_L y_L, x_R y_R\)</span>, and <span class="math inline">\((x_L + x_R)(y_L + y_R)\)</span>, since</p>
+  <p><span class="math display">\[
+  x_L y_R + x_R y_L = (x_L + x_R)(y_L + y_R) - x_L y_ L - x_R y_R.
+  \]</span></p>
+  <p>The resulting algorithm, shown in Figure 2.1, has an improved running time <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> of</p>
+  <p><span class="math display">\[
+  T(n) = 3T(n/2) + O(n).
+  \]</span></p>
+  <p><strong>Figure 2.1</strong> A divide-and-conquer algorithm for integer multiplication.</p>
+  <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> multiply(x, y):
+  <span class="co">&quot;&quot;&quot;</span>
+  <span class="co">Input: Positive integers x and y, in binary</span>
+  <span class="co">Output: Their product</span>
+  <span class="co">&quot;&quot;&quot;</span>
+  n <span class="op">=</span> <span class="bu">max</span>(size of x, size of y)
+  <span class="cf">if</span> n <span class="op">=</span> <span class="dv">1</span>:
+      <span class="cf">return</span> xy
+
+  x_L, x_R <span class="op">=</span> leftmost n<span class="op">/</span><span class="dv">2</span>, rightmost n<span class="op">/</span><span class="dv">2</span> bits of x
+  y_L, y_R <span class="op">=</span> leftmost n<span class="op">/</span><span class="dv">2</span>, rightmost n<span class="op">/</span><span class="dv">2</span> bits of y
+
+  P1 <span class="op">=</span> multiply(x_L, y_L)
+  P2 <span class="op">=</span> multiply(x_R, y_R)
+  P3 <span class="op">=</span> multiply(xL <span class="op">+</span> xR, yL <span class="op">+</span> yR)
+
+  <span class="cf">return</span> P1 <span class="op">*</span> <span class="dv">2</span><span class="op">^</span>n <span class="op">+</span> (P3 <span class="op">-</span> P1 <span class="op">-</span> P2) <span class="op">*</span> <span class="dv">2</span><span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>) <span class="op">+</span> P2</code></pre></div>
+  <p>The point is that now the constant factor improvement, from 4 to 3, occurs <em>at every level of the recursion</em>, and this compounding effect leads to a dramatically lower time bound of <span class="math inline">\(O(n^{1.59})\)</span>.</p>
+  <p>This running time can be derived by looking at the algorithm’s pattern of recursive calls, which form a tree structure, as in Figure 2.2. Let’s try to understand the shape of this tree. At each successive level of recursion the subproblems get halved in size. At the (<span class="math inline">\(\log_{2} n\)</span>)th level, the subproblems get down to size 1, and so the recursion ends. Therefore, the height of the tree is <span class="math inline">\(\log_{2} n\)</span>. The branching factor is 3—each problem recursively produces three smaller ones—with the result that at depth <span class="math inline">\(k\)</span> in the tree there are <span class="math inline">\(3^k\)</span> subproblems, each of size <span class="math inline">\(n / 2^{k}\)</span>.</p>
+  <p>For each subproblem, a linear amount of work is done in identifying further subproblems and combining their answers. Therefore the total time spent at depth k in the tree is</p>
+  <p><span class="math display">\[
+  3^k \times O(\frac{n}{2^k}) = (\frac{3}{2})^{k} \times O(n).
+  \]</span></p>
+  <p>At the very top level, when <span class="math inline">\(k = 0\)</span>, this works out to <span class="math inline">\(O(n)\)</span>. At the bottom, when <span class="math inline">\(k = \log_{2} n\)</span>, it is <span class="math inline">\(O(3^{\log_{2} n})\)</span>, which can be rewritten as <span class="math inline">\(O(n^{\log_{2} 3 })\)</span> (do you see why?). Between these two endpoints, the work done increases <em>geometrically</em> from <span class="math inline">\(O(n)\)</span> to <span class="math inline">\(O(n^{\log_{2} 3 })\)</span>, by a factor of <span class="math inline">\(3/2\)</span> per level. The sum of any increasing geometric series is, within a constant factor, simply the last term of the series: such is the rapidity of the increase (Exercise 0.2). Therefore the overall running time is <span class="math inline">\(O(n^{\log_{2} 3 })\)</span> which is about <span class="math inline">\(O(n^{1.59})\)</span>.</p>
+  <p>In the absence of Gauss’s trick, the recursion tree would have the same height, but the branching factor would be 4. There would be <span class="math inline">\(4^{\log_{2} n} = n^2\)</span> leaves, and therefore the running time would be at least this much. In divide-and-conquer algorithms, the number of subproblems translates into the branching factor of the recursion tree; small changes in this coefficient can have a big impact on running time. A practical note: it generally does not make sense to recurse all the way down to 1 bit. For most processors, 16- or 32-bit multiplication is a single operation, so by the time the numbers get into this range they should be handed over to the built-in procedure.</p>
+  <p>Finally, the eternal question: <em>Can we do better?</em> It turns out that even faster algorithms for multiplying numbers exist, based on another important divide-and-conquer algorithm: the fast Fourier transform, to be explained in Section 2.6.</p>
+  <div class="figure">
+  <img src="fig-2.2-multiplication-tree.png" alt="Figure 2.2 Divide-and-conquer integer multiplication. (a) Each problem is divided into three subproblems. (b) The levels of recursion." />
+  <p class="caption"><strong>Figure 2.2</strong> Divide-and-conquer integer multiplication. (a) Each problem is divided into three subproblems. (b) The levels of recursion.</p>
+  </div>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>Actually, the recurrence should read <span class="math inline">\(T(n) \leq 3T(n/2 + 1) + O(n)\)</span> since the numbers (<span class="math inline">\(x_L + x_R\)</span>) and (<span class="math inline">\(y_L + y_R\)</span>) could be <span class="math inline">\(n/2 + 1\)</span> bits long. The one we’re using is simpler to deal with and can be seen to imply exactly the same big-O running time.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

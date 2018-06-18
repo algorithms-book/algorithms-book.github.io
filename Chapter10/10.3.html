@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>10.3 Quantum Fourier transform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="quantum-fourier-transform">10.3 Quantum Fourier transform</h2>
+  <p>Recall the fast Fourier transform (FFT) from Chapter 2. It takes as input an <span class="math inline">\(M\)</span>-dimensional, complex-valued vector <span class="math inline">\(\alpha\)</span> (where <span class="math inline">\(M\)</span> is a power of <span class="math inline">\(2\)</span>, say <span class="math inline">\(M = 2^m\)</span>), and outputs an <span class="math inline">\(M\)</span>-dimensional complex-valued vector <span class="math inline">\(\beta\)</span>:</p>
+  <p><span class="math display">\[
+  \begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_{M - 1} \end{bmatrix} = \frac{1}{\sqrt{M}}
+  \begin{bmatrix}
+  1 &amp; 1              &amp; 1               &amp; \cdots &amp; 1                   \\
+  1 &amp; \omega         &amp; \omega^2        &amp; \cdots &amp; \omega^{M-1}        \\
+  1 &amp; \omega^2       &amp; \omega^4        &amp; \cdots &amp; \omega^{2(M-1)}     \\
+    &amp; \vdots         &amp;                 &amp;        &amp; \vdots              \\
+  1 &amp; \omega^{j}     &amp; \omega^{2j}     &amp; \cdots &amp; \omega^{(M-1)j}     \\
+    &amp; \vdots         &amp;                 &amp;        &amp; \vdots              \\
+  1 &amp; \omega^{(M-1)} &amp; \omega^{2(M-1)} &amp; \cdots &amp; \omega^{(M-1)(M-1)} \\
+  \end{bmatrix}
+  \begin{bmatrix}
+  \alpha_0 \\ \alpha_1 \\ \alpha_2 \\ \vdots \alpha_{M-1}
+  \end{bmatrix}
+  \]</span></p>
+  <p>where <span class="math inline">\(\omega\)</span> is a complex <span class="math inline">\(M\)</span>th root of unity (the extra factor of <span class="math inline">\(\sqrt{M}\)</span> is new and has the effect of ensuring that if the <span class="math inline">\(|\alpha_i|^2\)</span> add up to <span class="math inline">\(1\)</span>, then so do the <span class="math inline">\(|\beta_i|^2\)</span>). Although the preceding equation suggests an <span class="math inline">\(O(M^2)\)</span> algorithm, the classical FFT is able to perform this calculation in just <span class="math inline">\(O(M \log{ M})\)</span> steps, and it is this speedup that has had the profound effect of making digital signal processing practically feasible.</p>
+  <p>We will now see that quantum computers can implement the FFT exponentially faster, in <span class="math inline">\(O(\log^2{M})\)</span> time!</p>
+  <p>But wait, how can any algorithm take time less than M, the length of the input? The point is that we can encode the input in a superposition of just <span class="math inline">\(m = \log{M}\)</span> qubits: after all, this superposition consists of <span class="math inline">\(2^m\)</span> amplitude values. In the notation we introduced earlier, we would write the superposition as <span class="math inline">\(\vert \alpha \rangle = \sum_{j=0}^{M-1} \alpha_j \vert j \rangle\)</span> where <span class="math inline">\(\alpha_i\)</span> is the amplitude of the <span class="math inline">\(m\)</span>-bit binary string corresponding to the number <span class="math inline">\(i\)</span> in the natural way.</p>
+  <p>This brings up an important point: the <span class="math inline">\(\vert j \rangle\)</span> notation is really just another way of writing a vector, where the index of each entry of the vector is written out explicitly in the special bracket symbol.</p>
+  <p>Starting from this input superposition <span class="math inline">\(\vert \alpha \rangle\)</span>, the <em>quantum Fourier transform</em> (QFT) manipulates it appropriately in <span class="math inline">\(m = \log{M}\)</span> stages. At each stage the superposition evolves so that it encodes the intermediate results at the same stage of the classical FFT (whose circuit, with <span class="math inline">\(m = \log{M}\)</span> stages, is reproduced from Chapter 2 in Figure 10.4).</p>
+  <p> </p>
+  <div class="figure">
+  <img src="fig-10.4-FFT-circuit.png" alt="Figure 10.4 The classical FFT circuit from Chapter 2. Input vectors of M bits are processed in a sequence of m = \log{M} levels." />
+  <p class="caption"><strong>Figure 10.4</strong> The classical FFT circuit from Chapter 2. Input vectors of <span class="math inline">\(M\)</span> bits are processed in a sequence of <span class="math inline">\(m = \log{M}\)</span> levels.</p>
+  </div>
+  <p> </p>
+  <p>As we will see in Section 10.5, this can be achieved with <span class="math inline">\(m\)</span> quantum operations per stage. Ultimately, after <span class="math inline">\(m\)</span> such stages and <span class="math inline">\(m^{2} = \log^2{M}\)</span> elementary operations, we obtain the superposition <span class="math inline">\(\vert \beta \rangle\)</span> that corresponds to the desired output of the QFT.</p>
+  <p>So far we have only considered the good news about the QFT: its amazing speed. Now it is time to read the fine print. The classical FFT algorithm actually <em>outputs</em> the <span class="math inline">\(M\)</span> complex numbers <span class="math inline">\(\beta_0, \cdots, \beta_{M-1}\)</span>. In contrast, the QFT only prepares a superposition <span class="math inline">\(\vert \beta \rangle = \sum_{j=0}^{M-1} \beta \vert j \rangle\)</span>. And, as we saw earlier, these amplitudes are part of the &quot;private world&quot; of this quantum system.</p>
+  <p>Thus the only way to get our hands on this result is by measuring it! And measuring the state of the system only yields <span class="math inline">\(m = \log{M}\)</span> classical bits: specifically, the output is index <span class="math inline">\(j\)</span> with probability <span class="math inline">\(|\beta_j|^2\)</span>.</p>
+  <p>So, instead of QFT, it would be more accurate to call this algorithm <em>quantum Fourier sampling</em>. Moreover, even though we have confined our attention to the case <span class="math inline">\(M = 2^m\)</span> in this section, the algorithm can be implemented for arbitrary values of <span class="math inline">\(M\)</span>, and can be summarized as follows:</p>
+  <ul>
+  <li><p><strong>input</strong>: a superposition of <span class="math inline">\(m = \log{M}\)</span> qubits, <span class="math inline">\(\vert \alpha \rangle = \sum_{j=0}^{M-1} \alpha_j \vert j \rangle\)</span></p></li>
+  <li><p><strong>method</strong>: using <span class="math inline">\(O(m^2) = O(\log^2{M})\)</span> quantum operations perform the quantum FFT to obtain the superposition <span class="math inline">\(\vert \beta \rangle = \sum_{j=0}^{M-1} \beta_j \vert j \rangle\)</span></p></li>
+  <li><p><strong>output</strong>: a random <span class="math inline">\(m\)</span>-bit number <span class="math inline">\(j\)</span> (that is, <span class="math inline">\(0 \leq j \leq M-1\)</span>), from the probability <span class="math inline">\(\Pr(j) = |\beta_j|^2\)</span></p></li>
+  </ul>
+  <p>Quantum Fourier sampling is basically a quick way of getting a very rough idea about the output of the classical FFT, just detecting one of the larger components of the answer vector. In fact, we don’t even see the value of that component—we only see its index.</p>
+  <p>How can we use such meager information? In which applications of the FFT is just the index of the large components enough? This is what we explore next.</p>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>

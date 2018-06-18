@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>1.5 Universal Hashing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+
+  <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
+  <style>
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+  <link rel="stylesheet" href="../highlight/styles/atom-one-light.css">
+
+  <script src="../highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body class="markdown-body">
+
+  <h2 id="universal-hashing">1.5 Universal Hashing</h2>
+  <p>We end this chapter with an application of number theory to the design of <em>hash functions</em>. Hashing is a very useful method of storing data items in a table so as to support insertions, deletions, and lookups.</p>
+  <p>Suppose for instance that we need to maintain an ever-changing list of about 250 IP (Internet protocol) addresses, perhaps the addresses of the currently active customers of a Web service. (Recall that an IP address consists of 32 bits encoding the location of a computer on the Internet, usually shown broken down into four 8-bit fields, for example, 128.32.168.80.)</p>
+  <p>We could obtain fast lookup times if we maintained the records in an array indexed by IP address. But this would be very wasteful of memory: the array would have <span class="math inline">\(2^{32} \approx 4 \times 10^9\)</span> entries, the vast majority of them blank.</p>
+  <p>Or alternatively, we could use a linked list of just the 250 records. But then accessing records would be very slow, taking time proportional to 250, the total number of customers.</p>
+  <p>Is there a way to get the best of both worlds, to use an amount of memory that is proportional to the number of customers and yet also achieve fast lookup times? This is exactly where hashing comes in.</p>
+  <h3 id="hash-tables">1.5.1 Hash Tables</h3>
+  <p>Here's a high-level view of hashing. We will give a short “nickname” to each of the <span class="math inline">\(2^{32}\)</span> possible IP addresses. You can think of this short name as just a number between 1 and 250 (we will later adjust this range very slightly).</p>
+  <p>Thus many IP addresses will inevitably have the same nickname; however, we hope that most of the 250 IP addresses of our particular customers are assigned distinct names, and we will store their records in an array of size 250 indexed by these names.</p>
+  <p>What if there is more than one record associated with the same name? Easy: each entry of the array points to a linked list containing all records with that name. So the total amount of storage is proportional to 250, the number of customers, and is independent of the total number of possible IP addresses.</p>
+  <p>Moreover, if not too many customer IP addresses are assigned the same name, lookup is fast, because the average size of the linked list we have to scan through is small.</p>
+  <p>But how do we assign a short name to each IP address? This is the role of a <em>hash function</em>: in our example, a function <span class="math inline">\(h\)</span> that maps IP addresses to positions in a table of length about 250 (the expected number of data items). The name assigned to an IP address <span class="math inline">\(x\)</span> is thus <span class="math inline">\(h(x)\)</span>, and the record for <span class="math inline">\(x\)</span> is stored in position <span class="math inline">\(h(x)\)</span> of the table.</p>
+  <p>As described before, each position of the table is in fact a <em>bucket</em>, a linked list that contains all current IP addresses that map to it. Hopefully, there will be very few buckets that contain more than a handful of IP addresses.</p>
+  <div class="figure">
+  <img src="hash-ip-addresses.png" alt="Space of all IP-addresses" />
+  <p class="caption">Space of all IP-addresses</p>
+  </div>
+  <h3 id="families-of-hash-function">1.5.2 Families of Hash Function</h3>
+  <p>Designing hash functions is tricky. A hash function must in some sense be &quot;<strong>random</strong>&quot; (so that it scatters data items around), but it should also be a function and therefore &quot;<strong>consistent</strong>&quot; (so that we get the same result every time we apply it).</p>
+  <p>And the statistics of the data items may work against us. In our example, one possible hash function would map an IP address to the 8-bit number that is its last segment: <span class="math inline">\(h(128.32.168.80) = 80\)</span>. A table of <span class="math inline">\(n = 256\)</span> buckets would then be required.</p>
+  <p>But is this a good hash function? Not if, for example, the last segment of an IP address tends to be a small (single- or double-digit) number; then low-numbered buckets would be crowded. Taking the first segment of the IP address also invites disaster—for example, if most of our customers come from Asia.</p>
+  <p>There is nothing inherently wrong with these two functions. If our 250 IP addresses were uniformly drawn from among all <span class="math inline">\(N = 232\)</span> possibilities, then these functions would behave well. The problem is we have no guarantee that the distribution of IP addresses is uniform.</p>
+  <p>Conversely, there is no single hash function, no matter how sophisticated, that behaves well on all sets of data. Since a hash function maps 232 IP addresses to just 250 names, there must be a collection of at least <span class="math inline">\(2^{32} / 250 \approx 2^{24} \approx 16,000,000\)</span> IP addresses that are assigned the same name (or, in hashing terminology, &quot;<strong>collide</strong>&quot;). If many of these show up in our customer set, we're in trouble.</p>
+  <p>Obviously, we need some kind of randomization. Here's an idea: let us pick a hash function <em>at random</em> from some class of functions. We will then show that, no matter what set of 250 IP addresses we actually care about, most choices of the hash function will give very few collisions among these addresses.</p>
+  <p>To this end, we need to define a class of hash functions from which we can pick at random; and this is where we turn to number theory. Let us take the number of buckets to be not <span class="math inline">\(250\)</span> but <span class="math inline">\(n = 257\)</span>—a prime number! And we consider every IP address x as a quadruple <span class="math inline">\(x = (x_1, \cdots, x_4)\)</span> of integers modulo <span class="math inline">\(n\)</span>—recall that it is in fact a quadruple of integers between 0 and 255, so there is no harm in this.</p>
+  <p>We can define a function <span class="math inline">\(h\)</span> from IP addresses to a number mod <span class="math inline">\(n\)</span> as follows: fix any four numbers mod <span class="math inline">\(n = 257\)</span>, say <span class="math inline">\(87, 23, 125\)</span>, and <span class="math inline">\(4\)</span>. Now map the IP address <span class="math inline">\((x_1, \cdots, x_4)\)</span> to <span class="math inline">\(h(x_1, \cdots, x_4) = (87x_1 + 23x_2 + 125x_3 + 4x_4) \pmod{257}\)</span>. Indeed, any four numbers mod <span class="math inline">\(n\)</span> define a hash function.</p>
+  <p>For any four coefficients <span class="math inline">\(a_1, \cdots, a_4 \in \{ 0, 1, \cdots, n - 1 \}\)</span>, write <span class="math inline">\(a = (a_1, a_2, a_3, a_4)\)</span> and define <span class="math inline">\(h_a\)</span> to be the following hash function:</p>
+  <p><span class="math display">\[
+  h_a(x_1, \cdots, x_4) = \sum_{i = 1}^{4} a_i \cdot x_i \pmod{n}.
+  \]</span></p>
+  <p>We will show that if we pick these coefficients <span class="math inline">\(a\)</span> at random, then <span class="math inline">\(h_a\)</span> is very likely to be good in the following sense.</p>
+  <p><strong>Property</strong> Consider any pair of distinct IP addresses <span class="math inline">\(x = (x_1, \cdots, x_4)\)</span> and <span class="math inline">\(y = (y_1, \cdots, y_4)\)</span>. If the coefficients <span class="math inline">\(a = (a_1, a_2, a_3, a_4)\)</span> are chosen uniformly at random from <span class="math inline">\(\{ 0, 1, \cdots, n - 1 \}\)</span>, then</p>
+  <p><span class="math display">\[
+  \mathbb{P}(h_a(x_1, \cdots, x_4) = h_a(y_1, \cdots, y_4)) = \frac{1}{n}.
+  \]</span></p>
+  <p>In other words, the chance that <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> collide under <span class="math inline">\(h_a\)</span> is the same as it would be if each were assigned nicknames randomly and independently. This condition guarantees that the expected lookup time for any item is small.</p>
+  <p>Here's why. If we wish to look up <span class="math inline">\(x\)</span> in our hash table, the time required is dominated by the size of its bucket, that is, the number of items that are assigned the same name as <span class="math inline">\(x\)</span>. But there are only 250 items in the hash table, and the probability that any one item gets the same name as x is <span class="math inline">\(1 / n = 1 / 257\)</span>. Therefore the expected number of items that are assigned the same name as <span class="math inline">\(x\)</span> by a randomly chosen hash function <span class="math inline">\(h_a\)</span> is <span class="math inline">\(250 / 257 \approx 1\)</span>, which means the expected size of <span class="math inline">\(x\)</span>'s bucket is less than <span class="math inline">\(2\)</span>.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+  <p>Let us now prove the preceding property.</p>
+  <p><em>Proof.</em> Since <span class="math inline">\(x = (x_1, \cdots, x_4)\)</span> and <span class="math inline">\(y = (y_1, \cdots, y_4)\)</span> are distinct, these quadruples must differ in some component; without loss of generality, let us assume that <span class="math inline">\(x_4 \neq y_4\)</span>. We wish to compute the probability <span class="math inline">\(\mathbb{P}(h_a(x_1, \cdots, x_4) = h_a(y_1, \cdots, y_4))\)</span>, that is, the probability that <span class="math inline">\(\sum_{i = 1}^{4} a_i \cdot x_i \equiv \sum_{i = 1}^4 a_i \cdot y_i \pmod{n}\)</span>. This last equation can be rewritten as</p>
+  <p><span class="math display">\[
+  \sum_{i = 1}^{3} a_i \cdot (x_i - y_4) \equiv a_4 \cdot (y_4 - x_4) \pmod{n}.
+  \]</span></p>
+  <p>Suppose that we draw a random hash function <span class="math inline">\(h_a\)</span> by picking <span class="math inline">\(a = (a_1, a_2, a_3, a_4)\)</span> at random. We start by drawing <span class="math inline">\(a_1, a_2, a_3\)</span>, and then we pause and think: What is the probability that the last drawn number <span class="math inline">\(a_4\)</span> is such that previous equation holds?</p>
+  <p>So far, the left-hand side of the equation evaluates to some number, call it <span class="math inline">\(c\)</span>. And since <span class="math inline">\(n\)</span> is prime and <span class="math inline">\(x_4 \neq y_4\)</span>, <span class="math inline">\((y_4 - x_4)\)</span> has a unique inverse modulo <span class="math inline">\(n\)</span>.</p>
+  <p>Thus for the equation to hold, the last number <span class="math inline">\(a_4\)</span> must be precisely <span class="math inline">\(c \cdot (y_4 - x_4)^{-1} \pmod{n}\)</span> out of its <span class="math inline">\(n\)</span> possible values. The probability of this happening is <span class="math inline">\(1 / n\)</span>, and the proof is complete.</p>
+  <p>Let us step back and see what we achieved. Since we have on control over the set of data items, we decided instead to select a hash function <span class="math inline">\(h\)</span> uniformly at random from among a family <span class="math inline">\(\mathcal{H}\)</span> of hash functions.</p>
+  <p>In our example,</p>
+  <p><span class="math display">\[
+  \mathcal{H} = \{ h_a : a \in \{ 0, \cdots, n - 1 \}^{4} \}.
+  \]</span></p>
+  <p>To draw a hash function uniformly at random from this family, we just draw four numbers <span class="math inline">\(a_1, \cdots, a_4\)</span> modulo <span class="math inline">\(n\)</span>. (Incidentally, notice that the two simple hash functions we considered earlier, namely, taking the last or the first 8-bit segment, belong to this class. They are <span class="math inline">\(h_{(0, 0, 0, 1)}\)</span> and <span class="math inline">\(h_{(1, 0, 0, 0)}\)</span>, respectively.)</p>
+  <p>And we insisted that the family have the following property:</p>
+  <ul>
+  <li>For any two distinct data items <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>, exactly, <span class="math inline">\(|\mathcal{H}| / n\)</span> of all hash functions in <span class="math inline">\(\mathcal{H}\)</span> map <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> to the same bucket, where <span class="math inline">\(n\)</span> is the number of buckets.</li>
+  </ul>
+  <p>A family of hash functions with this property is called <strong>universal</strong>. In other words, for any two data items, the probability these items collide is <span class="math inline">\(1 / n\)</span> if the hash function is randomly drawn from a universal family.</p>
+  <p>This is also the collision probability if we map <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> to buckets uniformly at random—in some sense the gold standard of hashing. We then showed that this property implies that hash table operations have good performance <em>in expectation</em>.</p>
+  <p>This idea, motivated as it was by the hypothetical IP address application, can of course be applied more generally. Start by choosing the table size <span class="math inline">\(n\)</span> to be some prime number that is a little larger than the number of items expected in the table (there is usually a prime number close to any number we start with; actually, to ensure that hash table operations have good performance, it is better to have the size of the hash table be about twice as large as the number of items).</p>
+  <p>Next assume that the size of the domain of all data items is <span class="math inline">\(N = n^k\)</span>, a power of <span class="math inline">\(n\)</span> (if we need to overestimate the true number of data items, so be it). Then each data item can be considered as a <span class="math inline">\(k\)</span>-tuple of integers modulo <span class="math inline">\(n\)</span>, and <span class="math inline">\(H = \{ h_a : a \in \{ 0, \cdots, n - 1 \}^{k} \}\)</span> is a universal family of hash functions.</p>
+  <div class="footnotes">
+  <hr />
+  <ol>
+  <li id="fn1"><p>When a hash function <span class="math inline">\(h_a\)</span> is chosen at random, let the random variable <span class="math inline">\(Y_i\)</span> (for <span class="math inline">\(i = 1, \cdots, 250\)</span>) be <span class="math inline">\(1\)</span> if item <span class="math inline">\(i\)</span> gets the same name as <span class="math inline">\(x\)</span> and <span class="math inline">\(0\)</span> otherwise. So the expected value of <span class="math inline">\(Y_i\)</span> is <span class="math inline">\(1 / n\)</span>. Now, <span class="math inline">\(Y = Y_1 + Y_2 + \cdots + Y_{250}\)</span> is the number of items which get the same name as <span class="math inline">\(x\)</span>, and by linearity of expectation, the expected value of <span class="math inline">\(Y\)</span> is simply the sum of the expected values of <span class="math inline">\(Y_1\)</span> through <span class="math inline">\(Y_{250}\)</span>. It is thus <span class="math inline">\(250 / n = 250 / 257\)</span>.<a href="#fnref1">↩</a></p></li>
+  </ol>
+  </div>
+
+  <script>
+    renderMathInElement(
+        document.body,
+        {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        }
+    );
+  </script>
+</body>
+
+</html>
