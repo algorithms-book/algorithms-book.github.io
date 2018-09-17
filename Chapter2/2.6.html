@@ -6,9 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js"></script>
 
   <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
   <style>
@@ -64,8 +65,9 @@
   <p> </p>
   <h3 id="an-alternative-representation-of-polynomials">2.6.1 An Alternative Representation of Polynomials</h3>
   <p>To arrive at a fast algorithm for polynomial multiplication we take inspiration from an important property of polynomials.</p>
-  <p><strong>Fact</strong> A degree-<span class="math inline">\(d\)</span> polynomial is uniquely characterized by its values at any <span class="math inline">\(d + 1\)</span> distinct points.</p>
-  <p>A familiar instance of this is that &quot;any two points determine a line.&quot;&quot; We will later see why the more general statement is true (page 72), but for the time being it gives us an alternative representation of polynomials. Fix any distinct points <span class="math inline">\(x_0, \cdots, x_d\)</span>. We can specify a degree-<span class="math inline">\(d\)</span> polynomial <span class="math inline">\(A(x) = a_0 + a_1 x + \cdots + a_d x^d\)</span> by either one of the following:</p>
+  <p><span class="math inline">\(\textbf{Lemma}\ \)</span> A degree-<span class="math inline">\(d\)</span> polynomial is uniquely characterized by its values at any <span class="math inline">\(d + 1\)</span> distinct points.</p>
+  <p>A familiar instance of this is that &quot;any two points determine a line.&quot; We will later see why the more general statement is true, but for the time being it gives us an alternative representation of polynomials.</p>
+  <p>Fix any distinct points <span class="math inline">\(x_0, \cdots, x_d\)</span>. We can specify a degree-<span class="math inline">\(d\)</span> polynomial <span class="math inline">\(A(x) = a_0 + a_1 x + \cdots + a_d x^d\)</span> by either one of the following:</p>
   <ol style="list-style-type: decimal">
   <li><p>Its coefficients <span class="math inline">\(a_0, a_1, \cdots, a_d\)</span></p></li>
   <li><p>The values <span class="math inline">\(A(x_0), A(x_1), \cdots, A(x_d)\)</span></p></li>
@@ -89,7 +91,9 @@
           compute C(x_k) <span class="op">=</span> A(x_k)B(x_k) <span class="cf">for</span> <span class="bu">all</span> k <span class="op">=</span> <span class="dv">0</span>, ..., n <span class="op">-</span> <span class="dv">1</span>
       Interpolation
           recover C(x) <span class="op">=</span> c_0 <span class="op">+</span> c_1 x <span class="op">+</span> ... <span class="op">+</span> c_{2d} x<span class="op">^</span>{2d}</code></pre></div>
-  <p>The equivalence of the two polynomial representations makes it clear that this high-level approach is correct, but how efficient is it? Certainly the selection step and the <span class="math inline">\(n\)</span> multiplications are no trouble at all, just linear time.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> But (leaving aside interpolation, about which we know even less) how about evaluation? Evaluating a polynomial of degree <span class="math inline">\(d \leq n\)</span> at a single point takes <span class="math inline">\(O(n)\)</span> steps (Exercise 2.29), and so the baseline for <span class="math inline">\(n\)</span> points is <span class="math inline">\(\Theta(n^2)\)</span>. We’ll now see that the fast Fourier transform (FFT) does it in just <span class="math inline">\(O(n \log{n})\)</span> time, for a particularly clever choice of <span class="math inline">\(x_0, \cdots, x_{n-1}\)</span> in which the computations required by the individual points overlap with one another and can be shared.</p>
+  <p>The equivalence of the two polynomial representations makes it clear that this high-level approach is correct, but how efficient is it? Certainly the selection step and the <span class="math inline">\(n\)</span> multiplications are no trouble at all, just linear time.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> But (leaving aside interpolation, about which we know even less) how about evaluation? Evaluating a polynomial of degree <span class="math inline">\(d \leq n\)</span> at a single point takes <span class="math inline">\(O(n)\)</span> steps (Exercise 2.29), and so the baseline for <span class="math inline">\(n\)</span> points is <span class="math inline">\(\Theta(n^2)\)</span>. </p>
+  <p>We’ll now see that the fast Fourier transform (FFT) does it in just <span class="math inline">\(O(n \log{n})\)</span> time, for a particularly clever choice of <span class="math inline">\(x_0, \cdots, x_{n-1}\)</span> in which the computations required by the individual points overlap with one another and can be shared.</p>
+  <p> </p>
   <h3 id="evaluation-by-divide-and-conquer">2.6.2 Evaluation by Divide-and-Conquer</h3>
   <p>Here’s an idea for how to pick the n points at which to evaluate a polynomial <span class="math inline">\(A(x)\)</span> of degree <span class="math inline">\(\leq n - 1\)</span>. If we choose them to be positive-negative pairs, that is,</p>
   <p><span class="math display">\[
@@ -106,9 +110,10 @@
   \]</span></p>
   <p>where <span class="math inline">\(A_{e}(\cdot)\)</span>, with the even-numbered coefficients, and <span class="math inline">\(A_{o}(\cdot)\)</span>, with the odd-numbered coefficients, are polynomials of degree <span class="math inline">\(\leq n / 2 - 1\)</span> (assume for convenience that <span class="math inline">\(n\)</span> is even). Given paired points <span class="math inline">\(\pm x_i\)</span>, the calculations needed for <span class="math inline">\(A(x_i)\)</span> can be recycled toward computing <span class="math inline">\(A(-x_i)\)</span>:</p>
   <p><span class="math display">\[
-  A(x) = A_{e}(x_i^2) + x_i A_{o}(x_i^2)
-  \]</span> <span class="math display">\[
-  A(-x) = A_{e}(x_i^2) - x_i A_{o}(x_i^2)
+  \begin{aligned}
+  A(x) &amp;= A_{e}(x_i^2) + x_i A_{o}(x_i^2)
+  A(-x) &amp;= A_{e}(x_i^2) - x_i A_{o}(x_i^2)
+  \end{aligned}
   \]</span></p>
   <p>In other words, evaluating <span class="math inline">\(A(x)\)</span> at <span class="math inline">\(n\)</span> paired points <span class="math inline">\(\pm x_0, \cdots, \pm x_{n / 2 - 1}\)</span> reduces to evaluating <span class="math inline">\(A_{e}(x)\)</span> and <span class="math inline">\(A_{o}(x)\)</span> (which each have half the degree of <span class="math inline">\(A(x)\)</span>) at just <span class="math inline">\(n / 2\)</span> points, <span class="math inline">\(x_0^2, \cdots, x_{n / 2 - 1}^2\)</span>.</p>
   <div class="figure">
@@ -134,12 +139,11 @@
   </ol>
   <p>Therefore, if we start with these numbers for some n that is a power of <span class="math inline">\(2\)</span>, then at successive levels of recursion we will have the (<span class="math inline">\(n / 2^k\)</span>)th roots of unity, for <span class="math inline">\(k = 0, 1, 2, 3, \cdots\)</span>. All these sets of numbers are plus-minus paired, and so our divide-and-conquer, as shown in the last panel, works perfectly. The resulting algorithm is the fast Fourier transform (Figure 2.7).</p>
   <p> </p>
-  <div class="figure">
+  <center><div class="figure">
   <img src="fig-2.6-complex-plane.png" alt="Figure 2.6 The complex roots of unity are ideal for our divide-and-conquer scheme." />
   <p class="caption"><strong>Figure 2.6</strong> The complex roots of unity are ideal for our divide-and-conquer scheme.</p>
-  </div>
+  </div></center>
   <p> </p>
-  <p><strong>Figure 2.7</strong> The fast Fourier transform algorithm.</p>
   <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> FFT(A, w):
       <span class="co">&quot;&quot;&quot;</span>
   <span class="co">    Input: coefficient representation of a polynomial A with degree &lt;= n - 1, where n is a power of 2</span>
@@ -158,6 +162,7 @@
               compute A(w<span class="op">^</span>j) <span class="op">=</span> A_e(w<span class="op">^</span>{2j}) <span class="op">+</span> w<span class="op">^</span>j A_o(w<span class="op">^</span>{2j})
 
           <span class="cf">return</span> A(w<span class="op">^</span><span class="dv">0</span>), ..., A(w<span class="op">^</span>{n <span class="op">-</span> <span class="dv">1</span>})</code></pre></div>
+  <center><p><strong>Figure 2.7</strong> The fast Fourier transform algorithm.</p></center>
   <p> </p>
   <h3 id="interpolation">2.6.3 Interpolation</h3>
   <p>Let’s take stock of where we are. We first developed a high-level scheme for multiplying polynomials (Figure 2.5), based on the observation that polynomials can be represented in two ways, in terms of their <em>coefficients</em> or in terms of their <em>values</em> at a selected set of points.</p>
@@ -218,22 +223,21 @@
   <p>where <span class="math inline">\(\omega\)</span> is a complex <span class="math inline">\(n\)</span>th root of unity, and <span class="math inline">\(n\)</span> is a power of <span class="math inline">\(2\)</span>. Notice how simple this matrix is to describe: its (<span class="math inline">\(j, k\)</span>)th entry (starting row- and column-count at zero) is <span class="math inline">\(\omega^{jk}\)</span>.</p>
   <p>Multiplication by <span class="math inline">\(M = M_n(\omega)\)</span> maps the <span class="math inline">\(k\)</span>th coordinate axis (the vector with all zeros except for a <span class="math inline">\(1\)</span> at position <span class="math inline">\(k\)</span>) onto the <span class="math inline">\(k\)</span>th column of <span class="math inline">\(M\)</span>. Now here’s the crucial observation, which we’ll prove shortly: <em>the columns of <span class="math inline">\(M\)</span> are orthogonal (at right angles) to each other</em>. Therefore they can be thought of as the axes of an alternative coordinate system, which is often called the <em>Fourier basis</em>.</p>
   <p> </p>
-  <div class="figure">
+  <center><div class="figure">
   <img src="fig-2.8-fourier-basis.png" alt="Figure 2.8 The \text{FFT} takes points in the standard coordinate system, whose axes are shown here as x_1, x_2, x_3, and rotates them into the Fourier basis, whose axes are the columns of M_n(\omega), shown here as f_1, f_2, f_3. For instance, points in direction x_1 get mapped into direction f_1." />
   <p class="caption"><strong>Figure 2.8</strong> The <span class="math inline">\(\text{FFT}\)</span> takes points in the standard coordinate system, whose axes are shown here as <span class="math inline">\(x_1, x_2, x_3\)</span>, and rotates them into the Fourier basis, whose axes are the columns of <span class="math inline">\(M_n(\omega)\)</span>, shown here as <span class="math inline">\(f_1, f_2, f_3\)</span>. For instance, points in direction <span class="math inline">\(x_1\)</span> get mapped into direction <span class="math inline">\(f_1\)</span>.</p>
-  </div>
+</div></center>
   <p> </p>
   <p>The effect of multiplying a vector by <span class="math inline">\(M\)</span> is to rotate it from the standard basis, with the usual set of axes, into the Fourier basis, which is defined by the columns of <span class="math inline">\(M\)</span> (Figure 2.8). The FFT is thus a change of basis, a <em>rigid rotation</em>. The inverse of <span class="math inline">\(M\)</span> is the opposite rotation, from the Fourier basis back into the standard basis. When we write out the orthogonality condition precisely, we will be able to read off this inverse transformation with ease:</p>
-  <p><strong>Inversion formula</strong> <span class="math inline">\(M_n(\omega)^{-1} = \frac{1}{n}M_n(\omega^{-1})\)</span>.</p>
-  <p>But <span class="math inline">\(\omega^{-1}\)</span> is also an <span class="math inline">\(n\)</span>th root of unity, and so interpolation—or equivalently, multiplication by <span class="math inline">\(M_n(\omega)^{-1}\)</span>—is itself just an <span class="math inline">\(\text{FFT}\)</span> operation, but with <span class="math inline">\(\omega\)</span> replaced by <span class="math inline">\(\omega^{-1}\)</span>.</p>
-  <p>Now let’s get into the details. Take <span class="math inline">\(\omega\)</span> to be $e^{2 i / n} for convenience, and think of the columns of <span class="math inline">\(M\)</span> as vectors in <span class="math inline">\(\mathbb{C}^{n}\)</span>. Recall that the <em>angle</em> between two vectors <span class="math inline">\(u = (u_0, \cdots, u_{n - 1})\)</span> and <span class="math inline">\(v = (v_0, \cdots, v_{n - 1})\)</span> in <span class="math inline">\(\mathbb{C}^{n}\)</span> is just a scaling factor times their <em>inner product</em></p>
+  <p><span class="math inline">\(\textbf{Inversion formula}\ \)</span> <span class="math inline">\(M_n(\omega)^{-1} = \frac{1}{n}M_n(\omega^{-1})\)</span>.</p>  <p>But <span class="math inline">\(\omega^{-1}\)</span> is also an <span class="math inline">\(n\)</span>th root of unity, and so interpolation—or equivalently, multiplication by <span class="math inline">\(M_n(\omega)^{-1}\)</span>—is itself just an <span class="math inline">\(\text{FFT}\)</span> operation, but with <span class="math inline">\(\omega\)</span> replaced by <span class="math inline">\(\omega^{-1}\)</span>.</p>
+  <p>Now let's get into the details. Take <span class="math inline">\(\omega\)</span> to be <span class="math inline">\(e^{2 \pi i / n}\)</span> for convenience, and think of the columns of <span class="math inline">\(M\)</span> as vectors in <span class="math inline">\(\mathbb{C}^{n}\)</span>. Recall that the <em>angle</em> between two vectors <span class="math inline">\(u = (u_0, \cdots, u_{n - 1})\)</span> and <span class="math inline">\(v = (v_0, \cdots, v_{n - 1})\)</span> in <span class="math inline">\(\mathbb{C}^{n}\)</span> is just a scaling factor times their <em>inner product</em></p>
   <p><span class="math display">\[
   u \cdot v^{\ast} = u_0 v_0^{\ast} + u_1 v_1^{\ast} + \cdots + u_{n - 1} v_{n - 1}^{\ast},
   \]</span></p>
-  <p>where <span class="math inline">\(z^{\ast}\)</span> denotes the complex conjugate <a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> of <span class="math inline">\(z\)</span>. This quantity is maximized when the vectors lie in the same direction and is zero when the vectors are orthogonal to each other.</p>
+  <p>where <span class="math inline">\(z^{\ast}\)</span> denotes the complex conjugate<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> of <span class="math inline">\(z\)</span>. This quantity is maximized when the vectors lie in the same direction and is zero when the vectors are orthogonal to each other.</p>
   <p>The fundamental observation we need is the following.</p>
-  <p><strong>Lemma</strong> The columns of matrix <span class="math inline">\(M\)</span> are orthogonal to each other.</p>
-  <p><em>Proof.</em> Take the inner product of any columns <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span> of matrix <span class="math inline">\(M\)</span>,</p>
+  <p><span class="math inline">\(\textbf{Lemma}\ \)</span> The columns of matrix <span class="math inline">\(M\)</span> are orthogonal to each other.</p>
+  <p><span class="math inline">\(\textit{Proof}.\ \)</span> Take the inner product of any columns <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span> of matrix <span class="math inline">\(M\)</span>,</p>
   <p><span class="math display">\[
   1 + \omega^{j - k} + \omega^{2(j - k)} + \cdots + \omega^{(n - 1)(j - k)}.
   \]</span></p>
@@ -242,7 +246,7 @@
   <p><span class="math display">\[
   MM^{\ast} = nI,
   \]</span></p>
-  <p>since <span class="math inline">\((MM^{\ast}){ij}\)</span> is the inner product of the <span class="math inline">\(i\)</span>th and <span class="math inline">\(j\)</span>th columns of <span class="math inline">\(M\)</span> (do you see why?). This immediately implies <span class="math inline">\(M^{-1} = \frac{1}{n} M^{\ast}\)</span>: we have an inversion formula! But is it the same formula we earlier claimed?</p>
+  <p>since <span class="math inline">\({(MM^{\ast})}_{ij}\)</span> is the inner product of the <span class="math inline">\(i\)</span>th and <span class="math inline">\(j\)</span>th columns of <span class="math inline">\(M\)</span> (do you see why?). This immediately implies <span class="math inline">\(M^{-1} = \frac{1}{n} M^{\ast}\)</span>: we have an inversion formula! But is it the same formula we earlier claimed?</p>
   <p>Let’s see—the (<span class="math inline">\(j, k\)</span>)th entry of <span class="math inline">\(M^{\ast}\)</span> is the complex conjugate of the corresponding entry of <span class="math inline">\(M\)</span>, in other words <span class="math inline">\(\omega^{-jk}\)</span>. Whereupon <span class="math inline">\(M^{\ast} = M_n(\omega^{-1})\)</span>, and we’re done.</p>
   <p>And now we can finally step back and view the whole affair geometrically. The task we need to perform, polynomial multiplication, is a lot easier in the Fourier basis than in the standard basis. Therefore, we first rotate vectors into the Fourier basis (<em>evaluation</em>), then perform the task (<em>multiplication</em>), and finally rotate back (<em>interpolation</em>). The initial vectors are <em>coefficient representations</em>, while their rotated counterparts are <em>value representations</em>. To efficiently switch between these, back and forth, is the province of the <span class="math inline">\(\text{FFT}\)</span>.</p>
   <p> </p>
@@ -263,7 +267,8 @@
         r_j <span class="op">=</span> s_0 <span class="op">+</span> w<span class="op">^</span>j <span class="op">*</span> s<span class="op">^</span><span class="dv">0</span>
         r_{j <span class="op">+</span> n <span class="op">/</span> <span class="dv">2</span>} <span class="op">=</span> s_0 <span class="op">-</span> w<span class="op">^</span>j <span class="op">*</span> s<span class="op">^</span><span class="dv">0</span>
       <span class="cf">return</span> (r_0, r_1, ..., r_{n <span class="op">-</span> <span class="dv">1</span>})</code></pre></div>
-  <p><strong>The definitive FFT algorithm</strong> The <span class="math inline">\(\text{FFT}\)</span> takes as input a vector <span class="math inline">\(a = (a_0, \cdots, a_{n - 1})\)</span> and a complex number <span class="math inline">\(\omega\)</span> whose powers <span class="math inline">\(1, \omega, \omega^2, \cdots, \omega^{n - 1}\)</span> are the complex <span class="math inline">\(n\)</span>th roots of unity. It multiplies vector <span class="math inline">\(a\)</span> by the <span class="math inline">\(n \times n\)</span> matrix <span class="math inline">\(M_{n}(\omega)\)</span>, which has (<span class="math inline">\(j, k\)</span>)th entry (starting row- and column-count at zero) <span class="math inline">\(\omega^{jk}\)</span>. The potential for using divide-and-conquer in this matrix-vector multiplication becomes apparent when <span class="math inline">\(M\)</span>'s columns are segregated into evens and odds:</p>
+  <p><strong>The definitive FFT algorithm</strong> <p>
+  <p> The <span class="math inline">\(\text{FFT}\)</span> takes as input a vector <span class="math inline">\(a = (a_0, \cdots, a_{n - 1})\)</span> and a complex number <span class="math inline">\(\omega\)</span> whose powers <span class="math inline">\(1, \omega, \omega^2, \cdots, \omega^{n - 1}\)</span> are the complex <span class="math inline">\(n\)</span>th roots of unity. It multiplies vector <span class="math inline">\(a\)</span> by the <span class="math inline">\(n \times n\)</span> matrix <span class="math inline">\(M_{n}(\omega)\)</span>, which has (<span class="math inline">\(j, k\)</span>)th entry (starting row- and column-count at zero) <span class="math inline">\(\omega^{jk}\)</span>. The potential for using divide-and-conquer in this matrix-vector multiplication becomes apparent when <span class="math inline">\(M\)</span>'s columns are segregated into evens and odds:</p>
   <div class="figure">
   <img src="M-matrix.png" />
 
@@ -293,23 +298,24 @@
   <li><p>For <span class="math inline">\(n\)</span> inputs there are <span class="math inline">\(\log_{2}{n}\)</span> levels, each with <span class="math inline">\(n\)</span> nodes, for a total of <span class="math inline">\(n \log{n}\)</span> operations.</p></li>
   <li><p>The inputs are arranged in a peculiar order: <span class="math inline">\(0, 4, 2, 6, 1, 5, 3, 7\)</span>.</p></li>
   </ol>
-  <p>Why? Recall that at the top level of recursion, we first bring up the even coefficients of the input and then move on to the odd ones. Then at the next level, the even coefficients of this first group (which therefore are multiples of <span class="math inline">\(4\)</span>, or equivalently, have zero as their two least significant bits) are brought up, and so on. To put it otherwise, the inputs are arranged by increasing last bit of the binary representation of their index, resolving ties by looking at the next more significant bit(s). The resulting order in binary, <span class="math inline">\(000,100,010,110,001,101,011,111\)</span>, is the same as the natural one, <span class="math inline">\(000, 001, 010, 011, 100, 101, 110, 111\)</span> except the bits are mirrored!</p>
+  <p>Why? Recall that at the top level of recursion, we first bring up the even coefficients of the input and then move on to the odd ones. Then at the next level, the even coefficients of this first group (which therefore are multiples of <span class="math inline">\(4\)</span>, or equivalently, have zero as their two least significant bits) are brought up, and so on.</p>
+  <p>To put it otherwise, the inputs are arranged by increasing last bit of the binary representation of their index, resolving ties by looking at the next more significant bit(s). The resulting order in binary, <span class="math inline">\(000,100,010,110,001,101,011,111\)</span>, is the same as the natural one, <span class="math inline">\(000, 001, 010, 011, 100, 101, 110, 111\)</span> except the bits are mirrored!</p>
   <ol start="3" style="list-style-type: decimal">
   <li>There is a unique path between each input <span class="math inline">\(a_j\)</span> and each output <span class="math inline">\(A(\omega^{k})\)</span>.</li>
   </ol>
   <p>This path is most easily described using the binary representations of <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span> (shown in Figure 10.4 for convenience). There are two edges out of each node, one going up (the <span class="math inline">\(0\)</span>-edge) and one going down (the <span class="math inline">\(1\)</span>-edge). To get to <span class="math inline">\(A(\omega^{k})\)</span> from any input node, simply follow the edges specified in the bit representation of <span class="math inline">\(k\)</span>, starting from the rightmost bit. (Can you similarly specify the path in the reverse direction?)</p>
   <ol start="4" style="list-style-type: decimal">
-  <li>On the path between <span class="math inline">\(a_j\)</span> and <span class="math inline">\(A(\omega^{k})\)</span>, the labels add up to <span class="math inline">\(jk \pmod{8}\)</span>.</li>
+  <li>On the path between <span class="math inline">\(a_j\)</span> and <span class="math inline">\(A(\omega^{k})\)</span>, the labels add up to <span class="math inline">\(jk \bmod{8}\)</span>.</li>
   </ol>
   <p>Since <span class="math inline">\(\omega^8 = 1\)</span>, this means that the contribution of input <span class="math inline">\(a_j\)</span> to output <span class="math inline">\(A(\omega^{k})\)</span> is <span class="math inline">\(a_j \omega^{jk}\)</span>, and therefore the circuit computes correctly the values of polynomial <span class="math inline">\(A(x)\)</span>.</p>
   <ol start="5" style="list-style-type: decimal">
   <li>And finally, notice that the FFT circuit is a natural for parallel computation and direct implementation in hardware.</li>
   </ol>
   <p> </p>
-  <div class="figure">
+  <center><div class="figure">
   <img src="fig-2.10-FFT-circuit.png" alt="Figure 2.10 The fast Fourier transform circuit." />
   <p class="caption"><strong>Figure 2.10</strong> The fast Fourier transform circuit.</p>
-  </div>
+  </div></center>
   <p> </p>
   <blockquote>
   <p><strong>The Spread of a Fast Algorithm</strong></p>
