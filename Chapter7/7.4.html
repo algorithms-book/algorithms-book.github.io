@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/contrib/auto-render.min.js"></script>
 
   <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
   <style>
@@ -61,7 +61,7 @@
   \]</span></p>
   <p>To start with, these <span class="math inline">\(y_i\)</span>'s must be nonnegative, for otherwise they are unqualified to multiply inequalities (multiplying an inequality by a negative number would flip the <span class="math inline">\(\leq\)</span> to <span class="math inline">\(\geq\)</span>). After the multiplication and addition steps, we get the bound: <span class="math display">\[(y_1 + y_3)x_2 + (y_2 + y_3)x_2 \leq 200y_1 + 300y_2 + 400y_3.\]</span></p>
   <p>We want the left-hand side to look like our objective function <span class="math inline">\(x_1\)</span> + <span class="math inline">\(6x_2\)</span> so that the right-hand side is an upper bound on the optimum solution. For this we need <span class="math inline">\(y_1 + y_3\)</span> to be <span class="math inline">\(1\)</span> and <span class="math inline">\(y_2 + y_3\)</span> to be <span class="math inline">\(6\)</span>. Come to think of it, it would be fine if <span class="math inline">\(y_1 + y_3\)</span> were larger than <span class="math inline">\(1\)</span>—the resulting certificate would be all the more convincing.</p>
-  <p>Thus, we get an upper bound <span class="math display">\[x_1 + 6x_2 \leq 200y_1 + 300y_3 + 400y_3\]</span> if <span class="math display">\[\begin{aligned}
+  <p>Thus, we get an upper bound <span class="math display">\[x_1 + 6x_2 \leq 200y_1 + 300y_3 + 400y_3\]</span> when the following holds, <span class="math display">\[\begin{aligned}
   y_1 + y_3    &amp;\geq 1 \\
   y_2 + y_3    &amp;\geq 6 \\
   y_1,y_2, y_3 &amp;\geq 0
@@ -82,25 +82,48 @@
   </div>
   <p>Amazingly, this is not just a lucky example, but a general phenomenon. To start with, the preceding construction—creating a multiplier for each primal constraint; writing a constraint in the dual for every variable of the primal, in which the sum is required to be above the objective coefficient of the corresponding primal variable; and optimizing the sum of the multipliers weighted by the primal right-hand sides—can be carried out for any <span class="math inline">\(\text{LP}\)</span>, as shown in Figure 7.10, and in even greater generality in Figure 7.11.</p>
   <p> </p>
-
+  <p><span class="math display">\[\begin{array}{ccccc|ccccc}
+  &amp;&amp; \text{primal LP} &amp;&amp;&amp;&amp; \text{dual LP} &amp;&amp; \\
+  \hline \\
+  &amp;&amp;
+  \begin{aligned}
+  \max\        &amp;\textbf{c}^{\top}\textbf{x} \\
+  \text{s.t.}\ &amp;\textbf{Ax} \leq \textbf{b} \\
+  ​             &amp; \phantom{\textbf{A}}\textbf{x} \geq 0
+  \\\end{aligned}
+  &amp;&amp;&amp;&amp;
+  \begin{aligned}
+  \min\        &amp;\textbf{y}^{\top}\textbf{b} \\
+  \text{s.t.}\ &amp;\textbf{y}^\top\textbf{A} \geq \textbf{c}^\top \\
+  ​             &amp; \phantom{\textbf{A}^\top}\textbf{y} \geq 0
+  \\\end{aligned}
+  &amp;&amp;
+  \\\end{array}\]</span></p>
   <p><strong>Figure 7.10</strong> A generic primal <span class="math inline">\(\text{LP}\)</span> in matrix-vector form, and its dual.</p>
-  <p><span class="math display">\[\begin{matrix}
-  \text{Primal LP} &amp; &amp; \text{Dual LP} \\
-  \max\ \textbf{c}^{\top}\textbf{x} &amp; &amp; \min\ \textbf{y}^{\top}\textbf{b} \\ \textbf{Ax} \leq \textbf{b} &amp; &amp; \textbf{y}^{\top}\textbf{A} \geq \textbf{c}^{\top} \\
-  \textbf{x} \geq 0 &amp; &amp; \textbf{y} \geq 0
-  \end{matrix}\]</span></p>
   <p> </p>
-
+  <p><span class="math display">\[
+  \begin{array}{ccccc|ccccc}
+  &amp;&amp; \text{primal LP} &amp;&amp;&amp;&amp; \text{dual LP} &amp;&amp; \\
+  \hline \\
+  &amp;&amp;
+  \begin{aligned}
+  \max\        &amp;c_1x_1\phantom{i} + \cdots + c_nx_n \\
+  \text{s.t.}\ &amp;a_{i1}x_1 + \cdots + a_{in}x_n \leq b_i,\ \forall i \in I \\
+               &amp;a_{i1}x_1 + \cdots + a_{in}x_n = b_i,\ \forall i \in E \\
+               &amp;x_j \geq 0,\ \forall j \in N
+  \\\end{aligned}
+  &amp;&amp;&amp;&amp;
+  \begin{aligned}
+  \min\        &amp;b_1y_1\phantom{i} + \cdots + b_my_m \\
+  \text{s.t.}\ &amp;a_{1j}y_1 + \cdots + a_{mj}y_m \geq c_j,\ \forall j \in N \\
+               &amp;a_{1j}y_1 + \cdots + a_{mj}y_m = c_j,\ \forall j \not\in N \\
+               &amp;y_i \geq 0,\ \forall i \in I
+  \\\end{aligned}
+  &amp;&amp;
+  \\\end{array}
+  \]</span></p>
   <p><strong>Figure 7.11</strong> In the most general case of linear programming, we have a set <span class="math inline">\(I\)</span> of inequalities and a set <span class="math inline">\(E\)</span> of equalities (a total of <span class="math inline">\(m = |I| + |E|\)</span> constraints) over <span class="math inline">\(n\)</span> variables, of which a subset <span class="math inline">\(N\)</span> are constrained to be nonnegative. The dual has <span class="math inline">\(m = |I| + |E|\)</span> variables, of which only those corresponding to <span class="math inline">\(I\)</span> have nonnegativity constraints.</p>
-  <p><span class="math display">\[\begin{matrix}
-  \text{Primal LP} &amp; &amp; \text{Dual LP} &amp; \\
-  \max\ c_1x_1 + \cdots + c_nx_n &amp; &amp; \min\ b_1y_1 + \cdots b_my_m \\
-  a_{i1}x_1 + \cdots + a_{in}x_n \leq b_i \forall i \in I &amp; &amp; a_{1j}y_1 + \cdots + a_{mj}y_m \geq c_j \forall j \in N \\
-  a_{i1}x_1 + \cdots + a_{in}x_n = b_i \forall i \in E &amp; &amp; a_{1j}y_1 + \cdots + a_{mj}y_m = c_j \forall j \not\in N \\
-  x_j \geq 0 \forall j \in N &amp; &amp; y_i \geq 0 \forall i \in I \\
-  \end{matrix}\]</span></p>
   <p> </p>
-
   <p>The second figure has one noteworthy addition: if the primal has an equality constraint, then the corresponding multiplier (or <em>dual variable</em>) need not be nonnegative, because the validity of equations is preserved when multiplied by negative numbers.</p>
   <p>So, the multipliers of equations are unrestricted variables. Notice also the simple symmetry between the two <span class="math inline">\(\text{LP}\)</span>s, in that the matrix <span class="math inline">\(A = (a_{ij})\)</span> defines one primal constraint with each of its <em>rows</em>, and one dual constraint with each of its <em>columns</em>.</p>
   <p>By construction, any feasible solution of the dual is an upper bound on any feasible solution of the primal. But moreover, their optima coincide!</p>
