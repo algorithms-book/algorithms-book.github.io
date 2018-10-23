@@ -6,9 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/contrib/auto-render.min.js"></script>
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0-rc.1/contrib/auto-render.min.js"></script>
 
   <link href="../github-markdown.css" rel="stylesheet" type="text/css"/>
   <style>
@@ -95,13 +96,14 @@
   <span class="co">  Output: their product</span>
   <span class="co">  &quot;&quot;&quot;</span>
 
-    <span class="cf">if</span> y <span class="op">=</span> <span class="dv">0</span>: <span class="cf">return</span> <span class="dv">0</span>
+    <span class="cf">if</span> y <span class="op">=</span> <span class="dv">0</span>:
+        <span class="cf">return</span> <span class="dv">0</span>
 
     z <span class="op">=</span> multiple(x, ⌊y <span class="op">/</span> <span class="dv">2</span>⌋)
     <span class="cf">if</span> y <span class="kw">is</span> even:
-      <span class="cf">return</span> 2z
+        <span class="cf">return</span> 2z
     <span class="cf">else</span>:
-      <span class="cf">return</span> 2z <span class="op">+</span> x</code></pre></div>
+        <span class="cf">return</span> 2z <span class="op">+</span> x</code></pre></div>
   <p>The same algorithm can thus be repackaged in different ways. For variety we adopt a third formulation, the recursive algorithm of Figure 1.1, which directly implements the rule</p>
   <p><span class="math display">\[x \cdot y = \begin{cases}
   2(x \cdot \lfloor y / 2 \rfloor)     &amp; \text{if $y$ is even} \\
